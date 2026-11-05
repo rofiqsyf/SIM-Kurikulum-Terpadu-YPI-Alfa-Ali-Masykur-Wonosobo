@@ -593,4 +593,265 @@ class SimKurikulumCompleteFlowTest extends TestCase
 
         $deadlineTask->delete();
     }
+
+    public function test_materi_document_upload_validation_and_download_flow(): void
+    {
+        \Illuminate\Support\Facades\Storage::fake('public');
+
+        $guru = User::where('username', 'guru.ahmad')->first();
+        $materi = \App\Models\Materi::whereHas('tujuanPembelajaran.capaianPembelajaran.mataPelajaran.kurikulum.unit', function ($q) {
+            $q->where('kode_unit', 'SMP-ALFA');
+        })->first();
+
+        $this->assertNotNull($materi);
+
+        // 1. Validation test: Invalid file format (.exe) should be rejected
+        $invalidFile = \Illuminate\Http\UploadedFile::fake()->create('malicious.exe', 500, 'application/x-msdownload');
+        $failResponse = $this->actingAs($guru)->post(route('curriculum.materi.upload', $materi->id), [
+            'dokumen' => $invalidFile,
+        ], ['Accept' => 'application/json']);
+        $failResponse->assertStatus(422);
+        $failResponse->assertJsonValidationErrors(['dokumen']);
+
+        // 2. Successful Upload: PDF file
+        $validPdf = \Illuminate\Http\UploadedFile::fake()->create('Modul_Ajar_Bab1.pdf', 1024, 'application/pdf');
+        $successResponse = $this->actingAs($guru)->post(route('curriculum.materi.upload', $materi->id), [
+            'dokumen' => $validPdf,
+        ], ['Accept' => 'application/json']);
+        $successResponse->assertStatus(200);
+        $successResponse->assertJson(['success' => true]);
+
+        $materi->refresh();
+        $this->assertEquals('Modul_Ajar_Bab1.pdf', $materi->file_name);
+        $this->assertEquals('pdf', $materi->file_type);
+        $this->assertNotNull($materi->file_path);
+        \Illuminate\Support\Facades\Storage::disk('public')->assertExists($materi->file_path);
+
+        // 3. Download Endpoint
+        $downloadResponse = $this->actingAs($guru)->get(route('curriculum.materi.download', $materi->id));
+        $downloadResponse->assertStatus(200);
+
+        // 4. Delete File Endpoint
+        $deleteResponse = $this->actingAs($guru)->delete(route('curriculum.materi.delete_file', $materi->id), [], [
+            'Accept' => 'application/json'
+        ]);
+        $deleteResponse->assertStatus(200);
+        $deleteResponse->assertJson(['success' => true]);
+
+        $materi->refresh();
+        $this->assertNull($materi->file_path);
+        $this->assertNull($materi->file_name);
+        $this->assertFalse($materi->hasDocument());
+
+        // 5. Cross-unit authorization check: Guru SMP cannot upload to Materi MI
+        $materiMI = \App\Models\Materi::whereHas('tujuanPembelajaran.capaianPembelajaran.mataPelajaran.kurikulum.unit', function ($q) {
+            $q->where('kode_unit', 'MI-ALFA');
+        })->first();
+        if ($materiMI) {
+            $crossUpload = $this->actingAs($guru)->post(route('curriculum.materi.upload', $materiMI->id), [
+                'dokumen' => $validPdf,
+            ], ['Accept' => 'application/json']);
+            $crossUpload->assertStatus(403);
+        }
+    }
+
+    public function test_helpdesk_chat_with_administrator_and_attachment_flow(): void
+    {
+        \Illuminate\Support\Facades\Storage::fake('public');
+
+        $guru = User::where('username', 'guru.ahmad')->first();
+        $admin = User::where('username', 'admin')->first();
+        $wakaMI = User::where('username', 'waka.mi')->first();
+
+        // 1. Guru accesses helpdesk chat
+        $guruView = $this->actingAs($guru)->get(route('helpdesk.index'));
+        $guruView->assertStatus(200);
+        $guruView->assertSee('Hubungi Administrator');
+
+        $thread = \App\Models\AdminChatThread::where('user_id', $guru->id)->first();
+        $this->assertNotNull($thread);
+
+        // 2. Guru sends message with an attached screenshot image
+        $imageFile = \Illuminate\Http\UploadedFile::fake()->create('kendala_tampilan.png', 500, 'image/png');
+        $sendResponse = $this->actingAs($guru)->post(route('helpdesk.send', $thread->id), [
+            'pesan' => 'Mohon bantuan admin, ada kendala pada tampilan silabus saya.',
+            'lampiran' => $imageFile,
+        ], ['Accept' => 'application/json']);
+        $sendResponse->assertStatus(200);
+        $sendResponse->assertJson(['success' => true]);
+
+        $thread->refresh();
+        $this->assertEquals(1, $thread->unread_for_admin);
+        $this->assertStringContainsString('Mohon bantuan admin', $thread->last_message_preview);
+
+        $lastGuruMsg = $thread->messages()->latest('id')->first();
+        $this->assertNotNull($lastGuruMsg);
+        $this->assertEquals('kendala_tampilan.png', $lastGuruMsg->file_name);
+        $this->assertEquals('image', $lastGuruMsg->file_type);
+        $this->assertTrue($lastGuruMsg->isImage());
+        \Illuminate\Support\Facades\Storage::disk('public')->assertExists($lastGuruMsg->file_path);
+
+        // Verify Admin received notification
+        $adminNotif = \App\Models\Notifikasi::where('user_id', $admin->id)
+            ->where('tipe', 'chat_admin')
+            ->latest('id')
+            ->first();
+        $this->assertNotNull($adminNotif);
+        $this->assertStringContainsString('Pesan Bantuan', $adminNotif->judul);
+
+        // 3. Admin opens helpdesk index
+        $adminView = $this->actingAs($admin)->get(route('helpdesk.index', ['thread_id' => $thread->id]));
+        $adminView->assertStatus(200);
+        $adminView->assertSee('Kotak Masuk Bantuan');
+        $adminView->assertSee($guru->name);
+
+        $thread->refresh();
+        $this->assertEquals(0, $thread->unread_for_admin); // Marked as read
+
+        // 4. Admin replies with an attached PDF document
+        $pdfFile = \Illuminate\Http\UploadedFile::fake()->create('Solusi_Teknis.pdf', 512, 'application/pdf');
+        $adminReply = $this->actingAs($admin)->post(route('helpdesk.send', $thread->id), [
+            'pesan' => 'Halo Pak Ahmad, sudah kami perbaiki. Silakan cek berkas panduan terlampir.',
+            'lampiran' => $pdfFile,
+        ], ['Accept' => 'application/json']);
+        $adminReply->assertStatus(200);
+
+        $thread->refresh();
+        $this->assertEquals(1, $thread->unread_for_user);
+
+        $lastAdminMsg = $thread->messages()->latest('id')->first();
+        $this->assertEquals('Solusi_Teknis.pdf', $lastAdminMsg->file_name);
+        $this->assertEquals('pdf', $lastAdminMsg->file_type);
+        $this->assertTrue($lastAdminMsg->isDocument());
+
+        // Verify Guru received notification
+        $guruNotif = \App\Models\Notifikasi::where('user_id', $guru->id)
+            ->where('tipe', 'chat_admin')
+            ->latest('id')
+            ->first();
+        $this->assertNotNull($guruNotif);
+        $this->assertEquals('Balasan Administrator', $guruNotif->judul);
+
+        // 5. Polling endpoint
+        $pollResponse = $this->actingAs($guru)->get(route('helpdesk.poll', ['threadId' => $thread->id, 'after_id' => $lastGuruMsg->id]));
+        $pollResponse->assertStatus(200);
+        $pollData = $pollResponse->json();
+        $this->assertTrue($pollData['success']);
+        $this->assertCount(1, $pollData['messages']);
+        $this->assertEquals('Solusi_Teknis.pdf', $pollData['messages'][0]['file_name']);
+
+        // 6. Download attachment
+        $downloadResponse = $this->actingAs($guru)->get(route('helpdesk.download', $lastAdminMsg->id));
+        $downloadResponse->assertStatus(200);
+
+        // 7. Toggle ticket status
+        $statusToggle = $this->actingAs($admin)->post(route('helpdesk.status', $thread->id), [], ['Accept' => 'application/json']);
+        $statusToggle->assertStatus(200);
+        $this->assertEquals('resolved', $statusToggle->json('status'));
+
+        // 8. Guru sends message again -> automatically reopens
+        $followUp = $this->actingAs($guru)->post(route('helpdesk.send', $thread->id), [
+            'pesan' => 'Terima kasih banyak tim IT, masalah sudah selesai!',
+        ], ['Accept' => 'application/json']);
+        $followUp->assertStatus(200);
+
+        $thread->refresh();
+        $this->assertEquals('open', $thread->status);
+
+        // 9. Cross-user security check: Waka MI cannot send message to Guru Ahmad's thread
+        $unauthorizedSend = $this->actingAs($wakaMI)->post(route('helpdesk.send', $thread->id), [
+            'pesan' => 'Mencoba kirim ke thread orang lain.',
+        ], ['Accept' => 'application/json']);
+        $unauthorizedSend->assertStatus(403);
+    }
+
+    public function test_user_can_edit_their_own_profile_data_and_password_flow(): void
+    {
+        \Illuminate\Support\Facades\Storage::fake('public');
+
+        $guru = User::where('username', 'guru.ahmad')->first();
+        $this->assertNotNull($guru);
+
+        // 1. Access profile edit page
+        $pageResponse = $this->actingAs($guru)->get(route('profile.edit'));
+        $pageResponse->assertStatus(200);
+        $pageResponse->assertSee($guru->name);
+        $pageResponse->assertSee('Perbarui Data Diri');
+
+        // 2. Update profile with new info and avatar
+        $avatarFile = \Illuminate\Http\UploadedFile::fake()->create('profile_foto.png', 300, 'image/png');
+
+        $updateResponse = $this->actingAs($guru)->post(route('profile.update'), [
+            'name' => 'Ahmad Fauzi, S.Pd., M.Pd.',
+            'email' => 'ahmad.fauzi.guru@alimasykur.sch.id',
+            'nomor_telepon' => '0812-9876-5432',
+            'nip' => '198801012015011003',
+            'jabatan' => 'Guru Senior Matematika SMP',
+            'alamat' => 'Jl. Menara No. 45 Kudus',
+            'bio' => 'Pendidik matematika dengan pendekatan diferensiasi berbasis proyek.',
+            'avatar' => $avatarFile,
+        ]);
+
+        $updateResponse->assertSessionHas('success');
+
+        $guru->refresh();
+        $this->assertEquals('Ahmad Fauzi, S.Pd., M.Pd.', $guru->name);
+        $this->assertEquals('ahmad.fauzi.guru@alimasykur.sch.id', $guru->email);
+        $this->assertEquals('0812-9876-5432', $guru->nomor_telepon);
+        $this->assertEquals('198801012015011003', $guru->nip);
+        $this->assertEquals('Guru Senior Matematika SMP', $guru->jabatan);
+        $this->assertEquals('Jl. Menara No. 45 Kudus', $guru->alamat);
+        $this->assertEquals('Pendidik matematika dengan pendekatan diferensiasi berbasis proyek.', $guru->bio);
+        $this->assertNotNull($guru->avatar_url);
+        \Illuminate\Support\Facades\Storage::disk('public')->assertExists($guru->avatar_url);
+
+        // 3. Test validation: invalid email or duplicate email
+        $duplicateResponse = $this->actingAs($guru)->post(route('profile.update'), [
+            'name' => 'Ahmad Fauzi',
+            'email' => 'admin@alimasykur.sch.id', // Already taken by admin
+        ]);
+        $duplicateResponse->assertSessionHasErrors(['email']);
+
+        // 4. Update Password flow
+        // Wrong current password
+        $wrongPass = $this->actingAs($guru)->post(route('profile.password'), [
+            'current_password' => 'passwordsalah123',
+            'password' => 'passwordbaru123',
+            'password_confirmation' => 'passwordbaru123',
+        ]);
+        $wrongPass->assertSessionHasErrors(['current_password']);
+
+        // Password mismatch confirmation
+        $mismatchPass = $this->actingAs($guru)->post(route('profile.password'), [
+            'current_password' => 'password',
+            'password' => 'passwordbaru123',
+            'password_confirmation' => 'tidaksama123',
+        ]);
+        $mismatchPass->assertSessionHasErrors(['password']);
+
+        // Successful password update
+        $validPass = $this->actingAs($guru)->post(route('profile.password'), [
+            'current_password' => 'password',
+            'password' => 'passwordbaru123',
+            'password_confirmation' => 'passwordbaru123',
+        ]);
+        $validPass->assertSessionHas('success');
+
+        // Verify can login with new password
+        $this->post('/logout');
+        $loginResponse = $this->post(route('login.submit'), [
+            'identity' => $guru->username,
+            'password' => 'passwordbaru123',
+        ]);
+        $loginResponse->assertRedirect(route('dashboard'));
+
+        // 5. Delete avatar
+        $this->actingAs($guru);
+        $deleteAvatarResponse = $this->delete(route('profile.avatar.delete'));
+        $deleteAvatarResponse->assertSessionHas('success');
+
+        $guru->refresh();
+        $this->assertNull($guru->avatar_url);
+        $this->assertNull($guru->avatar_image);
+    }
 }

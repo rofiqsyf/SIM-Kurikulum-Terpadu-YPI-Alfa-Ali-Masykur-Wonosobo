@@ -192,27 +192,27 @@
                         <div class="md:col-span-3 flex items-center gap-1.5 bg-white border border-slate-200/90 rounded-xl px-2.5 py-1.5 overflow-x-auto">
                             <span class="text-[10px] font-bold text-slate-500 uppercase shrink-0">Warna:</span>
                             <div class="flex items-center gap-1.5">
-                                <label class="cursor-pointer" title="Biru Utama">
+                                <label class="cursor-pointer" title="Biru">
                                     <input type="radio" name="warna" value="#2563eb" class="sr-only peer" checked>
                                     <span class="w-4 h-4 rounded-full bg-[#2563eb] inline-block peer-checked:ring-2 peer-checked:ring-offset-1 peer-checked:ring-[#2563eb] transition-all"></span>
                                 </label>
-                                <label class="cursor-pointer" title="Hijau KBM">
+                                <label class="cursor-pointer" title="Hijau">
                                     <input type="radio" name="warna" value="#059669" class="sr-only peer">
                                     <span class="w-4 h-4 rounded-full bg-[#059669] inline-block peer-checked:ring-2 peer-checked:ring-offset-1 peer-checked:ring-[#059669] transition-all"></span>
                                 </label>
-                                <label class="cursor-pointer" title="Ungu Bimbingan">
+                                <label class="cursor-pointer" title="Ungu">
                                     <input type="radio" name="warna" value="#7c3aed" class="sr-only peer">
                                     <span class="w-4 h-4 rounded-full bg-[#7c3aed] inline-block peer-checked:ring-2 peer-checked:ring-offset-1 peer-checked:ring-[#7c3aed] transition-all"></span>
                                 </label>
-                                <label class="cursor-pointer" title="Amber Penilaian">
+                                <label class="cursor-pointer" title="Amber">
                                     <input type="radio" name="warna" value="#d97706" class="sr-only peer">
                                     <span class="w-4 h-4 rounded-full bg-[#d97706] inline-block peer-checked:ring-2 peer-checked:ring-offset-1 peer-checked:ring-[#d97706] transition-all"></span>
                                 </label>
-                                <label class="cursor-pointer" title="Merah Deadline">
+                                <label class="cursor-pointer" title="Merah">
                                     <input type="radio" name="warna" value="#e11d48" class="sr-only peer">
                                     <span class="w-4 h-4 rounded-full bg-[#e11d48] inline-block peer-checked:ring-2 peer-checked:ring-offset-1 peer-checked:ring-[#e11d48] transition-all"></span>
                                 </label>
-                                <label class="cursor-pointer" title="Teal Modul">
+                                <label class="cursor-pointer" title="Teal">
                                     <input type="radio" name="warna" value="#0d9488" class="sr-only peer">
                                     <span class="w-4 h-4 rounded-full bg-[#0d9488] inline-block peer-checked:ring-2 peer-checked:ring-offset-1 peer-checked:ring-[#0d9488] transition-all"></span>
                                 </label>

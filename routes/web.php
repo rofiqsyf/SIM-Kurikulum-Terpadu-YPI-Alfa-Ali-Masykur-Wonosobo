@@ -6,8 +6,10 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CurriculumController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GuideController;
+use App\Http\Controllers\HelpdeskChatController;
 use App\Http\Controllers\JurnalController;
 use App\Http\Controllers\KegiatanController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProposalController;
 use App\Http\Controllers\YayasanController;
 use Illuminate\Support\Facades\Route;
@@ -31,6 +33,9 @@ Route::middleware(['auth'])->group(function () {
     // 2. Mata Pelajaran Saya & Workspace Hierarki (CP -> TP -> Materi)
     Route::get('/mata-pelajaran', [CurriculumController::class, 'index'])->name('curriculum.index');
     Route::post('/usulan/store', [CurriculumController::class, 'storeProposal'])->name('curriculum.proposal.store');
+    Route::post('/kurikulum/materi/{id}/upload-dokumen', [CurriculumController::class, 'uploadMateriDocument'])->name('curriculum.materi.upload');
+    Route::delete('/kurikulum/materi/{id}/delete-dokumen', [CurriculumController::class, 'deleteMateriDocument'])->name('curriculum.materi.delete_file');
+    Route::get('/kurikulum/materi/{id}/download-dokumen', [CurriculumController::class, 'downloadMateriDocument'])->name('curriculum.materi.download');
 
     // 3. Riwayat Usulan & Pelacak Status Kurikulum
     Route::get('/usulan', [ProposalController::class, 'index'])->name('usulan.index');
@@ -74,4 +79,17 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/realtime/stream', [\App\Http\Controllers\RealtimeController::class, 'stream'])->name('realtime.stream');
     Route::post('/realtime/notifications/{notifikasi}/read', [\App\Http\Controllers\RealtimeController::class, 'markAsRead'])->name('realtime.read');
     Route::post('/realtime/notifications/read-all', [\App\Http\Controllers\RealtimeController::class, 'markAllAsRead'])->name('realtime.read-all');
+
+    // 11. Layanan Bantuan & Chat Hubungi Administrator
+    Route::get('/bantuan/chat', [HelpdeskChatController::class, 'index'])->name('helpdesk.index');
+    Route::post('/bantuan/chat/{threadId}/kirim', [HelpdeskChatController::class, 'sendMessage'])->name('helpdesk.send');
+    Route::get('/bantuan/chat/{threadId}/poll', [HelpdeskChatController::class, 'pollMessages'])->name('helpdesk.poll');
+    Route::get('/bantuan/chat/unduh/{messageId}', [HelpdeskChatController::class, 'downloadAttachment'])->name('helpdesk.download');
+    Route::post('/bantuan/chat/{threadId}/status', [HelpdeskChatController::class, 'toggleStatus'])->name('helpdesk.status');
+
+    // 12. Profil Pengguna & Edit Data Diri
+    Route::get('/profil', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::post('/profil/update', [ProfileController::class, 'update'])->name('profile.update');
+    Route::post('/profil/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
+    Route::delete('/profil/avatar', [ProfileController::class, 'deleteAvatar'])->name('profile.avatar.delete');
 });

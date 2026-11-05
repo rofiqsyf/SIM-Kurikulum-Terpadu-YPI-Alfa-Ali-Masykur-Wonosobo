@@ -12,6 +12,7 @@ use App\Models\UsulanPerubahan;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class CurriculumController extends Controller
 {
@@ -200,6 +201,27 @@ class CurriculumController extends Controller
             }
         }
 
+        $filePath = null;
+        $fileName = null;
+        $fileType = null;
+        $fileSize = null;
+
+        if ($request->hasFile('dokumen')) {
+            $request->validate([
+                'dokumen' => 'file|mimes:pdf,docx,xlsx,doc,xls|max:20480',
+            ], [
+                'dokumen.mimes' => 'Format file usulan tidak didukung! Format yang diperbolehkan hanya PDF (.pdf), Word (.docx, .doc), dan Excel (.xlsx, .xls).',
+                'dokumen.max' => 'Ukuran file usulan melebihi batas maksimal (Maksimal 20 MB).',
+            ]);
+
+            $file = $request->file('dokumen');
+            $fileType = strtolower($file->getClientOriginalExtension());
+            $fileName = $file->getClientOriginalName();
+            $bytes = $file->getSize();
+            $fileSize = $bytes >= 1048576 ? round($bytes / 1048576, 1) . ' MB' : round($bytes / 1024, 1) . ' KB';
+            $filePath = $file->store('usulan_dokumen/' . ($mapel->kode_mapel ?? 'general'), 'public');
+        }
+
         $usulan = UsulanPerubahan::create([
             'nomor_usulan' => $nomorUsulan,
             'pengusul_id' => $user->id,
@@ -210,6 +232,10 @@ class CurriculumController extends Controller
             'data_id' => $validated['data_id'] ?? null,
             'judul_usulan' => $validated['judul_usulan'],
             'data_usulan' => $dataUsulan,
+            'file_path' => $filePath,
+            'file_name' => $fileName,
+            'file_type' => $fileType,
+            'file_size' => $fileSize,
             'alasan_pengajuan' => $validated['alasan_pengajuan'],
             'status' => 'Menunggu Persetujuan',
             'tanggal_pengajuan' => now(),
@@ -225,6 +251,156 @@ class CurriculumController extends Controller
         );
 
         return redirect()->route('usulan.index')->with('success', "Usulan {$nomorUsulan} berhasil diajukan ke Waka Kurikulum & Kepala Sekolah untuk ditinjau.");
+    }
+
+    /**
+     * Upload dokumen modul ajar langsung pada materi pembelajaran.
+     */
+    public function uploadMateriDocument(Request $request, $id)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+        }
+
+        $materi = Materi::with('tujuanPembelajaran.capaianPembelajaran.mataPelajaran.kurikulum')->findOrFail($id);
+        $mapel = $materi->tujuanPembelajaran?->capaianPembelajaran?->mataPelajaran;
+        $unitId = $mapel?->kurikulum?->unit_id;
+
+        $isAssignedGuru = $mapel && $mapel->penugasanGuru()->where('user_id', $user->id)->exists();
+        $canManage = $user->canAccessAllUnits() || $user->canManageUnit($unitId) || $isAssignedGuru;
+
+        if (!$canManage) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Akses Dibatasi: Anda tidak berwenang mengunggah modul pada mata pelajaran unit ini.',
+                ], 403);
+            }
+            return back()->with('error', 'Akses Dibatasi: Anda tidak berwenang mengunggah modul pada mata pelajaran unit ini.');
+        }
+
+        $validated = $request->validate([
+            'dokumen' => [
+                'required',
+                'file',
+                'mimes:pdf,docx,xlsx,doc,xls',
+                'max:20480', // 20 MB
+            ],
+            'keterangan' => 'nullable|string|max:255',
+        ], [
+            'dokumen.required' => 'Silakan pilih berkas dokumen yang akan diunggah.',
+            'dokumen.file' => 'Berkas yang diunggah harus berupa file yang valid.',
+            'dokumen.mimes' => 'Format file tidak didukung! Format yang diperbolehkan hanya PDF (.pdf), Word (.docx, .doc), dan Excel (.xlsx, .xls).',
+            'dokumen.max' => 'Ukuran file melebihi batas maksimal (Maksimal 20 MB).',
+        ]);
+
+        $file = $request->file('dokumen');
+        $ext = strtolower($file->getClientOriginalExtension());
+        $origName = $file->getClientOriginalName();
+        $sizeBytes = $file->getSize();
+        $sizeStr = $sizeBytes >= 1048576 
+            ? round($sizeBytes / 1048576, 1) . ' MB' 
+            : round($sizeBytes / 1024, 1) . ' KB';
+
+        // Delete old file if exists
+        if ($materi->file_path && Storage::disk('public')->exists($materi->file_path)) {
+            Storage::disk('public')->delete($materi->file_path);
+        }
+
+        $folder = 'modul_materi/' . ($mapel?->kode_mapel ?? 'general');
+        $storedPath = $file->store($folder, 'public');
+
+        $materi->update([
+            'file_path' => $storedPath,
+            'file_name' => $origName,
+            'file_type' => $ext,
+            'file_size' => $sizeStr,
+        ]);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => "Berkas '{$origName}' ({$sizeStr}) berhasil diunggah sebagai dokumen modul materi.",
+                'data' => [
+                    'id' => $materi->id,
+                    'file_name' => $origName,
+                    'file_type' => $ext,
+                    'file_size' => $sizeStr,
+                    'badge' => $materi->document_badge,
+                    'download_url' => route('curriculum.materi.download', $materi->id),
+                ],
+            ]);
+        }
+
+        return back()->with('success', "Berkas '{$origName}' ({$sizeStr}) berhasil diunggah ke modul materi.");
+    }
+
+    /**
+     * Hapus berkas dokumen modul materi.
+     */
+    public function deleteMateriDocument(Request $request, $id)
+    {
+        $user = Auth::user();
+        $materi = Materi::with('tujuanPembelajaran.capaianPembelajaran.mataPelajaran.kurikulum')->findOrFail($id);
+        $mapel = $materi->tujuanPembelajaran?->capaianPembelajaran?->mataPelajaran;
+        $unitId = $mapel?->kurikulum?->unit_id;
+
+        $isAssignedGuru = $mapel && $mapel->penugasanGuru()->where('user_id', $user->id)->exists();
+        $canManage = $user->canAccessAllUnits() || $user->canManageUnit($unitId) || $isAssignedGuru;
+
+        if (!$canManage) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Akses Dibatasi.'], 403);
+            }
+            return back()->with('error', 'Akses Dibatasi.');
+        }
+
+        if ($materi->file_path && Storage::disk('public')->exists($materi->file_path)) {
+            Storage::disk('public')->delete($materi->file_path);
+        }
+
+        $oldName = $materi->file_name;
+        $materi->update([
+            'file_path' => null,
+            'file_name' => null,
+            'file_type' => null,
+            'file_size' => null,
+        ]);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => "Berkas lampiran '{$oldName}' berhasil dihapus dari modul materi.",
+            ]);
+        }
+
+        return back()->with('success', "Berkas lampiran berhasil dihapus dari materi.");
+    }
+
+    /**
+     * Unduh berkas dokumen modul materi dengan otorisasi unit.
+     */
+    public function downloadMateriDocument($id)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        $materi = Materi::with('tujuanPembelajaran.capaianPembelajaran.mataPelajaran.kurikulum')->findOrFail($id);
+        $mapel = $materi->tujuanPembelajaran?->capaianPembelajaran?->mataPelajaran;
+        $unitId = $mapel?->kurikulum?->unit_id;
+
+        if (!$user->canAccessAllUnits() && $user->unit_id && $unitId && $user->unit_id !== $unitId) {
+            return back()->with('error', 'Akses Dibatasi: Anda tidak berwenang mengunduh dokumen kurikulum di luar unit sekolah Anda.');
+        }
+
+        if (!$materi->file_path || !Storage::disk('public')->exists($materi->file_path)) {
+            return back()->with('error', 'Berkas fisik dokumen modul materi tidak ditemukan pada media penyimpanan.');
+        }
+
+        return Storage::disk('public')->download($materi->file_path, $materi->file_name);
     }
 }
 

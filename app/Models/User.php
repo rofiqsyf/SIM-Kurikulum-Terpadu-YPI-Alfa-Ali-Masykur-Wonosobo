@@ -79,6 +79,33 @@ class User extends Authenticatable
         return $this->hasMany(Notifikasi::class, 'user_id')->latest();
     }
 
+    public function adminChatThread()
+    {
+        return $this->hasOne(AdminChatThread::class, 'user_id');
+    }
+
+    public function unreadAdminChatCount(): int
+    {
+        if ($this->isAdmin()) {
+            return (int) AdminChatThread::sum('unread_for_admin');
+        }
+
+        return (int) ($this->adminChatThread?->unread_for_user ?? 0);
+    }
+
+    public function getAvatarImageAttribute(): ?string
+    {
+        if (!$this->avatar_url) {
+            return null;
+        }
+
+        if (str_starts_with($this->avatar_url, 'http://') || str_starts_with($this->avatar_url, 'https://')) {
+            return $this->avatar_url;
+        }
+
+        return \Illuminate\Support\Facades\Storage::disk('public')->url($this->avatar_url);
+    }
+
     // Role helper methods
     public function isGuru(): bool
     {

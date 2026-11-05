@@ -77,52 +77,52 @@
         <div>
             <label class="block font-bold text-slate-700 mb-1.5">Pilihan Warna Penanda di Kalender</label>
             <div class="flex items-center gap-2.5 flex-wrap" id="agenda-color-palette">
-                <label class="cursor-pointer flex items-center gap-1.5 p-1 rounded-xl hover:bg-slate-50 transition-colors">
+                <label class="cursor-pointer flex items-center gap-1.5 p-1 rounded-xl hover:bg-slate-50 transition-colors" title="Biru">
                     <input type="radio" name="warna" value="#2563eb" class="sr-only peer" checked>
                     <span class="w-6 h-6 rounded-full bg-[#2563eb] inline-flex items-center justify-center text-white peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-[#2563eb] transition-all shadow-subtle">
                         <span class="material-symbols-outlined text-[10px] opacity-0 peer-checked:opacity-100">check</span>
                     </span>
-                    <span class="text-[11px] text-slate-600 font-medium">Biru Utama</span>
+                    <span class="text-[11px] text-slate-600 font-medium">Biru</span>
                 </label>
 
-                <label class="cursor-pointer flex items-center gap-1.5 p-1 rounded-xl hover:bg-slate-50 transition-colors">
+                <label class="cursor-pointer flex items-center gap-1.5 p-1 rounded-xl hover:bg-slate-50 transition-colors" title="Hijau">
                     <input type="radio" name="warna" value="#059669" class="sr-only peer">
                     <span class="w-6 h-6 rounded-full bg-[#059669] inline-flex items-center justify-center text-white peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-[#059669] transition-all shadow-subtle">
                         <span class="material-symbols-outlined text-[10px] opacity-0 peer-checked:opacity-100">check</span>
                     </span>
-                    <span class="text-[11px] text-slate-600 font-medium">Hijau KBM</span>
+                    <span class="text-[11px] text-slate-600 font-medium">Hijau</span>
                 </label>
 
-                <label class="cursor-pointer flex items-center gap-1.5 p-1 rounded-xl hover:bg-slate-50 transition-colors">
+                <label class="cursor-pointer flex items-center gap-1.5 p-1 rounded-xl hover:bg-slate-50 transition-colors" title="Ungu">
                     <input type="radio" name="warna" value="#7c3aed" class="sr-only peer">
                     <span class="w-6 h-6 rounded-full bg-[#7c3aed] inline-flex items-center justify-center text-white peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-[#7c3aed] transition-all shadow-subtle">
                         <span class="material-symbols-outlined text-[10px] opacity-0 peer-checked:opacity-100">check</span>
                     </span>
-                    <span class="text-[11px] text-slate-600 font-medium">Ungu Bimbingan</span>
+                    <span class="text-[11px] text-slate-600 font-medium">Ungu</span>
                 </label>
 
-                <label class="cursor-pointer flex items-center gap-1.5 p-1 rounded-xl hover:bg-slate-50 transition-colors">
+                <label class="cursor-pointer flex items-center gap-1.5 p-1 rounded-xl hover:bg-slate-50 transition-colors" title="Amber">
                     <input type="radio" name="warna" value="#d97706" class="sr-only peer">
                     <span class="w-6 h-6 rounded-full bg-[#d97706] inline-flex items-center justify-center text-white peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-[#d97706] transition-all shadow-subtle">
                         <span class="material-symbols-outlined text-[10px] opacity-0 peer-checked:opacity-100">check</span>
                     </span>
-                    <span class="text-[11px] text-slate-600 font-medium">Amber Penilaian</span>
+                    <span class="text-[11px] text-slate-600 font-medium">Amber</span>
                 </label>
 
-                <label class="cursor-pointer flex items-center gap-1.5 p-1 rounded-xl hover:bg-slate-50 transition-colors">
+                <label class="cursor-pointer flex items-center gap-1.5 p-1 rounded-xl hover:bg-slate-50 transition-colors" title="Merah">
                     <input type="radio" name="warna" value="#e11d48" class="sr-only peer">
                     <span class="w-6 h-6 rounded-full bg-[#e11d48] inline-flex items-center justify-center text-white peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-[#e11d48] transition-all shadow-subtle">
                         <span class="material-symbols-outlined text-[10px] opacity-0 peer-checked:opacity-100">check</span>
                     </span>
-                    <span class="text-[11px] text-slate-600 font-medium">Merah Deadline</span>
+                    <span class="text-[11px] text-slate-600 font-medium">Merah</span>
                 </label>
 
-                <label class="cursor-pointer flex items-center gap-1.5 p-1 rounded-xl hover:bg-slate-50 transition-colors">
+                <label class="cursor-pointer flex items-center gap-1.5 p-1 rounded-xl hover:bg-slate-50 transition-colors" title="Teal">
                     <input type="radio" name="warna" value="#0d9488" class="sr-only peer">
                     <span class="w-6 h-6 rounded-full bg-[#0d9488] inline-flex items-center justify-center text-white peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-[#0d9488] transition-all shadow-subtle">
                         <span class="material-symbols-outlined text-[10px] opacity-0 peer-checked:opacity-100">check</span>
                     </span>
-                    <span class="text-[11px] text-slate-600 font-medium">Teal Modul</span>
+                    <span class="text-[11px] text-slate-600 font-medium">Teal</span>
                 </label>
             </div>
         </div>

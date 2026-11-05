@@ -52,6 +52,22 @@ class NotificationService
     }
 
     /**
+     * Send notification to all system administrators.
+     */
+    public static function notifyAdmins(string $judul, string $pesan, string $tipe = 'chat_admin', ?string $tautan = null, ?array $data = null): void
+    {
+        $adminIds = User::whereHas('peran', function ($q) {
+            $q->where('nama_peran', 'like', '%admin%');
+        })
+        ->pluck('id')
+        ->toArray();
+
+        if (!empty($adminIds)) {
+            self::send($adminIds, $judul, $pesan, $tipe, $tautan, $data);
+        }
+    }
+
+    /**
      * Check user's tasks and send notification when deadline is reached or overdue.
      */
     public static function checkAndNotifyUserDeadlines($userId): int

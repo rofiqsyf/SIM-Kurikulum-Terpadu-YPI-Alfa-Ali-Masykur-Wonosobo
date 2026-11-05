@@ -431,6 +431,10 @@ class DatabaseSeeder extends Seeder
             'isi_materi' => 'Pemahaman arah bilangan positif dan negatif, penerapan suhu derajat termometer dan elevasi permukaan laut.',
             'beban_jp' => 4,
             'media_ajar' => 'Lembar Kerja Garis Termometer',
+            'file_path' => 'modul_materi/SMP-MAT/Modul_Ajar_Konsep_Bilangan_Bulat.pdf',
+            'file_name' => 'Modul_Ajar_Konsep_Bilangan_Bulat.pdf',
+            'file_type' => 'pdf',
+            'file_size' => '2.4 MB',
         ]);
 
         Materi::create([
@@ -440,6 +444,10 @@ class DatabaseSeeder extends Seeder
             'isi_materi' => 'Sifat komutatif, asosiatif, dan penggunaan model koin muatan listrik dalam penjumlahan serta pengurangan.',
             'beban_jp' => 4,
             'media_ajar' => 'Simulasi Koin Magnetik Dua Sisi',
+            'file_path' => 'modul_materi/SMP-MAT/LKPD_Operasi_Bilangan_Bulat.docx',
+            'file_name' => 'LKPD_Operasi_Bilangan_Bulat.docx',
+            'file_type' => 'docx',
+            'file_size' => '1.8 MB',
         ]);
 
         Materi::create([
@@ -617,5 +625,74 @@ class DatabaseSeeder extends Seeder
             'penguji_id' => $guruAhmad->id,
             'tanggal_setoran' => now()->subDay()->format('Y-m-d'),
         ]);
+
+        // 18. Hubungi Administrator & Helpdesk Threads
+        $threadGuruAhmad = \App\Models\AdminChatThread::create([
+            'user_id' => $guruAhmad->id,
+            'subjek' => 'Format Baku Modul Ajar Matematika Berdiferensiasi',
+            'kategori' => 'silabus',
+            'status' => 'open',
+            'unread_for_user' => 0,
+            'unread_for_admin' => 0,
+            'last_message_at' => now()->subMinutes(15),
+            'last_message_preview' => 'Alhamdulillah terima kasih banyak Pak Admin, sangat membantu!',
+        ]);
+
+        \App\Models\AdminChatMessage::create([
+            'thread_id' => $threadGuruAhmad->id,
+            'sender_id' => $guruAhmad->id,
+            'pesan' => 'Assalamu\'alaikum Pak Admin IT, mohon arahan format baku penyusunan modul ajar matematika Fase D yang memuat diferensiasi konten.',
+            'created_at' => now()->subHours(2),
+            'is_read' => true,
+        ]);
+
+        \App\Models\AdminChatMessage::create([
+            'thread_id' => $threadGuruAhmad->id,
+            'sender_id' => $adminSistem->id,
+            'pesan' => 'Wa\'alaikumsalam wr wb Pak Ahmad. Baik, berikut kami lampirkan dokumen panduan teknis kurikulum merdeka yayasan dan contoh formatnya.',
+            'file_path' => 'chat_attachments/1/Panduan_Teknis_SIM_Kurikulum.pdf',
+            'file_name' => 'Panduan_Teknis_SIM_Kurikulum.pdf',
+            'file_type' => 'pdf',
+            'file_extension' => 'pdf',
+            'file_size' => '1.2 MB',
+            'created_at' => now()->subHours(1),
+            'is_read' => true,
+        ]);
+
+        \App\Models\AdminChatMessage::create([
+            'thread_id' => $threadGuruAhmad->id,
+            'sender_id' => $guruAhmad->id,
+            'pesan' => 'Alhamdulillah terima kasih banyak Pak Admin, sangat membantu!',
+            'created_at' => now()->subMinutes(15),
+            'is_read' => true,
+        ]);
+
+        // Thread 2: Waka MI needing assistance
+        $wakaMIUser = User::where('username', 'waka.mi')->first();
+        if ($wakaMIUser) {
+            $threadWakaMI = \App\Models\AdminChatThread::create([
+                'user_id' => $wakaMIUser->id,
+                'subjek' => 'Sinkronisasi Mata Pelajaran Khas Ke-NU-an MI Tahfidz',
+                'kategori' => 'kurikulum',
+                'status' => 'open',
+                'unread_for_user' => 0,
+                'unread_for_admin' => 1,
+                'last_message_at' => now()->subMinutes(5),
+                'last_message_preview' => 'Mohon bantuan cek kode mapel ASW-MI-01 pada sistem kurikulum kami.',
+            ]);
+
+            \App\Models\AdminChatMessage::create([
+                'thread_id' => $threadWakaMI->id,
+                'sender_id' => $wakaMIUser->id,
+                'pesan' => 'Mohon bantuan cek kode mapel ASW-MI-01 pada sistem kurikulum kami.',
+                'file_path' => 'chat_attachments/1/screenshot_verifikasi_cp.png',
+                'file_name' => 'screenshot_verifikasi_cp.png',
+                'file_type' => 'image',
+                'file_extension' => 'png',
+                'file_size' => '85.4 KB',
+                'created_at' => now()->subMinutes(5),
+                'is_read' => false,
+            ]);
+        }
     }
 }

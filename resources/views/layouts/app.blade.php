@@ -245,24 +245,48 @@
                                 <span>{{ auth()->user()->isWakaKurikulum() ? 'Guru & Beban Jam' : (auth()->user()->isKepalaSekolah() ? 'Dewan Guru Unit' : 'Pengguna & Peran') }}</span>
                             </a>
                         @endif
+
+                        <!-- Chat & Helpdesk Nav Item -->
+                        @php $unreadChatNav = auth()->user()->unreadAdminChatCount(); @endphp
+                        <a href="{{ route('helpdesk.index') }}" 
+                           class="flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-semibold transition-all {{ request()->routeIs('helpdesk.*') ? 'bg-brand-50 text-brand-800 font-bold shadow-subtle' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
+                            <div class="flex items-center gap-3">
+                                <span class="material-symbols-outlined text-[20px] {{ request()->routeIs('helpdesk.*') ? 'text-brand-700' : 'text-slate-400' }}">support_agent</span>
+                                <span>{{ auth()->user()->isAdmin() ? 'Helpdesk Admin' : 'Hubungi Admin' }}</span>
+                            </div>
+                            @if($unreadChatNav > 0)
+                                <span class="px-2 py-0.5 rounded-full bg-rose-600 text-white text-[10px] font-bold animate-pulse">{{ $unreadChatNav }}</span>
+                            @endif
+                        </a>
                     </nav>
                 </div>
 
 
                 <!-- Need Help Card (matching reference design) -->
-                <div class="p-4 rounded-3xl bg-slate-50/80 border border-slate-100 text-center space-y-2">
-                    <div class="w-10 h-10 rounded-2xl bg-brand-100 text-brand-800 mx-auto flex items-center justify-center font-bold">
+                <div class="p-4 rounded-3xl bg-slate-50/80 border border-slate-100 text-center space-y-2.5">
+                    <div class="w-10 h-10 rounded-2xl bg-brand-100 text-brand-800 mx-auto flex items-center justify-center font-bold relative">
                         <span class="material-symbols-outlined text-lg">support_agent</span>
+                        @if($unreadChatNav > 0)
+                            <span class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-600 text-white text-[9px] font-bold flex items-center justify-center animate-bounce">{{ $unreadChatNav }}</span>
+                        @endif
                     </div>
 
                     <div class="space-y-0.5">
                         <h5 class="text-xs font-bold text-slate-800">Butuh Bantuan?</h5>
-                        <p class="text-[11px] text-slate-500 leading-tight">Konsultasi SOP &amp; perumusan TP</p>
+                        <p class="text-[11px] text-slate-500 leading-tight">Konsultasi kurikulum &amp; teknis</p>
                     </div>
 
-                    <a href="{{ route('guide.index') }}" class="inline-flex items-center justify-center px-4 py-1.5 rounded-full bg-brand-800 hover:bg-brand-900 text-white text-[11px] font-semibold shadow-subtle transition-all">
-                        Buka Panduan
-                    </a>
+                    <div class="flex items-center justify-center gap-1.5 pt-0.5">
+                        <a href="{{ route('guide.index') }}" class="px-3 py-1.5 rounded-full bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 text-[10px] font-semibold transition-all">
+                            Panduan
+                        </a>
+                        <a href="{{ route('helpdesk.index') }}" class="px-3 py-1.5 rounded-full bg-brand-800 hover:bg-brand-900 text-white text-[10px] font-semibold shadow-subtle transition-all flex items-center gap-1">
+                            <span>Chat Admin</span>
+                            @if($unreadChatNav > 0)
+                                <span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span>
+                            @endif
+                        </a>
+                    </div>
                 </div>
 
             </div>
@@ -492,7 +516,7 @@
 
 
         <!-- Form Body -->
-        <form method="POST" action="{{ route('curriculum.proposal.store') }}" class="p-6 flex-1 overflow-y-auto space-y-4 text-xs">
+        <form method="POST" action="{{ route('curriculum.proposal.store') }}" enctype="multipart/form-data" class="p-6 flex-1 overflow-y-auto space-y-4 text-xs">
             @csrf
             
             <!-- Hidden context fields for hierarchy linkages -->
@@ -576,6 +600,48 @@
 
             </div>
 
+            <!-- Lampiran Berkas Dokumen / Modul (Opsional: PDF, DOCX, XLSX) -->
+            <div class="space-y-1.5" id="drawer-proposal-upload-box">
+                <div class="flex items-center justify-between">
+                    <label class="font-semibold text-slate-700 flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-sm text-brand-700">upload_file</span>
+                        <span>Lampiran Berkas / Modul (Opsional)</span>
+                    </label>
+                    <span class="text-[10px] text-slate-400 font-medium">PDF, DOCX, XLSX (Maks. 20MB)</span>
+                </div>
+
+                <div id="drawer-dropzone" 
+                     class="border-2 border-dashed border-slate-200 hover:border-brand-600 bg-slate-50/60 hover:bg-brand-50/20 rounded-2xl p-4 text-center cursor-pointer transition-colors"
+                     onclick="document.getElementById('drawer-file-input').click()">
+                    
+                    <input type="file" name="dokumen" id="drawer-file-input" 
+                           accept=".pdf,.docx,.xlsx,.doc,.xls" 
+                           class="hidden" 
+                           onchange="handleDrawerFileSelect(this.files)">
+
+                    <div id="drawer-dropzone-placeholder" class="space-y-1 select-none">
+                        <span class="material-symbols-outlined text-2xl text-slate-400">cloud_upload</span>
+                        <p class="text-xs text-slate-600">
+                            Tarik berkas ke sini atau <span class="text-brand-700 font-bold underline">pilih file</span>
+                        </p>
+                    </div>
+
+                    <div id="drawer-file-preview" class="hidden flex items-center justify-between p-2.5 rounded-xl bg-white border border-slate-200 text-left">
+                        <div class="flex items-center gap-2.5 min-w-0">
+                            <span class="material-symbols-outlined text-xl text-brand-700" id="drawer-file-icon">description</span>
+                            <div class="min-w-0">
+                                <p class="text-xs font-bold text-slate-800 truncate" id="drawer-file-name">dokumen.pdf</p>
+                                <p class="text-[10px] text-slate-400" id="drawer-file-size">PDF • 2.4 MB</p>
+                            </div>
+                        </div>
+                        <button type="button" onclick="event.stopPropagation(); clearDrawerFile();" 
+                                class="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-rose-600 transition-colors">
+                            <span class="material-symbols-outlined text-base">close</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
 
             <!-- Rasional Pedagogis -->
             <div class="space-y-1 pt-1">
@@ -611,7 +677,8 @@
     </div>
 
     <!-- ======================================================== -->
-    <!-- GLOBAL USER PROFILE MODAL -->
+    <!-- ======================================================== -->
+    <!-- GLOBAL USER PROFILE & EDIT DATA DIRI MODAL -->
     <!-- ======================================================== -->
     <div id="profile-modal-backdrop" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden transition-opacity" onclick="closeUserProfileModal()"></div>
     
@@ -627,11 +694,15 @@
                     <span class="material-symbols-outlined text-xl">close</span>
                 </button>
 
-                <!-- Avatar with Initial -->
+                <!-- Avatar with Initial or Custom Image -->
                 <div class="relative w-20 h-20 mx-auto mb-3">
-                    <div class="w-20 h-20 rounded-full bg-white text-brand-800 font-black text-2xl flex items-center justify-center shadow-card border-4 border-white/20">
-                        {{ substr(auth()->user()->name, 0, 1) }}
-                    </div>
+                    @if(auth()->user()->avatar_image)
+                        <img src="{{ auth()->user()->avatar_image }}" alt="{{ auth()->user()->name }}" class="w-20 h-20 rounded-full object-cover border-4 border-white/20 shadow-card">
+                    @else
+                        <div class="w-20 h-20 rounded-full bg-white text-brand-800 font-black text-2xl flex items-center justify-center shadow-card border-4 border-white/20">
+                            {{ substr(auth()->user()->name, 0, 1) }}
+                        </div>
+                    @endif
                     <span class="absolute bottom-0 right-1 w-4 h-4 rounded-full bg-emerald-400 border-2 border-white shadow-subtle" title="Status: Aktif"></span>
                 </div>
 
@@ -641,12 +712,30 @@
                 </p>
                 <div class="mt-2.5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 text-white text-[11px] font-semibold border border-white/20">
                     <span class="material-symbols-outlined text-xs">verified_user</span>
-                    <span>NIP: {{ auth()->user()->nip ?? 'G-202401' }}</span>
+                    <span>NIP: {{ auth()->user()->nip ?? 'Belum Diisi' }}</span>
+                </div>
+
+                <!-- Modal Sub-nav Switcher -->
+                <div class="mt-4 flex items-center justify-center gap-2">
+                    <button type="button" onclick="switchModalProfileTab('view')" id="modal-tab-btn-view"
+                            class="px-3.5 py-1 rounded-full text-xs font-bold bg-white text-brand-900 shadow-subtle transition-all cursor-pointer">
+                        Lihat Data Diri
+                    </button>
+                    <button type="button" onclick="switchModalProfileTab('edit')" id="modal-tab-btn-edit"
+                            class="px-3.5 py-1 rounded-full text-xs font-semibold bg-white/15 hover:bg-white/25 text-white transition-all cursor-pointer">
+                        Edit Data Diri
+                    </button>
+                    <a href="{{ route('profile.edit') }}" 
+                       class="px-3.5 py-1 rounded-full text-xs font-semibold bg-white/15 hover:bg-white/25 text-white transition-all flex items-center gap-1"
+                       title="Buka Halaman Lengkap">
+                        <span>Halaman Lengkap</span>
+                        <span class="material-symbols-outlined text-xs">open_in_new</span>
+                    </a>
                 </div>
             </div>
 
-            <!-- Modal Body Details -->
-            <div class="p-6 space-y-5 text-xs max-h-[70vh] overflow-y-auto">
+            <!-- VIEW MODE TAB -->
+            <div id="modal-profile-view-pane" class="p-6 space-y-5 text-xs max-h-[65vh] overflow-y-auto">
                 <!-- Info Grid -->
                 <div class="grid grid-cols-2 gap-3">
                     <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 space-y-1">
@@ -655,7 +744,19 @@
                     </div>
                     <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 space-y-1">
                         <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400 block">No. Telepon / WhatsApp</span>
-                        <span class="font-bold text-slate-800">{{ auth()->user()->nomor_telepon ?? '0812-3456-7890' }}</span>
+                        <span class="font-bold text-slate-800">{{ auth()->user()->nomor_telepon ?? 'Belum diisi' }}</span>
+                    </div>
+                </div>
+
+                <!-- Jabatan & Domisili -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 space-y-1">
+                        <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400 block">Jabatan / Spesialisasi</span>
+                        <span class="font-semibold text-slate-800">{{ auth()->user()->jabatan ?? 'Tenaga Pendidik' }}</span>
+                    </div>
+                    <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 space-y-1">
+                        <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400 block">Alamat Domisili</span>
+                        <span class="font-semibold text-slate-800 truncate block" title="{{ auth()->user()->alamat ?? '-' }}">{{ auth()->user()->alamat ?? 'Belum diisi' }}</span>
                     </div>
                 </div>
 
@@ -699,39 +800,13 @@
                     @endif
                 </div>
 
-                <!-- Ringkasan Kinerja & Aktivitas -->
-                <div class="space-y-2">
-                    <span class="font-bold text-slate-900 text-xs flex items-center gap-1.5">
-                        <span class="material-symbols-outlined text-sm text-brand-700">insights</span>
-                        <span>Aktivitas &amp; Produktivitas</span>
-                    </span>
-                    <div class="grid grid-cols-3 gap-2 text-center">
-                        <div class="p-3 rounded-2xl bg-slate-50 border border-slate-100">
-                            <span class="text-base font-bold text-slate-800 block">{{ auth()->user()->jurnalKerja()->count() }}</span>
-                            <span class="text-[10px] text-slate-500 font-medium">Agenda Kerja</span>
-                        </div>
-                        <div class="p-3 rounded-2xl bg-slate-50 border border-slate-100">
-                            <span class="text-base font-bold text-emerald-700 block">{{ auth()->user()->jurnalMengajar()->count() }}</span>
-                            <span class="text-[10px] text-slate-500 font-medium">Jurnal KBM</span>
-                        </div>
-                        <div class="p-3 rounded-2xl bg-slate-50 border border-slate-100">
-                            <span class="text-base font-bold text-brand-800 block">{{ auth()->user()->usulanDiajukan()->count() }}</span>
-                            <span class="text-[10px] text-slate-500 font-medium">Usulan TP</span>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Footer Actions inside Modal -->
-                <div class="pt-2 border-t border-slate-100 flex items-center justify-between gap-3">
-                    @if(auth()->user()->isAdmin())
-                        <a href="{{ route('admin.users') }}" 
-                           class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors">
-                            <span class="material-symbols-outlined text-sm">manage_accounts</span>
-                            <span>Manajemen Pengguna</span>
-                        </a>
-                    @else
-                        <div></div>
-                    @endif
+                <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-3">
+                    <button type="button" onclick="switchModalProfileTab('edit')" 
+                            class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-brand-50 hover:bg-brand-100 text-brand-800 border border-brand-200 text-xs font-semibold transition-colors cursor-pointer">
+                        <span class="material-symbols-outlined text-sm">edit</span>
+                        <span>Edit Data Diri</span>
+                    </button>
 
                     <div class="flex items-center gap-2">
                         <button type="button" onclick="closeUserProfileModal()" 
@@ -749,7 +824,78 @@
                     </div>
                 </div>
             </div>
+
+            <!-- EDIT MODE TAB -->
+            <div id="modal-profile-edit-pane" class="hidden p-6 space-y-4 text-xs max-h-[65vh] overflow-y-auto">
+                <form action="{{ route('profile.update') }}" method="POST" class="space-y-4">
+                    @csrf
+
+                    <!-- Nama Lengkap -->
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-slate-700">Nama Lengkap &amp; Gelar <span class="text-rose-500">*</span></label>
+                        <input type="text" name="name" value="{{ auth()->user()->name }}" required
+                               class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-700 transition-all font-medium">
+                    </div>
+
+                    <!-- Email -->
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-slate-700">Alamat Email <span class="text-rose-500">*</span></label>
+                        <input type="email" name="email" value="{{ auth()->user()->email }}" required
+                               class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-700 transition-all font-medium">
+                    </div>
+
+                    <!-- Telepon / WhatsApp & NIP -->
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="space-y-1">
+                            <label class="block text-xs font-bold text-slate-700">No. WhatsApp / HP</label>
+                            <input type="text" name="nomor_telepon" value="{{ auth()->user()->nomor_telepon }}" placeholder="0812-xxxx-xxxx"
+                                   class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-700 transition-all font-medium">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="block text-xs font-bold text-slate-700">NIP / NUPTK / Kode</label>
+                            <input type="text" name="nip" value="{{ auth()->user()->nip }}" placeholder="NIP Pegawai"
+                                   class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-700 transition-all font-medium">
+                        </div>
+                    </div>
+
+                    <!-- Jabatan Fungsional -->
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-slate-700">Jabatan / Spesialisasi</label>
+                        <input type="text" name="jabatan" value="{{ auth()->user()->jabatan }}" placeholder="Guru Mapel / Tenaga Kependidikan"
+                               class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-700 transition-all font-medium">
+                    </div>
+
+                    <!-- Alamat Domisili -->
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-slate-700">Alamat Tempat Tinggal</label>
+                        <input type="text" name="alamat" value="{{ auth()->user()->alamat }}" placeholder="Alamat Domisili"
+                               class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-700 transition-all font-medium">
+                    </div>
+
+                    <!-- Bio -->
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-slate-700">Bio Singkat</label>
+                        <textarea name="bio" rows="2" placeholder="Catatan singkat profil pendidik..."
+                                  class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-700 transition-all">{{ auth()->user()->bio }}</textarea>
+                    </div>
+
+                    <!-- Submit & Buttons -->
+                    <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-3">
+                        <button type="button" onclick="switchModalProfileTab('view')" 
+                                class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors cursor-pointer">
+                            Kembali
+                        </button>
+
+                        <button type="submit" 
+                                class="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl bg-brand-800 hover:bg-brand-900 text-white text-xs font-semibold shadow-subtle transition-all cursor-pointer">
+                            <span class="material-symbols-outlined text-sm">save</span>
+                            <span>Simpan Perubahan</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
+    </div>
     </div>
 
     <!-- SCRIPT UTILITIES -->
@@ -812,7 +958,87 @@
             drawer.classList.add('translate-x-full');
             backdrop.classList.add('hidden');
             document.body.style.overflow = '';
+            clearDrawerFile();
         }
+
+        function handleDrawerFileSelect(files) {
+            if (!files || files.length === 0) return;
+            const file = files[0];
+            const allowed = ['pdf', 'docx', 'xlsx', 'doc', 'xls'];
+            const ext = file.name.split('.').pop().toLowerCase();
+            if (!allowed.includes(ext)) {
+                alert('Format file "' + ext.toUpperCase() + '" tidak didukung! Format yang diperbolehkan hanya PDF, Word (.docx), dan Excel (.xlsx).');
+                clearDrawerFile();
+                return;
+            }
+            if (file.size > 20 * 1024 * 1024) {
+                alert('Ukuran berkas melebihi batas 20 MB.');
+                clearDrawerFile();
+                return;
+            }
+
+            const placeholder = document.getElementById('drawer-dropzone-placeholder');
+            const preview = document.getElementById('drawer-file-preview');
+            const nameEl = document.getElementById('drawer-file-name');
+            const sizeEl = document.getElementById('drawer-file-size');
+            const iconEl = document.getElementById('drawer-file-icon');
+
+            const sizeStr = file.size >= 1048576 
+                ? (file.size / 1048576).toFixed(1) + ' MB' 
+                : (file.size / 1024).toFixed(1) + ' KB';
+
+            let iconName = 'description';
+            if (ext === 'pdf') iconName = 'picture_as_pdf';
+            else if (['xlsx', 'xls'].includes(ext)) iconName = 'table_view';
+
+            if (nameEl) nameEl.textContent = file.name;
+            if (sizeEl) sizeEl.textContent = `${ext.toUpperCase()} • ${sizeStr}`;
+            if (iconEl) iconEl.textContent = iconName;
+
+            if (placeholder) placeholder.classList.add('hidden');
+            if (preview) preview.classList.remove('hidden');
+        }
+
+        function clearDrawerFile() {
+            const input = document.getElementById('drawer-file-input');
+            if (input) input.value = '';
+            const placeholder = document.getElementById('drawer-dropzone-placeholder');
+            const preview = document.getElementById('drawer-file-preview');
+            if (placeholder && preview) {
+                placeholder.classList.remove('hidden');
+                preview.classList.add('hidden');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const dropzone = document.getElementById('drawer-dropzone');
+            if (!dropzone) return;
+
+            ['dragenter', 'dragover'].forEach(name => {
+                dropzone.addEventListener(name, function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dropzone.classList.add('border-brand-600', 'bg-brand-50/50');
+                });
+            });
+
+            ['dragleave', 'drop'].forEach(name => {
+                dropzone.addEventListener(name, function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dropzone.classList.remove('border-brand-600', 'bg-brand-50/50');
+                });
+            });
+
+            dropzone.addEventListener('drop', function(e) {
+                const files = e.dataTransfer.files;
+                if (files && files.length > 0) {
+                    const input = document.getElementById('drawer-file-input');
+                    input.files = files;
+                    handleDrawerFileSelect(files);
+                }
+            });
+        });
 
         // ==========================================
         // USER PROFILE MODAL HANDLERS
@@ -834,6 +1060,37 @@
                 modal.classList.add('hidden');
                 backdrop.classList.add('hidden');
                 document.body.style.overflow = '';
+            }
+        }
+
+        function switchModalProfileTab(tab) {
+            const viewPane = document.getElementById('modal-profile-view-pane');
+            const editPane = document.getElementById('modal-profile-edit-pane');
+            const btnView = document.getElementById('modal-tab-btn-view');
+            const btnEdit = document.getElementById('modal-tab-btn-edit');
+
+            if (tab === 'edit') {
+                if (viewPane) viewPane.classList.add('hidden');
+                if (editPane) editPane.classList.remove('hidden');
+                if (btnView) {
+                    btnView.classList.remove('bg-white', 'text-brand-900', 'font-bold', 'shadow-subtle');
+                    btnView.classList.add('bg-white/15', 'text-white', 'font-semibold');
+                }
+                if (btnEdit) {
+                    btnEdit.classList.remove('bg-white/15', 'text-white', 'font-semibold');
+                    btnEdit.classList.add('bg-white', 'text-brand-900', 'font-bold', 'shadow-subtle');
+                }
+            } else {
+                if (editPane) editPane.classList.add('hidden');
+                if (viewPane) viewPane.classList.remove('hidden');
+                if (btnEdit) {
+                    btnEdit.classList.remove('bg-white', 'text-brand-900', 'font-bold', 'shadow-subtle');
+                    btnEdit.classList.add('bg-white/15', 'text-white', 'font-semibold');
+                }
+                if (btnView) {
+                    btnView.classList.remove('bg-white/15', 'text-white', 'font-semibold');
+                    btnView.classList.add('bg-white', 'text-brand-900', 'font-bold', 'shadow-subtle');
+                }
             }
         }
 
@@ -1146,7 +1403,33 @@
         });
     </script>
 
+    <!-- FLOATING CHAT / HELPDESK ADMINISTRATOR BUTTON -->
+    @auth
+        @if(!request()->routeIs('helpdesk.*'))
+            @php $floatingUnread = auth()->user()->unreadAdminChatCount(); @endphp
+            <aside aria-label="Bantuan Langsung Administrator" class="fixed bottom-6 right-6 z-40">
+                <a href="{{ route('helpdesk.index') }}" 
+                   class="group relative flex items-center gap-2.5 px-4 py-3 rounded-full bg-gradient-to-r from-brand-800 to-brand-900 text-white shadow-floating hover:shadow-2xl hover:scale-105 active:scale-95 transition-all duration-200 border border-white/20"
+                   title="{{ auth()->user()->isAdmin() ? 'Buka Helpdesk Administrator' : 'Hubungi Administrator IT' }}">
+                    <div class="relative flex items-center justify-center">
+                        <span class="material-symbols-outlined text-xl">support_agent</span>
+                        @if($floatingUnread > 0)
+                            <span class="absolute -top-2 -right-2 w-4 h-4 rounded-full bg-rose-600 text-white text-[9px] font-bold flex items-center justify-center ring-2 ring-brand-900 animate-bounce">
+                                {{ $floatingUnread }}
+                            </span>
+                        @else
+                            <span class="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400"></span>
+                        @endif
+                    </div>
+                    <span class="text-xs font-bold pr-1">
+                        {{ auth()->user()->isAdmin() ? 'Helpdesk Admin' : 'Hubungi Admin' }}
+                    </span>
+                </a>
+            </aside>
+        @endif
+    @endauth
+
     <!-- REALTIME FLOATING TOAST CONTAINER -->
-    <div id="realtime-toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
+    <div id="realtime-toast-container" class="fixed bottom-20 right-6 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
 </body>
 </html>

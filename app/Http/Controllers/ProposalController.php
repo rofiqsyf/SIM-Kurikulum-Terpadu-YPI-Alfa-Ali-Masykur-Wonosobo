@@ -208,6 +208,10 @@ class ProposalController extends Controller
                     'isi_materi' => $data['isi_usulan'] ?? $usulan->judul_usulan,
                     'beban_jp' => $data['beban_jp'] ?? 4,
                     'media_ajar' => $data['media_ajar'] ?? 'Modul Ajar Santri',
+                    'file_path' => $usulan->file_path,
+                    'file_name' => $usulan->file_name,
+                    'file_type' => $usulan->file_type,
+                    'file_size' => $usulan->file_size,
                 ]);
             } elseif ($usulan->jenis_usulan === 'Ubah' && $usulan->data_id) {
                 $materi = Materi::find($usulan->data_id);
@@ -218,6 +222,12 @@ class ProposalController extends Controller
                     }
                     if (isset($data['beban_jp'])) {
                         $materi->beban_jp = $data['beban_jp'];
+                    }
+                    if ($usulan->file_path) {
+                        $materi->file_path = $usulan->file_path;
+                        $materi->file_name = $usulan->file_name;
+                        $materi->file_type = $usulan->file_type;
+                        $materi->file_size = $usulan->file_size;
                     }
                     $materi->save();
                 }

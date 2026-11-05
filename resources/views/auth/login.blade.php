@@ -50,13 +50,10 @@
 <body class="bg-[#f4f6fa] text-slate-800 font-sans min-h-screen flex flex-col justify-between p-4 sm:p-6 selection:bg-brand-100 selection:text-brand-900 antialiased">
 
     <!-- TOP MINIMALIST NAV -->
-    <div class="max-w-md w-full mx-auto flex items-center justify-between text-xs py-2">
-        <a href="{{ url('/') }}" class="flex items-center gap-2 text-slate-600 hover:text-slate-900 font-semibold transition-colors">
+    <div class="max-w-md w-full mx-auto flex items-center text-xs py-2">
+        <a href="{{ url('/') }}" class="inline-flex items-center gap-1.5 text-slate-500 hover:text-slate-800 font-semibold transition-colors">
             <span class="material-symbols-outlined text-base">arrow_back</span>
-            <span>Halaman Utama</span>
-        </a>
-        <a href="{{ route('guide.index') }}" class="text-slate-500 hover:text-slate-800 transition-colors">
-            Panduan &amp; Bantuan
+            <span>Kembali ke Halaman Utama</span>
         </a>
     </div>
 

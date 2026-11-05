@@ -569,18 +569,18 @@
 
                                                             <!-- Status Tag -->
                                                             @if($tp->status_pengesahan === 'Disetujui')
-                                                                <span class="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
-                                                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                                                <span class="inline-flex items-center gap-1.5 text-[10px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full whitespace-nowrap leading-none">
+                                                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
                                                                     <span>Disetujui</span>
                                                                 </span>
                                                             @elseif($tp->status_pengesahan === 'Perlu Revisi')
-                                                                <span class="inline-flex items-center gap-1 text-[10px] font-bold text-rose-800 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-full">
-                                                                    <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                                                                <span class="inline-flex items-center gap-1.5 text-[10px] font-bold text-rose-800 bg-rose-50 border border-rose-200 px-2.5 py-0.5 rounded-full whitespace-nowrap leading-none">
+                                                                    <span class="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0"></span>
                                                                     <span>Perlu Revisi</span>
                                                                 </span>
                                                             @else
-                                                                <span class="inline-flex items-center gap-1 text-[10px] font-bold text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
-                                                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                                                <span class="inline-flex items-center gap-1.5 text-[10px] font-bold text-amber-800 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-full whitespace-nowrap leading-none">
+                                                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"></span>
                                                                     <span>Draf Usulan</span>
                                                                 </span>
                                                             @endif
@@ -623,29 +623,81 @@
 
                                                     <div class="space-y-2">
                                                         @forelse($tp->materi as $materi)
-                                                            <div class="p-3 rounded-xl bg-slate-50/70 border border-slate-100 flex items-center justify-between gap-3 text-xs">
-                                                                <div class="flex items-center gap-2.5 min-w-0">
-                                                                    <span class="material-symbols-outlined text-slate-400 text-base shrink-0">menu_book</span>
-                                                                    <div class="min-w-0">
-                                                                        <div class="font-semibold text-slate-800 truncate" title="{{ $materi->judul_materi }}">
-                                                                            {{ $materi->kode_materi ? '['.$materi->kode_materi.'] ' : '' }}{{ $materi->judul_materi }}
-                                                                        </div>
-                                                                        @if($materi->media_ajar)
-                                                                            <span class="text-[10px] text-slate-400 block mt-0.5 truncate">
-                                                                                Media: {{ $materi->media_ajar }}
+                                                            <div class="p-3.5 rounded-2xl bg-slate-50/70 border border-slate-100/90 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs hover:bg-slate-100/60 transition-colors"
+                                                                 id="materi-item-{{ $materi->id }}">
+                                                                <div class="flex items-start gap-2.5 min-w-0 flex-1">
+                                                                    <div class="w-7 h-7 rounded-xl bg-brand-50 text-brand-800 flex items-center justify-center shrink-0 mt-0.5 font-bold">
+                                                                        <span class="material-symbols-outlined text-base">menu_book</span>
+                                                                    </div>
+                                                                    
+                                                                    <div class="min-w-0 flex-1 space-y-1.5">
+                                                                        <div class="flex items-center gap-2 flex-wrap">
+                                                                            <span class="font-bold text-slate-800 text-xs sm:text-[13px] leading-snug" title="{{ $materi->judul_materi }}">
+                                                                                {{ $materi->kode_materi ? '['.$materi->kode_materi.'] ' : '' }}{{ $materi->judul_materi }}
                                                                             </span>
+                                                                            <span class="text-[10px] font-semibold text-slate-500 bg-white px-2 py-0.5 rounded-md border border-slate-200">
+                                                                                {{ $materi->beban_jp }} JP
+                                                                            </span>
+                                                                        </div>
+
+                                                                        @if($materi->media_ajar)
+                                                                            <p class="text-[11px] text-slate-400 truncate max-w-md">
+                                                                                Media: {{ $materi->media_ajar }}
+                                                                            </p>
                                                                         @endif
+
+                                                                        <!-- Attached Document / Upload Trigger Widget -->
+                                                                        <div class="pt-1" id="materi-doc-box-{{ $materi->id }}">
+                                                                            @if($materi->hasDocument())
+                                                                                @php $badge = $materi->document_badge; @endphp
+                                                                                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border {{ $badge['color'] }} bg-white shadow-2xs group">
+                                                                                    <span class="material-symbols-outlined text-base shrink-0">{{ $badge['icon'] }}</span>
+                                                                                    <div class="flex flex-col text-left min-w-0">
+                                                                                        <a href="{{ route('curriculum.materi.download', $materi->id) }}" 
+                                                                                           class="font-bold hover:underline truncate max-w-[170px] sm:max-w-xs text-xs text-slate-800" 
+                                                                                           title="{{ $materi->file_name }}">
+                                                                                            {{ $materi->file_name }}
+                                                                                        </a>
+                                                                                        <span class="text-[10px] text-slate-400 font-medium">
+                                                                                            {{ $badge['type'] }} • {{ $materi->file_size }}
+                                                                                        </span>
+                                                                                    </div>
+                                                                                    <div class="flex items-center gap-1 border-l border-slate-200 pl-2 ml-1">
+                                                                                        <a href="{{ route('curriculum.materi.download', $materi->id) }}" 
+                                                                                           class="p-1 rounded-lg hover:bg-slate-100 text-slate-600 transition-colors" 
+                                                                                           title="Unduh Berkas Dokumen">
+                                                                                            <span class="material-symbols-outlined text-sm">download</span>
+                                                                                        </a>
+                                                                                        <button type="button" 
+                                                                                                onclick="openUploadMateriModal({{ $materi->id }}, '{{ addslashes($materi->judul_materi) }}', '{{ addslashes($selectedMapel->nama_mapel) }}', '{{ $tp->kode_tp }}')" 
+                                                                                                class="p-1 rounded-lg hover:bg-slate-100 text-slate-600 transition-colors cursor-pointer" 
+                                                                                                title="Ganti Berkas Dokumen">
+                                                                                            <span class="material-symbols-outlined text-sm">change_circle</span>
+                                                                                        </button>
+                                                                                        <button type="button" 
+                                                                                                onclick="deleteMateriDoc({{ $materi->id }})" 
+                                                                                                class="p-1 rounded-lg hover:bg-rose-50 text-rose-500 transition-colors cursor-pointer" 
+                                                                                                title="Hapus Dokumen">
+                                                                                            <span class="material-symbols-outlined text-sm">close</span>
+                                                                                        </button>
+                                                                                    </div>
+                                                                                </div>
+                                                                            @else
+                                                                                <button type="button" 
+                                                                                        onclick="openUploadMateriModal({{ $materi->id }}, '{{ addslashes($materi->judul_materi) }}', '{{ addslashes($selectedMapel->nama_mapel) }}', '{{ $tp->kode_tp }}')" 
+                                                                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-brand-50 border border-slate-200 hover:border-brand-300 text-slate-600 hover:text-brand-800 text-[11px] font-semibold transition-all shadow-2xs cursor-pointer">
+                                                                                    <span class="material-symbols-outlined text-sm text-brand-700">upload_file</span>
+                                                                                    <span>Unggah Modul / Dokumen (PDF, Word, Excel)</span>
+                                                                                </button>
+                                                                            @endif
+                                                                        </div>
                                                                     </div>
                                                                 </div>
 
-                                                                <div class="flex items-center gap-2 shrink-0">
-                                                                    <span class="text-[11px] font-semibold text-slate-500 bg-white px-2 py-0.5 rounded-lg border border-slate-200">
-                                                                        {{ $materi->beban_jp }} JP
-                                                                    </span>
-
+                                                                <div class="flex items-center gap-1 shrink-0 self-end sm:self-center">
                                                                     <button type="button" 
                                                                             onclick="openGlobalProposalModal('Materi', 'Revisi Materi: {{ $materi->judul_materi }}', '{{ $materi->id }}', '{{ $tp->id }}', '{{ $selectedMapel->id }}')" 
-                                                                            class="p-1 rounded-lg hover:bg-slate-200 text-slate-400 hover:text-slate-700 transition-colors"
+                                                                            class="p-1.5 rounded-xl hover:bg-slate-200 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
                                                                             title="Ajukan Revisi Materi">
                                                                         <span class="material-symbols-outlined text-sm">edit</span>
                                                                     </button>
@@ -1042,5 +1094,351 @@
             }
         }
     });
+
+    // ==========================================
+    // UPLOAD DOKUMEN MODUL MATERI (DRAG & DROP)
+    // ==========================================
+    let currentUploadMateriId = null;
+
+    function openUploadMateriModal(materiId, judulMateri, mapelNama, kodeTp) {
+        currentUploadMateriId = materiId;
+        const modal = document.getElementById('modal-upload-materi');
+        const backdrop = document.getElementById('upload-materi-backdrop');
+        const form = document.getElementById('upload-materi-form');
+        if (!modal || !backdrop || !form) return;
+
+        form.reset();
+        clearMateriSelectedFile();
+
+        document.getElementById('upload-materi-id').value = materiId;
+        document.getElementById('upload-modal-target-materi').textContent = judulMateri || 'Materi Pembelajaran';
+        document.getElementById('upload-modal-target-tp').textContent = 'Sasaran ' + (kodeTp || 'TP');
+        if (mapelNama) {
+            document.getElementById('upload-modal-target-mapel').textContent = mapelNama;
+        }
+
+        backdrop.classList.remove('hidden');
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeUploadMateriModal() {
+        const modal = document.getElementById('modal-upload-materi');
+        const backdrop = document.getElementById('upload-materi-backdrop');
+        if (modal && backdrop) {
+            modal.classList.add('hidden');
+            backdrop.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+    }
+
+    function handleMateriFileSelected(files) {
+        if (!files || files.length === 0) return;
+        const file = files[0];
+
+        // Format validation
+        const allowedExtensions = ['pdf', 'docx', 'xlsx', 'doc', 'xls'];
+        const ext = file.name.split('.').pop().toLowerCase();
+        if (!allowedExtensions.includes(ext)) {
+            alert('Format berkas "' + ext.toUpperCase() + '" tidak didukung! Format yang diperbolehkan hanya PDF (.pdf), Word (.docx, .doc), dan Excel (.xlsx, .xls).');
+            clearMateriSelectedFile();
+            return;
+        }
+
+        // Size validation (Max 20MB)
+        if (file.size > 20 * 1024 * 1024) {
+            alert('Ukuran berkas melebihi batas 20 MB! Ukuran berkas Anda: ' + (file.size / (1024 * 1024)).toFixed(1) + ' MB.');
+            clearMateriSelectedFile();
+            return;
+        }
+
+        // Render preview card
+        const placeholder = document.getElementById('materi-dropzone-placeholder');
+        const previewCard = document.getElementById('materi-file-preview-card');
+        const fileNameEl = document.getElementById('preview-file-name');
+        const fileMetaEl = document.getElementById('preview-file-meta');
+        const iconBox = document.getElementById('preview-file-icon-box');
+        const icon = document.getElementById('preview-file-icon');
+
+        const sizeFormatted = file.size >= 1048576 
+            ? (file.size / 1048576).toFixed(1) + ' MB' 
+            : (file.size / 1024).toFixed(1) + ' KB';
+
+        let badgeType = ext.toUpperCase();
+        let iconName = 'description';
+        let iconBg = 'bg-blue-50 text-blue-700';
+
+        if (ext === 'pdf') {
+            badgeType = 'Dokumen PDF';
+            iconName = 'picture_as_pdf';
+            iconBg = 'bg-rose-50 text-rose-700';
+        } else if (['xlsx', 'xls'].includes(ext)) {
+            badgeType = 'Lembar Kerja Excel';
+            iconName = 'table_view';
+            iconBg = 'bg-emerald-50 text-emerald-700';
+        } else if (['docx', 'doc'].includes(ext)) {
+            badgeType = 'Dokumen Word';
+            iconName = 'description';
+            iconBg = 'bg-blue-50 text-blue-700';
+        }
+
+        fileNameEl.textContent = file.name;
+        fileMetaEl.textContent = `${badgeType} • ${sizeFormatted}`;
+        icon.textContent = iconName;
+        iconBox.className = `w-9 h-9 rounded-xl flex items-center justify-center shrink-0 font-bold ${iconBg}`;
+
+        placeholder.classList.add('hidden');
+        previewCard.classList.remove('hidden');
+    }
+
+    function clearMateriSelectedFile() {
+        const fileInput = document.getElementById('materi-dropzone-file-input');
+        if (fileInput) fileInput.value = '';
+        const placeholder = document.getElementById('materi-dropzone-placeholder');
+        const previewCard = document.getElementById('materi-file-preview-card');
+        if (placeholder && previewCard) {
+            placeholder.classList.remove('hidden');
+            previewCard.classList.add('hidden');
+        }
+    }
+
+    // Drag and Drop Events on #materi-dropzone
+    document.addEventListener('DOMContentLoaded', function() {
+        const dropzone = document.getElementById('materi-dropzone');
+        if (!dropzone) return;
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropzone.addEventListener(eventName, function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                dropzone.classList.add('border-brand-600', 'bg-brand-50/50', 'scale-[1.01]');
+            }, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropzone.addEventListener(eventName, function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                dropzone.classList.remove('border-brand-600', 'bg-brand-50/50', 'scale-[1.01]');
+            }, false);
+        });
+
+        dropzone.addEventListener('drop', function(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            if (files && files.length > 0) {
+                const fileInput = document.getElementById('materi-dropzone-file-input');
+                fileInput.files = files;
+                handleMateriFileSelected(files);
+            }
+        }, false);
+    });
+
+    async function handleUploadMateriSubmit(e) {
+        e.preventDefault();
+        const form = e.target;
+        const fileInput = document.getElementById('materi-dropzone-file-input');
+        if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+            alert('Silakan pilih berkas dokumen terlebih dahulu sebelum mengunggah.');
+            return;
+        }
+
+        const materiId = document.getElementById('upload-materi-id').value;
+        const formData = new FormData(form);
+        const submitBtn = document.getElementById('btn-submit-upload-materi');
+        const progressBox = document.getElementById('upload-progress-box');
+        const progressBar = document.getElementById('upload-progress-bar');
+        const progressPercent = document.getElementById('upload-progress-percent');
+
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin">progress_activity</span><span>Mengunggah...</span>';
+        progressBox.classList.remove('hidden');
+        progressBar.style.width = '45%';
+        progressPercent.textContent = '45%';
+
+        try {
+            const res = await fetch(`/kurikulum/materi/${materiId}/upload-dokumen`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: formData
+            });
+
+            progressBar.style.width = '100%';
+            progressPercent.textContent = '100%';
+
+            const data = await res.json();
+            if (data.success) {
+                closeUploadMateriModal();
+                window.location.reload();
+            } else {
+                alert('Gagal mengunggah dokumen: ' + (data.message || 'Terjadi kesalahan.'));
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<span class="material-symbols-outlined text-sm">upload</span><span>Unggah Dokumen</span>';
+                progressBox.classList.add('hidden');
+            }
+        } catch (err) {
+            form.action = `/kurikulum/materi/${materiId}/upload-dokumen`;
+            form.submit();
+        }
+    }
+
+    async function deleteMateriDoc(materiId) {
+        if (!confirm('Apakah Anda yakin ingin menghapus dokumen lampiran ini dari materi pembelajaran?')) return;
+
+        try {
+            const res = await fetch(`/kurikulum/materi/${materiId}/delete-dokumen`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                }
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                window.location.reload();
+            } else {
+                alert('Gagal menghapus dokumen: ' + (data.message || 'Terjadi kesalahan.'));
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    }
 </script>
+
+<!-- MODAL UPLOAD DOKUMEN MODUL MATERI (DRAG & DROP) -->
+<div id="upload-materi-backdrop" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden transition-opacity" onclick="closeUploadMateriModal()"></div>
+<div id="modal-upload-materi" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-floating border border-slate-100 space-y-5 animate-in fade-in zoom-in-95 duration-200">
+        
+        <!-- Header -->
+        <div class="flex items-start justify-between pb-3 border-b border-slate-100">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-brand-50 text-brand-800 flex items-center justify-center font-bold shadow-2xs">
+                    <span class="material-symbols-outlined text-xl">upload_file</span>
+                </div>
+                <div>
+                    <h3 class="text-sm sm:text-base font-bold text-slate-900">Unggah Modul / Dokumen Materi</h3>
+                    <p class="text-[11px] text-slate-500 mt-0.5" id="upload-materi-subtitle">
+                        Lampirkan dokumen modul ajar dalam format PDF, Word, atau Excel
+                    </p>
+                </div>
+            </div>
+            <button type="button" onclick="closeUploadMateriModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer">
+                <span class="material-symbols-outlined text-xl">close</span>
+            </button>
+        </div>
+
+        <!-- Target Info Pill -->
+        <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-1 text-xs">
+            <div class="flex items-center justify-between">
+                <span class="text-[10px] uppercase font-bold text-slate-400" id="upload-modal-target-tp">Sasaran TP</span>
+                <span class="text-[10px] font-bold text-brand-800 bg-brand-50 px-2 py-0.5 rounded-md" id="upload-modal-target-mapel">{{ $selectedMapel->nama_mapel ?? 'Mata Pelajaran' }}</span>
+            </div>
+            <div class="font-bold text-slate-900 text-xs sm:text-[13px] truncate" id="upload-modal-target-materi">
+                Materi Pokok
+            </div>
+        </div>
+
+        <!-- Form with Drag and Drop Zone -->
+        <form id="upload-materi-form" onsubmit="handleUploadMateriSubmit(event)" class="space-y-4 text-xs">
+            @csrf
+            <input type="hidden" id="upload-materi-id" name="materi_id" value="">
+
+            <!-- Drag & Drop Zone -->
+            <div class="space-y-2">
+                <label class="block font-bold text-slate-700">Berkas Dokumen <span class="text-rose-500">*</span></label>
+                
+                <div id="materi-dropzone" 
+                     class="border-2 border-dashed border-slate-300 hover:border-brand-600 bg-slate-50/70 hover:bg-brand-50/30 rounded-3xl p-6 sm:p-7 text-center cursor-pointer transition-all duration-200 flex flex-col items-center justify-center gap-2.5"
+                     onclick="document.getElementById('materi-dropzone-file-input').click()">
+                    
+                    <input type="file" id="materi-dropzone-file-input" name="dokumen" 
+                           accept=".pdf,.docx,.xlsx,.doc,.xls" 
+                           class="hidden" 
+                           onchange="handleMateriFileSelected(this.files)">
+
+                    <!-- State 1: Dropzone Idle / Placeholder -->
+                    <div id="materi-dropzone-placeholder" class="space-y-2 select-none">
+                        <div class="w-12 h-12 rounded-2xl bg-white border border-slate-200 text-brand-700 flex items-center justify-center mx-auto shadow-2xs">
+                            <span class="material-symbols-outlined text-2xl">cloud_upload</span>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-slate-800 text-xs sm:text-sm">
+                                Tarik &amp; Letakkan berkas ke sini
+                            </p>
+                            <p class="text-[11px] text-slate-400 mt-0.5">
+                                atau <span class="text-brand-700 font-bold underline">klik untuk mencari di komputer</span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- State 2: Selected File Preview -->
+                    <div id="materi-file-preview-card" class="hidden w-full p-3 rounded-2xl bg-white border border-slate-200/90 shadow-2xs flex items-center justify-between gap-3 text-left">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 font-bold" id="preview-file-icon-box">
+                                <span class="material-symbols-outlined text-lg" id="preview-file-icon">description</span>
+                            </div>
+                            <div class="min-w-0">
+                                <p class="font-bold text-slate-900 text-xs truncate" id="preview-file-name">file.pdf</p>
+                                <p class="text-[10px] text-slate-400 mt-0.5" id="preview-file-meta">PDF • 2.4 MB</p>
+                            </div>
+                        </div>
+                        <button type="button" onclick="event.stopPropagation(); clearMateriSelectedFile();" 
+                                class="p-1.5 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-rose-600 transition-colors" 
+                                title="Batal Pilih File">
+                            <span class="material-symbols-outlined text-base">close</span>
+                        </button>
+                    </div>
+
+                    <!-- Allowed Formats Tag Pills -->
+                    <div class="flex items-center justify-center gap-1.5 pt-1 text-[10px] font-bold text-slate-400 flex-wrap">
+                        <span class="px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200/60">PDF (.pdf)</span>
+                        <span class="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200/60">Word (.docx)</span>
+                        <span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/60">Excel (.xlsx)</span>
+                        <span class="text-slate-400 font-normal">Maks. 20 MB</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Catatan / Deskripsi Lampiran (Opsional) -->
+            <div class="space-y-1">
+                <label class="block font-bold text-slate-700">Keterangan / Catatan Versi (Opsional)</label>
+                <input type="text" name="keterangan" id="upload-materi-keterangan" 
+                       placeholder="misal: Modul Ajar Kurikulum Merdeka Pertemuan 1 - 3 Revisi 2026" 
+                       class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-700 text-xs text-slate-800">
+            </div>
+
+            <!-- Upload Progress Indicator (Hidden by default) -->
+            <div id="upload-progress-box" class="hidden space-y-1.5 p-3 rounded-2xl bg-brand-50 border border-brand-200/70">
+                <div class="flex items-center justify-between text-[11px] text-brand-900 font-semibold">
+                    <span class="flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-sm animate-spin">progress_activity</span>
+                        <span>Mengunggah dokumen ke server...</span>
+                    </span>
+                    <span id="upload-progress-percent">0%</span>
+                </div>
+                <div class="w-full bg-brand-200 rounded-full h-1.5 overflow-hidden">
+                    <div id="upload-progress-bar" class="bg-brand-700 h-1.5 rounded-full transition-all duration-200" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+                <button type="button" onclick="closeUploadMateriModal()" 
+                        class="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100 text-xs font-semibold transition-colors cursor-pointer">
+                    Batal
+                </button>
+                <button type="submit" id="btn-submit-upload-materi" 
+                        class="px-5 py-2 rounded-xl bg-brand-800 hover:bg-brand-900 text-white text-xs font-bold shadow-subtle transition-all cursor-pointer flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-sm">upload</span>
+                    <span>Unggah Dokumen</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 @endsection

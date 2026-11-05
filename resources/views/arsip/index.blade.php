@@ -254,13 +254,24 @@
             <!-- DOCUMENTS ARCHIVE TABLE / LIST -->
             <div class="bg-white rounded-3xl border border-slate-100 shadow-card overflow-hidden">
                 <div class="p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/50">
-                    <div>
-                        <h3 class="text-sm font-bold text-slate-900">Daftar Arsip Dokumen</h3>
-                        <p class="text-[11px] text-slate-500">Menampilkan {{ $documents->count() }} dokumen arsip akademik</p>
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-2xl bg-brand-50 text-brand-800 flex items-center justify-center font-bold">
+                            <span class="material-symbols-outlined text-lg">folder_special</span>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h3 class="text-sm font-bold text-slate-900">Daftar Arsip Dokumen</h3>
+                                <span class="px-2 py-0.5 rounded-full bg-brand-50 text-brand-800 text-[10px] font-bold border border-brand-200/60">{{ $documents->count() }} Dokumen</span>
+                            </div>
+                            <p class="text-[11px] text-slate-500 mt-0.5">Arsip kurikulum resmi terverifikasi dan siap diunduh</p>
+                        </div>
                     </div>
 
                     <div class="flex items-center gap-2">
-                        <span class="text-[11px] font-semibold text-slate-400">Format: Permendikbudristek 12/2024 &amp; KMA 450/2024</span>
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100/90 border border-slate-200/80 text-[11px] font-semibold text-slate-600 whitespace-nowrap">
+                            <span class="material-symbols-outlined text-[13px] text-brand-700">policy</span>
+                            <span>Standar Permendikbudristek 12/2024 &amp; KMA 450/2024</span>
+                        </span>
                     </div>
                 </div>
 
@@ -285,14 +296,14 @@
                     </div>
                 @else
                     <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse text-xs">
+                        <table class="w-full text-left border-collapse text-xs min-w-[1000px]">
                             <thead>
                                 <tr class="border-b border-slate-100 bg-slate-50/75 text-[11px] uppercase tracking-wider text-slate-400 font-bold">
-                                    <th class="py-3 px-5">Kode &amp; Tanggal</th>
-                                    <th class="py-3 px-4">Dokumen &amp; Tingkat</th>
-                                    <th class="py-3 px-4">Kategori &amp; T.A.</th>
-                                    <th class="py-3 px-4">Supervisi Pengawas</th>
-                                    <th class="py-3 px-5 text-right">Aksi</th>
+                                    <th class="py-3.5 px-5 min-w-[180px] whitespace-nowrap">Kode &amp; Tanggal</th>
+                                    <th class="py-3.5 px-4 min-w-[320px]">Dokumen &amp; Tingkat</th>
+                                    <th class="py-3.5 px-4 min-w-[170px] whitespace-nowrap">Kategori &amp; T.A.</th>
+                                    <th class="py-3.5 px-4 min-w-[270px]">Supervisi Pengawas</th>
+                                    <th class="py-3.5 px-5 text-right min-w-[120px] whitespace-nowrap">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100 text-slate-700">
@@ -303,61 +314,101 @@
                                     @endphp
                                     <tr class="hover:bg-slate-50/70 transition-colors group">
                                         <!-- Kode & Tanggal -->
-                                        <td class="py-4 px-5 align-top">
-                                            <div class="font-mono font-bold text-slate-800">{{ $doc->kode_dokumen }}</div>
-                                            <div class="text-[11px] text-slate-400 mt-0.5 flex items-center gap-1.5">
+                                        <td class="py-4 px-5 align-top whitespace-nowrap">
+                                            <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100/90 border border-slate-200 font-mono font-bold text-xs text-slate-800 tracking-tight whitespace-nowrap select-all group-hover:bg-brand-50 group-hover:border-brand-200 group-hover:text-brand-900 transition-colors">
+                                                <span class="material-symbols-outlined text-[13px] text-slate-400 group-hover:text-brand-700">bookmark</span>
+                                                <span>{{ $doc->kode_dokumen }}</span>
+                                            </div>
+                                            <div class="text-[11px] text-slate-500 mt-2 flex items-center gap-1.5 whitespace-nowrap font-medium">
+                                                <span class="material-symbols-outlined text-[13px] text-slate-400">calendar_today</span>
                                                 <span>{{ $doc->tanggal_arsip?->format('d M Y') ?? '-' }}</span>
-                                                <span>•</span>
-                                                <span class="font-medium text-slate-500">{{ $doc->file_size ?? 'PDF' }}</span>
+                                                <span class="text-slate-300">•</span>
+                                                <span class="inline-flex items-center text-[10px] font-bold text-slate-600 bg-slate-50 border border-slate-200/80 px-1.5 py-0.5 rounded tracking-wide uppercase">{{ $doc->file_size ?? 'PDF' }}</span>
                                             </div>
                                         </td>
 
                                         <!-- Judul & Lembaga & Fase -->
-                                        <td class="py-4 px-4 align-top max-w-sm">
-                                            <div class="font-bold text-slate-900 group-hover:text-brand-800 transition-colors leading-snug">
-                                                {{ $doc->judul_dokumen }}
-                                            </div>
-                                            <div class="flex items-center gap-2 mt-1.5 flex-wrap">
-                                                <span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 font-semibold text-[10px] border border-slate-200/60">
-                                                    {{ $doc->unit->nama_unit ?? 'Seluruh Unit' }}
-                                                </span>
-                                                @if($doc->tingkat_fase)
-                                                    <span class="text-[11px] text-slate-500 font-medium">
-                                                        {{ $doc->tingkat_fase }}
+                                        <td class="py-4 px-4 align-top">
+                                            <div class="flex items-start gap-3">
+                                                <div class="w-8 h-8 rounded-xl bg-brand-50 border border-brand-100 text-brand-800 flex items-center justify-center shrink-0 mt-0.5 shadow-2xs group-hover:scale-105 group-hover:bg-brand-100 transition-all">
+                                                    <span class="material-symbols-outlined text-base">
+                                                        @if(str_contains(strtolower($doc->judul_dokumen), 'p5') || str_contains(strtolower($doc->kategori), 'p5'))
+                                                            stars
+                                                        @elseif(str_contains(strtolower($doc->judul_dokumen), 'kosp') || str_contains(strtolower($doc->kategori), 'kosp'))
+                                                            auto_stories
+                                                        @elseif(str_contains(strtolower($doc->judul_dokumen), 'atp') || str_contains(strtolower($doc->kategori), 'atp'))
+                                                            alt_route
+                                                        @elseif(str_contains(strtolower($doc->judul_dokumen), 'modul') || str_contains(strtolower($doc->kategori), 'modul'))
+                                                            menu_book
+                                                        @else
+                                                            description
+                                                        @endif
                                                     </span>
-                                                @endif
+                                                </div>
+                                                <div class="min-w-0 flex-1 space-y-1.5">
+                                                    <div class="font-bold text-slate-900 group-hover:text-brand-900 transition-colors text-xs leading-snug">
+                                                        {{ $doc->judul_dokumen }}
+                                                    </div>
+                                                    <div class="flex items-center gap-1.5 flex-wrap">
+                                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 font-semibold text-[10px] border border-slate-200/80 whitespace-nowrap">
+                                                            <span class="material-symbols-outlined text-[11px] text-slate-400">school</span>
+                                                            <span>{{ $doc->unit->nama_unit ?? 'Seluruh Unit' }}</span>
+                                                        </span>
+                                                        @if($doc->tingkat_fase)
+                                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-50/80 text-blue-700 font-semibold text-[10px] border border-blue-200/70 whitespace-nowrap">
+                                                                <span class="material-symbols-outlined text-[11px] text-blue-500">layers</span>
+                                                                <span>{{ $doc->tingkat_fase }}</span>
+                                                            </span>
+                                                        @endif
+                                                    </div>
+                                                </div>
                                             </div>
                                         </td>
 
                                         <!-- Kategori & T.A. -->
-                                        <td class="py-4 px-4 align-top">
-                                            <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-bold border {{ $kb['class'] }}">
-                                                {{ $kb['label'] }}
-                                            </span>
-                                            <div class="text-[11px] text-slate-500 mt-1 font-medium">
-                                                T.A. {{ $doc->tahun_ajaran }} ({{ $doc->semester }})
+                                        <td class="py-4 px-4 align-top whitespace-nowrap">
+                                            <div class="space-y-1.5 whitespace-nowrap">
+                                                <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-bold border whitespace-nowrap {{ $kb['class'] }}">
+                                                    {{ $kb['label'] }}
+                                                </span>
+                                                <div class="text-[11px] text-slate-500 font-medium flex items-center gap-1.5 whitespace-nowrap">
+                                                    <span class="material-symbols-outlined text-[13px] text-slate-400">event_repeat</span>
+                                                    <span>T.A. {{ $doc->tahun_ajaran }}</span>
+                                                    <span class="text-slate-300">•</span>
+                                                    <span class="text-slate-600 font-semibold">({{ $doc->semester }})</span>
+                                                </div>
                                             </div>
                                         </td>
 
                                         <!-- Supervisi Pengawas & Catatan -->
-                                        <td class="py-4 px-4 align-top max-w-xs">
-                                            <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border {{ $sb['class'] }}">
-                                                <span class="w-1.5 h-1.5 rounded-full {{ $sb['dot'] }}"></span>
-                                                <span>{{ $sb['label'] }}</span>
-                                            </div>
-
-                                            @if($doc->nama_pengawas)
-                                                <div class="text-[11px] font-semibold text-slate-700 mt-1.5 flex items-center gap-1">
-                                                    <span class="material-symbols-outlined text-xs text-brand-700">person_check</span>
-                                                    <span class="truncate" title="{{ $doc->nama_pengawas }}">{{ $doc->nama_pengawas }}</span>
+                                        <td class="py-4 px-4 align-top">
+                                            <div class="space-y-1.5">
+                                                <!-- Status Pill (Symmetric) -->
+                                                <div>
+                                                    <span class="inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold border whitespace-nowrap leading-none min-w-[130px] {{ $sb['class'] }}">
+                                                        <span class="w-1.5 h-1.5 rounded-full shrink-0 {{ $sb['dot'] }}"></span>
+                                                        <span>{{ $sb['label'] }}</span>
+                                                    </span>
                                                 </div>
-                                            @endif
 
-                                            @if($doc->catatan_supervisi)
-                                                <p class="text-[10px] text-slate-500 mt-0.5 line-clamp-2 italic" title="{{ $doc->catatan_supervisi }}">
-                                                    "{{ $doc->catatan_supervisi }}"
-                                                </p>
-                                            @endif
+                                                <!-- Pengawas Name & Badge -->
+                                                @if($doc->nama_pengawas)
+                                                    <div class="text-[11px] font-semibold text-slate-800 flex items-center gap-1.5" title="{{ $doc->nama_pengawas }}">
+                                                        <span class="material-symbols-outlined text-[14px] text-brand-700 shrink-0">verified_user</span>
+                                                        <span class="truncate max-w-[230px]">{{ $doc->nama_pengawas }}</span>
+                                                    </div>
+                                                @endif
+
+                                                <!-- Catatan Supervisi in Micro Quote Box -->
+                                                @if($doc->catatan_supervisi)
+                                                    <div class="p-2 rounded-xl bg-slate-50 border border-slate-100 text-[10.5px] text-slate-600 leading-relaxed group-hover:bg-white group-hover:border-slate-200 transition-colors" title="{{ $doc->catatan_supervisi }}">
+                                                        <div class="flex items-start gap-1">
+                                                            <span class="material-symbols-outlined text-[13px] text-slate-400 shrink-0 mt-0.5">format_quote</span>
+                                                            <p class="line-clamp-2 italic">{{ $doc->catatan_supervisi }}</p>
+                                                        </div>
+                                                    </div>
+                                                @endif
+                                            </div>
                                         </td>
 
                                         <!-- Aksi Buttons -->
@@ -366,7 +417,7 @@
                                                 <!-- Tombol Detail / Verifikasi -->
                                                 <button type="button" 
                                                         onclick="openModalDetailArsip({{ json_encode($doc) }}, '{{ $kb['label'] }}', '{{ $sb['label'] }}', '{{ $sb['class'] }}')"
-                                                        class="p-1.5 rounded-xl bg-slate-100 hover:bg-brand-50 hover:text-brand-800 text-slate-600 transition-colors"
+                                                        class="w-8 h-8 rounded-xl bg-white border border-slate-200 hover:border-brand-300 hover:bg-brand-50 hover:text-brand-900 text-slate-600 flex items-center justify-center transition-all shadow-2xs"
                                                         title="Detail &amp; Riwayat Supervisi">
                                                     <span class="material-symbols-outlined text-base">visibility</span>
                                                 </button>
@@ -374,7 +425,7 @@
                                                 <!-- Tombol Unduh / Pratinjau -->
                                                 <button type="button" 
                                                         onclick="simulasiUnduhDokumen('{{ $doc->kode_dokumen }}', '{{ $doc->judul_dokumen }}')"
-                                                        class="p-1.5 rounded-xl bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 text-slate-600 transition-colors"
+                                                        class="w-8 h-8 rounded-xl bg-white border border-slate-200 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-800 text-slate-600 flex items-center justify-center transition-all shadow-2xs"
                                                         title="Unduh Berkas Resmi (PDF)">
                                                     <span class="material-symbols-outlined text-base">download</span>
                                                 </button>
@@ -386,7 +437,7 @@
                                                         @csrf
                                                         @method('DELETE')
                                                         <button type="submit" 
-                                                                class="p-1.5 rounded-xl bg-slate-100 hover:bg-rose-50 hover:text-rose-700 text-slate-400 hover:text-rose-600 transition-colors"
+                                                                class="w-8 h-8 rounded-xl bg-white border border-slate-200 hover:border-rose-300 hover:bg-rose-50 hover:text-rose-700 text-slate-400 hover:text-rose-600 flex items-center justify-center transition-all shadow-2xs cursor-pointer"
                                                                 title="Hapus Arsip">
                                                             <span class="material-symbols-outlined text-base">delete</span>
                                                         </button>

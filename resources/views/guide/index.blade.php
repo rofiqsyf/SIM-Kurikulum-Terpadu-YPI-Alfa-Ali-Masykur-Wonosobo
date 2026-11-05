@@ -371,9 +371,10 @@
                         Jika mengalami kendala hak akses akun atau perumusan silabus, hubungi tim IT Yayasan.
                     </p>
                 </div>
-                <a href="mailto:admin@alimasykur.sch.id?subject=Bantuan%20SOP%20SIM%20Kurikulum" 
-                   class="inline-block px-5 py-2 rounded-2xl bg-brand-800 hover:bg-brand-900 text-white text-xs font-semibold shadow-subtle transition-all">
-                    Hubungi Administrator
+                <a href="{{ route('helpdesk.index') }}" 
+                   class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-brand-800 hover:bg-brand-900 text-white text-xs font-semibold shadow-subtle transition-all">
+                    <span class="material-symbols-outlined text-base">chat</span>
+                    <span>Chat Administrator IT</span>
                 </a>
             </div>
 

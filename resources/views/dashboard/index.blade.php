@@ -282,21 +282,21 @@
                                                 {{ $usulan->judul_usulan }}
                                             </a>
                                         </td>
-                                        <td class="py-4 px-5 text-right">
+                                        <td class="py-4 px-5 text-right whitespace-nowrap">
                                             @if($usulan->status === 'Disetujui')
-                                                <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
-                                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
-                                                    Disetujui
+                                                <span class="inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 whitespace-nowrap leading-none min-w-[96px]">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-600 shrink-0"></span>
+                                                    <span>Disetujui</span>
                                                 </span>
                                             @elseif($usulan->status === 'Ditolak')
-                                                <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-bold bg-rose-50 text-rose-800 border border-rose-200">
-                                                    <span class="w-1.5 h-1.5 rounded-full bg-rose-600"></span>
-                                                    Perlu Revisi
+                                                <span class="inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold bg-rose-50 text-rose-800 border border-rose-200 whitespace-nowrap leading-none min-w-[96px]">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-rose-600 shrink-0"></span>
+                                                    <span>Perlu Revisi</span>
                                                 </span>
                                             @else
-                                                <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
-                                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-                                                    Menunggu
+                                                <span class="inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200 whitespace-nowrap leading-none min-w-[96px]">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse shrink-0"></span>
+                                                    <span>Menunggu</span>
                                                 </span>
                                             @endif
                                         </td>
