@@ -136,6 +136,11 @@
                     </div>
 
                     <div class="flex items-center gap-2">
+                        <button type="button" onclick="openModalAgendaBaru()" 
+                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-brand-50 hover:bg-brand-100 text-brand-800 text-xs font-bold transition-all shadow-subtle cursor-pointer">
+                            <span class="material-symbols-outlined text-sm">edit_calendar</span>
+                            <span>Agenda Kalender</span>
+                        </button>
                         <span class="text-[11px] font-semibold text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
                             {{ $completedKerjaCount }}/{{ $jurnalKerjaList->count() }} Selesai
                         </span>
@@ -158,6 +163,7 @@
                             <option value="administrasi">Silabus &amp; Modul</option>
                             <option value="bimbingan">Bimbingan Santri</option>
                             <option value="rapat">Rapat &amp; Koordinasi</option>
+                            <option value="umum">Agenda Umum</option>
                         </select>
 
                         <select id="quick-task-prioritas" name="prioritas" class="bg-white border border-slate-200/90 rounded-xl px-2.5 py-2 text-xs font-semibold text-slate-700 focus:outline-none">
@@ -166,13 +172,58 @@
                             <option value="rendah">Prioritas Rendah</option>
                         </select>
 
-                        <input type="date" id="quick-task-tanggal" name="tanggal_target" value="{{ date('Y-m-d') }}" 
-                               class="bg-white border border-slate-200/90 rounded-xl px-2.5 py-2 text-xs text-slate-700 focus:outline-none">
-
                         <button type="submit" 
                                 class="px-4 py-2 rounded-xl bg-brand-800 hover:bg-brand-900 text-white text-xs font-semibold shadow-subtle transition-all shrink-0 cursor-pointer">
                             Simpan Agenda
                         </button>
+                    </div>
+
+                    <!-- Baris Rentang Tanggal, Warna & Catatan Singkat -->
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-2.5 pt-1 items-center text-xs">
+                        <div class="md:col-span-5 flex items-center gap-1.5 bg-white border border-slate-200/90 rounded-xl px-2.5 py-1.5">
+                            <span class="text-[10px] font-bold text-slate-500 uppercase shrink-0">Rentang:</span>
+                            <input type="date" id="quick-task-mulai" name="tanggal_mulai" value="{{ date('Y-m-d') }}" 
+                                   title="Tanggal Mulai" class="w-full text-xs text-slate-700 focus:outline-none bg-transparent">
+                            <span class="text-slate-400 text-xs">s/d</span>
+                            <input type="date" id="quick-task-selesai" name="tanggal_selesai" value="{{ date('Y-m-d') }}" 
+                                   title="Tanggal Selesai (Deadline)" class="w-full text-xs text-slate-700 focus:outline-none bg-transparent">
+                        </div>
+
+                        <div class="md:col-span-3 flex items-center gap-1.5 bg-white border border-slate-200/90 rounded-xl px-2.5 py-1.5 overflow-x-auto">
+                            <span class="text-[10px] font-bold text-slate-500 uppercase shrink-0">Warna:</span>
+                            <div class="flex items-center gap-1.5">
+                                <label class="cursor-pointer" title="Biru Utama">
+                                    <input type="radio" name="warna" value="#2563eb" class="sr-only peer" checked>
+                                    <span class="w-4 h-4 rounded-full bg-[#2563eb] inline-block peer-checked:ring-2 peer-checked:ring-offset-1 peer-checked:ring-[#2563eb] transition-all"></span>
+                                </label>
+                                <label class="cursor-pointer" title="Hijau KBM">
+                                    <input type="radio" name="warna" value="#059669" class="sr-only peer">
+                                    <span class="w-4 h-4 rounded-full bg-[#059669] inline-block peer-checked:ring-2 peer-checked:ring-offset-1 peer-checked:ring-[#059669] transition-all"></span>
+                                </label>
+                                <label class="cursor-pointer" title="Ungu Bimbingan">
+                                    <input type="radio" name="warna" value="#7c3aed" class="sr-only peer">
+                                    <span class="w-4 h-4 rounded-full bg-[#7c3aed] inline-block peer-checked:ring-2 peer-checked:ring-offset-1 peer-checked:ring-[#7c3aed] transition-all"></span>
+                                </label>
+                                <label class="cursor-pointer" title="Amber Penilaian">
+                                    <input type="radio" name="warna" value="#d97706" class="sr-only peer">
+                                    <span class="w-4 h-4 rounded-full bg-[#d97706] inline-block peer-checked:ring-2 peer-checked:ring-offset-1 peer-checked:ring-[#d97706] transition-all"></span>
+                                </label>
+                                <label class="cursor-pointer" title="Merah Deadline">
+                                    <input type="radio" name="warna" value="#e11d48" class="sr-only peer">
+                                    <span class="w-4 h-4 rounded-full bg-[#e11d48] inline-block peer-checked:ring-2 peer-checked:ring-offset-1 peer-checked:ring-[#e11d48] transition-all"></span>
+                                </label>
+                                <label class="cursor-pointer" title="Teal Modul">
+                                    <input type="radio" name="warna" value="#0d9488" class="sr-only peer">
+                                    <span class="w-4 h-4 rounded-full bg-[#0d9488] inline-block peer-checked:ring-2 peer-checked:ring-offset-1 peer-checked:ring-[#0d9488] transition-all"></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="md:col-span-4">
+                            <input type="text" id="quick-task-catatan" name="catatan" 
+                                   placeholder="Catatan agenda..." 
+                                   class="w-full px-3 py-1.5 bg-white border border-slate-200/90 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-brand-700">
+                        </div>
                     </div>
                 </form>
 
@@ -229,12 +280,13 @@
                             $isOverdue = $task->isOverdue();
                             $isDueToday = $task->isDueToday();
                         @endphp
-                        <div class="task-item py-3.5 flex items-start justify-between gap-3 transition-colors hover:bg-slate-50/60 rounded-2xl px-2"
+                        <div class="task-item py-3.5 flex items-start justify-between gap-3 transition-colors hover:bg-slate-50/60 rounded-2xl px-3 border border-transparent hover:border-slate-100"
                              id="task-row-{{ $task->id }}"
                              data-id="{{ $task->id }}"
                              data-status="{{ $task->status }}"
                              data-category="{{ $task->kategori }}"
-                             data-search="{{ strtolower($task->judul . ' ' . $task->kategori . ' ' . ($task->catatan_refleksi ?? '')) }}">
+                             data-search="{{ strtolower($task->judul . ' ' . $task->kategori . ' ' . ($task->catatan ?? '') . ' ' . ($task->catatan_refleksi ?? '')) }}"
+                             style="border-left: 4px solid {{ $task->warna ?: '#2563eb' }};">
                             
                             <!-- Checkbox and Task Details -->
                             <div class="flex items-start gap-3 min-w-0 flex-1">
@@ -266,12 +318,21 @@
                                             </span>
                                         @endif
 
-                                        <!-- Target Date Badge -->
-                                        @if($task->tanggal_target)
-                                            <span class="text-[11px] font-medium flex items-center gap-1
-                                                {{ $isOverdue ? 'text-rose-700 font-bold' : ($isDueToday ? 'text-amber-800 font-bold' : 'text-slate-500') }}">
+                                        <!-- Date Range / Deadline Date Badge -->
+                                        @if($task->tanggal_mulai && $task->tanggal_selesai && $task->tanggal_mulai->format('Y-m-d') !== $task->tanggal_selesai->format('Y-m-d'))
+                                            <span class="text-[11px] font-medium flex items-center gap-1 {{ $isOverdue ? 'text-rose-700 font-bold' : ($isDueToday ? 'text-amber-800 font-bold' : 'text-slate-600') }}">
+                                                <span class="material-symbols-outlined text-xs">date_range</span>
+                                                <span>{{ $task->tanggal_mulai->format('d M') }} - {{ $task->tanggal_selesai->format('d M Y') }}</span>
+                                                @if($isOverdue)
+                                                    <span class="px-1.5 py-0.2 rounded bg-rose-100 text-rose-800 text-[9px] font-extrabold uppercase">Terlewat</span>
+                                                @elseif($isDueToday)
+                                                    <span class="px-1.5 py-0.2 rounded bg-amber-100 text-amber-900 text-[9px] font-extrabold uppercase">Hari Ini</span>
+                                                @endif
+                                            </span>
+                                        @elseif($task->deadline_date)
+                                            <span class="text-[11px] font-medium flex items-center gap-1 {{ $isOverdue ? 'text-rose-700 font-bold' : ($isDueToday ? 'text-amber-800 font-bold' : 'text-slate-600') }}">
                                                 <span class="material-symbols-outlined text-xs">event</span>
-                                                <span>{{ $task->tanggal_target->format('d M Y') }}</span>
+                                                <span>{{ $task->deadline_date->format('d M Y') }}</span>
                                                 @if($isOverdue)
                                                     <span class="px-1.5 py-0.2 rounded bg-rose-100 text-rose-800 text-[9px] font-extrabold uppercase">Terlewat</span>
                                                 @elseif($isDueToday)
@@ -293,8 +354,12 @@
                                         {{ $task->judul }}
                                     </h3>
 
-                                    <!-- Task Note / Reflection Snippet -->
-                                    @if($task->catatan_refleksi)
+                                    <!-- Task Note -->
+                                    @if($task->catatan)
+                                        <p class="text-[11px] text-slate-600 bg-slate-50 p-2 rounded-xl border border-slate-100/90 leading-relaxed">
+                                            {{ $task->catatan }}
+                                        </p>
+                                    @elseif($task->catatan_refleksi)
                                         <p class="text-[11px] text-slate-500 bg-slate-50/90 p-2 rounded-xl border border-slate-100/90 leading-relaxed italic">
                                             "{{ $task->catatan_refleksi }}"
                                         </p>
@@ -302,10 +367,15 @@
                                 </div>
                             </div>
 
-                            <!-- Delete Action Button -->
+                            <!-- Action Buttons: Edit & Delete -->
                             <div class="flex items-center gap-1 shrink-0">
+                                <button type="button" onclick="openModalEditAgenda({{ $task->id }})" 
+                                        class="p-1.5 rounded-xl text-slate-400 hover:text-brand-700 hover:bg-brand-50 transition-colors cursor-pointer" 
+                                        title="Edit Agenda Kalender">
+                                    <span class="material-symbols-outlined text-base">edit</span>
+                                </button>
                                 <button type="button" onclick="deleteTaskItem({{ $task->id }})" 
-                                        class="p-1.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors" 
+                                        class="p-1.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer" 
                                         title="Hapus Agenda">
                                     <span class="material-symbols-outlined text-base">delete</span>
                                 </button>
@@ -819,6 +889,126 @@
 </div>
 
 <script>
+    // Initial loaded user agenda events for modal editing
+    window.userAgendaEvents = {!! json_encode($formattedUserAgendas) !!};
+
+    // ==========================================
+    // AGENDA MODAL & EDIT ACTIONS
+    // ==========================================
+    function openModalAgendaBaru(defaultDate) {
+        const modal = document.getElementById('modal-agenda');
+        const backdrop = document.getElementById('modal-agenda-backdrop');
+        const form = document.getElementById('agenda-calendar-form');
+        if (!modal || !backdrop || !form) return;
+
+        form.reset();
+        document.getElementById('agenda-input-id').value = '';
+        document.getElementById('agenda-modal-title').textContent = 'Tambah Agenda Kalender';
+        document.getElementById('agenda-btn-delete').classList.add('hidden');
+        document.getElementById('agenda-btn-submit').textContent = 'Simpan Agenda';
+
+        const targetDate = defaultDate || new Date().toISOString().split('T')[0];
+        document.getElementById('agenda-input-mulai').value = targetDate;
+        document.getElementById('agenda-input-selesai').value = targetDate;
+
+        backdrop.classList.remove('hidden');
+        setTimeout(() => modal.classList.remove('translate-x-full'), 10);
+    }
+
+    function openModalEditAgenda(id) {
+        const ev = window.userAgendaEvents.find(e => e.id == id);
+        if (!ev) return;
+
+        const modal = document.getElementById('modal-agenda');
+        const backdrop = document.getElementById('modal-agenda-backdrop');
+        const form = document.getElementById('agenda-calendar-form');
+        if (!modal || !backdrop || !form) return;
+
+        document.getElementById('agenda-input-id').value = ev.id;
+        document.getElementById('agenda-modal-title').textContent = 'Edit Agenda Kalender';
+        document.getElementById('agenda-input-judul').value = ev.judul;
+        document.getElementById('agenda-input-kategori').value = ev.kategori;
+        document.getElementById('agenda-input-prioritas').value = ev.prioritas;
+        document.getElementById('agenda-input-status').value = ev.status;
+        document.getElementById('agenda-input-mulai').value = ev.start || '';
+        document.getElementById('agenda-input-selesai').value = ev.end || '';
+        document.getElementById('agenda-input-catatan').value = ev.catatan || '';
+
+        // Select color radio
+        const colorRadio = form.querySelector(`input[name="warna"][value="${ev.warna}"]`);
+        if (colorRadio) {
+            colorRadio.checked = true;
+        }
+
+        document.getElementById('agenda-btn-delete').classList.remove('hidden');
+        document.getElementById('agenda-btn-submit').textContent = 'Simpan Perubahan';
+
+        backdrop.classList.remove('hidden');
+        setTimeout(() => modal.classList.remove('translate-x-full'), 10);
+    }
+
+    function closeModalAgenda() {
+        const modal = document.getElementById('modal-agenda');
+        const backdrop = document.getElementById('modal-agenda-backdrop');
+        if (modal && backdrop) {
+            modal.classList.add('translate-x-full');
+            setTimeout(() => backdrop.classList.add('hidden'), 200);
+        }
+    }
+
+    async function handleSaveAgenda(e) {
+        e.preventDefault();
+        const form = e.target;
+        const id = document.getElementById('agenda-input-id').value;
+        const formData = new FormData(form);
+
+        const url = id ? `/jurnal-kerja/${id}/update` : '/jurnal-kerja/store';
+
+        try {
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: formData
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                closeModalAgenda();
+                window.location.reload();
+            } else {
+                alert('Gagal menyimpan agenda: ' + (data.message || 'Terjadi kesalahan.'));
+            }
+        } catch (err) {
+            form.submit();
+        }
+    }
+
+    async function handleDeleteAgenda() {
+        const id = document.getElementById('agenda-input-id').value;
+        if (!id || !confirm('Apakah Anda yakin ingin menghapus agenda ini?')) return;
+
+        try {
+            const res = await fetch(`/jurnal-kerja/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                }
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                closeModalAgenda();
+                window.location.reload();
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
     function openJurnalModal() {
         document.getElementById('jurnal-modal').classList.remove('hidden');
     }
@@ -1108,4 +1298,6 @@
         });
     }
 </script>
+
+    @include('partials.modal-agenda')
 @endsection

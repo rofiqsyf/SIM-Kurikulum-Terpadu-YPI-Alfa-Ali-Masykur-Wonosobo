@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Notifikasi;
 use App\Models\UsulanPerubahan;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -19,6 +20,9 @@ class RealtimeController extends Controller
         if (!$user) {
             return response()->json(['status' => 'unauthenticated'], 401);
         }
+
+        // Otomatis cek tenggat waktu (deadline) agenda pengguna dan buat notifikasi jika telah jatuh tempo
+        NotificationService::checkAndNotifyUserDeadlines($user->id);
 
         $lastId = (int) $request->input('last_notification_id', 0);
 

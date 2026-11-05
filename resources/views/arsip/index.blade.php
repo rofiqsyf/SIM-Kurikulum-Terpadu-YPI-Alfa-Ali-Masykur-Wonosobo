@@ -35,7 +35,7 @@
                 <div class="space-y-3 max-w-xl z-10">
                     <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-[11px] font-semibold">
                         <span class="w-1.5 h-1.5 rounded-full bg-brand-600"></span>
-                        <span>Bank Data &amp; Portofolio Pengawasan Berkala</span>
+                        <span>Bank Data &amp; Arsip Dokumen Resmi</span>
                     </div>
 
                     <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 leading-tight">
@@ -58,7 +58,7 @@
                         <button type="button" onclick="window.print()" 
                                 class="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-all cursor-pointer">
                             <span class="material-symbols-outlined text-base">print</span>
-                            <span>Cetak Portofolio Supervisi</span>
+                            <span>Cetak Daftar Dokumen</span>
                         </button>
                     </div>
                 </div>
@@ -118,7 +118,7 @@
                     </div>
                     <div class="mt-3">
                         <div class="text-2xl font-black text-slate-900">{{ $totalDokumen }}</div>
-                        <p class="text-[11px] text-slate-500 mt-0.5">Dokumen dalam portofolio</p>
+                        <p class="text-[11px] text-slate-500 mt-0.5">Dokumen terarsip</p>
                     </div>
                 </div>
 
@@ -255,7 +255,7 @@
             <div class="bg-white rounded-3xl border border-slate-100 shadow-card overflow-hidden">
                 <div class="p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/50">
                     <div>
-                        <h3 class="text-sm font-bold text-slate-900">Daftar Dokumen Portofolio Pengawasan</h3>
+                        <h3 class="text-sm font-bold text-slate-900">Daftar Arsip Dokumen</h3>
                         <p class="text-[11px] text-slate-500">Menampilkan {{ $documents->count() }} dokumen arsip akademik</p>
                     </div>
 
@@ -406,7 +406,7 @@
             <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 text-xs text-slate-600 flex flex-col sm:flex-row items-center justify-between gap-3">
                 <div class="flex items-center gap-2.5">
                     <span class="material-symbols-outlined text-brand-700 text-lg">verified_user</span>
-                    <span>Portofolio dokumen di atas diverifikasi langsung oleh Waka Kurikulum, Kepala Sekolah, dan Pengawas Pembina.</span>
+                    <span>Dokumen resmi di atas diverifikasi langsung oleh Waka Kurikulum, Kepala Sekolah, dan Pengawas Pembina.</span>
                 </div>
                 <div class="text-[11px] font-semibold text-slate-400">
                     Siklus Audit: Semesteran &amp; Tahunan
@@ -425,8 +425,8 @@
             <div class="bg-white rounded-3xl border border-slate-100 shadow-card p-6 space-y-4">
                 <div class="flex items-center justify-between">
                     <div class="space-y-0.5">
-                        <h3 class="text-sm font-bold text-slate-900">Instrumen Pengawasan Tahunan</h3>
-                        <p class="text-[11px] text-slate-500">6 Portofolio Wajib Kurikulum Merdeka</p>
+                        <h3 class="text-sm font-bold text-slate-900">Standar Dokumen Resmi</h3>
+                        <p class="text-[11px] text-slate-500">6 Kategori Dokumen Kurikulum Merdeka</p>
                     </div>
                     <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-brand-50 text-brand-800">
                         Permendikbud 12/2024

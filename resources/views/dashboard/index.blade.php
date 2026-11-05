@@ -133,9 +133,9 @@
                         </div>
                         <div>
                             <div class="flex items-center gap-2">
-                                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-900">Kesiapan Audit &amp; Portofolio Pengawasan Unit</h3>
+                                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-900">Status Kelengkapan Arsip Dokumen Unit</h3>
                                 <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold {{ $persentaseArsip >= 80 ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800' }}">
-                                    {{ $persentaseArsip }}% Siap Supervisi
+                                    {{ $persentaseArsip }}% Lengkap
                                 </span>
                             </div>
                             <p class="text-[11px] text-slate-500 mt-1 leading-relaxed">
@@ -354,16 +354,23 @@
             <hr class="border-slate-100">
 
             <!-- 2. MINI ACADEMIC CALENDAR WIDGET (Interactive Month Navigation & Day Selection) -->
-            <div class="space-y-3">
-                <div class="flex items-center justify-between">
-                    <button type="button" onclick="changeDashboardMonth(-1)" class="text-slate-400 hover:text-slate-700 p-1.5 rounded-xl hover:bg-slate-100 transition-colors" title="Bulan Sebelumnya">
-                        <span class="material-symbols-outlined text-sm">chevron_left</span>
-                    </button>
-                    <span class="text-xs font-bold text-slate-900" id="cal-month-label">
-                        {{ now()->locale('id')->translatedFormat('F Y') }}
-                    </span>
-                    <button type="button" onclick="changeDashboardMonth(1)" class="text-slate-400 hover:text-slate-700 p-1.5 rounded-xl hover:bg-slate-100 transition-colors" title="Bulan Berikutnya">
-                        <span class="material-symbols-outlined text-sm">chevron_right</span>
+            <div class="space-y-3 bg-white p-4 rounded-3xl border border-slate-100 shadow-card">
+                <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                    <div class="flex items-center gap-1.5">
+                        <button type="button" onclick="changeDashboardMonth(-1)" class="text-slate-400 hover:text-slate-700 p-1 rounded-xl hover:bg-slate-100 transition-colors" title="Bulan Sebelumnya">
+                            <span class="material-symbols-outlined text-sm">chevron_left</span>
+                        </button>
+                        <span class="text-xs font-bold text-slate-900" id="cal-month-label">
+                            {{ now()->locale('id')->translatedFormat('F Y') }}
+                        </span>
+                        <button type="button" onclick="changeDashboardMonth(1)" class="text-slate-400 hover:text-slate-700 p-1 rounded-xl hover:bg-slate-100 transition-colors" title="Bulan Berikutnya">
+                            <span class="material-symbols-outlined text-sm">chevron_right</span>
+                        </button>
+                    </div>
+
+                    <button type="button" onclick="openModalAgendaBaru()" class="text-[11px] font-bold text-brand-800 hover:text-brand-900 bg-brand-50 hover:bg-brand-100 px-2.5 py-1 rounded-full transition-colors flex items-center gap-1 cursor-pointer">
+                        <span class="material-symbols-outlined text-xs">add_circle</span>
+                        <span>Agenda</span>
                     </button>
                 </div>
 
@@ -383,15 +390,28 @@
                     <!-- Populated dynamically by renderDashboardCalendar() -->
                 </div>
 
-                <!-- Interactive Date Detail Toast / Note -->
-                <div id="cal-selected-notice" class="hidden p-2.5 rounded-2xl bg-brand-50 border border-brand-200/70 text-xs text-brand-900 flex items-center justify-between animate-in fade-in">
-                    <div class="flex items-center gap-2">
-                        <span class="material-symbols-outlined text-sm text-brand-700">event_available</span>
-                        <span id="cal-selected-text" class="font-medium text-[11px]"></span>
+                <!-- Interactive Date Detail Container -->
+                <div id="cal-selected-notice" class="hidden p-3 rounded-2xl bg-slate-50 border border-slate-200/80 text-xs space-y-2.5 animate-in fade-in">
+                    <div class="flex items-center justify-between border-b border-slate-200/60 pb-1.5">
+                        <span id="cal-selected-header" class="font-bold text-slate-900 text-xs flex items-center gap-1.5">
+                            <span class="material-symbols-outlined text-sm text-brand-700">event</span>
+                            <span id="cal-selected-text"></span>
+                        </span>
+                        <button type="button" onclick="this.closest('#cal-selected-notice').classList.add('hidden')" class="text-slate-400 hover:text-slate-600">
+                            <span class="material-symbols-outlined text-xs">close</span>
+                        </button>
                     </div>
-                    <button type="button" onclick="this.parentElement.classList.add('hidden')" class="text-brand-600 hover:text-brand-800">
-                        <span class="material-symbols-outlined text-xs">close</span>
-                    </button>
+
+                    <div id="cal-agenda-list" class="space-y-2 max-h-48 overflow-y-auto">
+                        <!-- Populated by JS -->
+                    </div>
+
+                    <div class="pt-1">
+                        <button type="button" onclick="openModalAgendaBaru(currentSelectedDateStr)" class="w-full py-1.5 text-center text-[11px] font-bold text-brand-800 bg-white border border-brand-200 rounded-xl hover:bg-brand-50 transition-colors flex items-center justify-center gap-1 cursor-pointer">
+                            <span class="material-symbols-outlined text-xs">add</span>
+                            <span>Tambah Agenda di Tanggal Ini</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -517,7 +537,7 @@
     }
 
     // ==========================================
-    // INTERACTIVE DASHBOARD CALENDAR
+    // INTERACTIVE DASHBOARD CALENDAR & AGENDA
     // ==========================================
     const monthNamesId = [
         'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
@@ -526,6 +546,16 @@
 
     let currentCalDate = new Date();
     let currentSelectedDay = currentCalDate.getDate();
+    let currentSelectedDateStr = formatDateKey(currentCalDate.getFullYear(), currentCalDate.getMonth() + 1, currentSelectedDay);
+
+    // Initial loaded user agenda events
+    window.userAgendaEvents = {!! json_encode($formattedUserAgendas) !!};
+
+    function formatDateKey(year, month, day) {
+        const m = String(month).padStart(2, '0');
+        const d = String(day).padStart(2, '0');
+        return `${year}-${m}-${d}`;
+    }
 
     function renderDashboardCalendar(date) {
         const grid = document.getElementById('cal-dates-grid');
@@ -538,7 +568,6 @@
         label.textContent = `${monthNamesId[month]} ${year}`;
 
         // Get first day of month (0 = Sun, 1 = Mon ... 6 = Sat)
-        // Convert to Monday = 1, Sunday = 7
         let firstDay = new Date(year, month, 1).getDay();
         firstDay = firstDay === 0 ? 7 : firstDay;
 
@@ -546,7 +575,7 @@
         const prevMonthDays = new Date(year, month, 0).getDate();
 
         const today = new Date();
-        const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
+        const todayStr = formatDateKey(today.getFullYear(), today.getMonth() + 1, today.getDate());
 
         let html = '';
 
@@ -558,29 +587,54 @@
 
         // Current month days
         for (let d = 1; d <= daysInMonth; d++) {
-            const isToday = isCurrentMonth && d === today.getDate();
-            const isSelected = d === currentSelectedDay;
+            const dateStr = formatDateKey(year, month + 1, d);
+            const isToday = (dateStr === todayStr);
+            const isSelected = (d === currentSelectedDay);
+
+            // Find agendas active on this date (start <= dateStr <= end)
+            const activeAgendas = window.userAgendaEvents.filter(ev => {
+                const s = ev.start || ev.end;
+                const e = ev.end || ev.start;
+                return s && e && (dateStr >= s && dateStr <= e);
+            });
+
+            const hasAgendas = activeAgendas.length > 0;
+
+            // Generate colored indicator dots (up to 3)
+            let dotsHtml = '';
+            if (hasAgendas) {
+                dotsHtml = '<div class="flex items-center justify-center gap-0.5 mt-0.5">';
+                activeAgendas.slice(0, 3).forEach(ag => {
+                    dotsHtml += `<span class="w-1.5 h-1.5 rounded-full shrink-0 shadow-xs" style="background-color: ${ag.warna};" title="${ag.judul}"></span>`;
+                });
+                dotsHtml += '</div>';
+            }
 
             if (isToday) {
                 html += `
-                    <span class="py-0.5 flex items-center justify-center cursor-pointer" onclick="selectCalendarDate(${d}, ${month}, ${year})">
+                    <div class="py-0.5 flex flex-col items-center justify-center cursor-pointer group" onclick="selectCalendarDate(${d}, ${month}, ${year})">
                         <span class="w-6 h-6 rounded-full bg-rose-500 text-white font-bold flex items-center justify-center shadow-subtle text-xs hover:scale-110 transition-transform">
                             ${d}
                         </span>
-                    </span>`;
+                        ${dotsHtml}
+                    </div>`;
             } else if (isSelected) {
                 html += `
-                    <span class="py-0.5 flex items-center justify-center cursor-pointer" onclick="selectCalendarDate(${d}, ${month}, ${year})">
+                    <div class="py-0.5 flex flex-col items-center justify-center cursor-pointer group" onclick="selectCalendarDate(${d}, ${month}, ${year})">
                         <span class="w-6 h-6 rounded-full bg-brand-800 text-white font-bold flex items-center justify-center shadow-subtle text-xs">
                             ${d}
                         </span>
-                    </span>`;
+                        ${dotsHtml}
+                    </div>`;
             } else {
                 html += `
-                    <span class="py-1 text-slate-700 font-medium hover:bg-slate-100 hover:text-brand-800 rounded-full cursor-pointer transition-colors text-xs" 
-                          onclick="selectCalendarDate(${d}, ${month}, ${year})">
-                        ${d}
-                    </span>`;
+                    <div class="py-0.5 flex flex-col items-center justify-center rounded-xl cursor-pointer hover:bg-slate-50 transition-colors group" 
+                         onclick="selectCalendarDate(${d}, ${month}, ${year})">
+                        <span class="w-6 h-6 flex items-center justify-center text-slate-700 font-semibold group-hover:text-brand-800 text-xs">
+                            ${d}
+                        </span>
+                        ${dotsHtml}
+                    </div>`;
             }
         }
 
@@ -599,23 +653,206 @@
     function changeDashboardMonth(step) {
         currentCalDate.setMonth(currentCalDate.getMonth() + step);
         currentSelectedDay = 1;
+        currentSelectedDateStr = formatDateKey(currentCalDate.getFullYear(), currentCalDate.getMonth() + 1, 1);
         renderDashboardCalendar(currentCalDate);
     }
 
     function selectCalendarDate(day, month, year) {
         currentSelectedDay = day;
+        currentSelectedDateStr = formatDateKey(year, month + 1, day);
         renderDashboardCalendar(currentCalDate);
 
         const notice = document.getElementById('cal-selected-notice');
         const text = document.getElementById('cal-selected-text');
-        if (notice && text) {
-            text.textContent = `Agenda ${day} ${monthNamesId[month]} ${year}: Pekan efektif KBM & sinkronisasi silabus.`;
-            notice.classList.remove('hidden');
+        const listContainer = document.getElementById('cal-agenda-list');
+        if (!notice || !text || !listContainer) return;
+
+        text.textContent = `${day} ${monthNamesId[month]} ${year}`;
+
+        // Find agendas on this day
+        const activeAgendas = window.userAgendaEvents.filter(ev => {
+            const s = ev.start || ev.end;
+            const e = ev.end || ev.start;
+            return s && e && (currentSelectedDateStr >= s && currentSelectedDateStr <= e);
+        });
+
+        if (activeAgendas.length === 0) {
+            listContainer.innerHTML = `
+                <div class="p-2.5 text-center text-slate-400 text-[11px] bg-white rounded-xl border border-slate-100">
+                    Belum ada agenda di tanggal ini.
+                </div>`;
+        } else {
+            let itemsHtml = '';
+            activeAgendas.forEach(ag => {
+                const dateSpan = (ag.start && ag.end && ag.start !== ag.end) 
+                    ? `${ag.start} s/d ${ag.end}`
+                    : (ag.start || ag.end);
+
+                itemsHtml += `
+                    <div class="p-2.5 rounded-xl bg-white border border-slate-100 shadow-xs space-y-1.5" style="border-left: 3.5px solid ${ag.warna};">
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="min-w-0 flex-1">
+                                <div class="flex items-center gap-1.5 flex-wrap">
+                                    <span class="text-[9px] font-bold px-1.5 py-0.5 rounded text-white" style="background-color: ${ag.warna};">
+                                        ${ag.kategori_label}
+                                    </span>
+                                    ${ag.is_due_today ? '<span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-900">Deadline Hari Ini</span>' : ''}
+                                    ${ag.is_overdue ? '<span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-rose-100 text-rose-800">Terlewat</span>' : ''}
+                                    ${ag.is_selesai ? '<span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">Selesai</span>' : ''}
+                                </div>
+                                <h5 class="text-xs font-bold text-slate-900 mt-1 leading-snug">${ag.judul}</h5>
+                            </div>
+                            <button type="button" onclick="openModalEditAgenda(${ag.id})" class="p-1 text-slate-400 hover:text-brand-800 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer" title="Edit Agenda">
+                                <span class="material-symbols-outlined text-sm">edit</span>
+                            </button>
+                        </div>
+                        <div class="text-[10px] text-slate-400 flex items-center gap-1">
+                            <span class="material-symbols-outlined text-xs">date_range</span>
+                            <span>${dateSpan}</span>
+                        </div>
+                        ${ag.catatan ? `<p class="text-[11px] text-slate-600 bg-slate-50 p-1.5 rounded-lg italic">"${ag.catatan}"</p>` : ''}
+                    </div>`;
+            });
+            listContainer.innerHTML = itemsHtml;
         }
+
+        notice.classList.remove('hidden');
+    }
+
+    // ==========================================
+    // AGENDA MODAL & EDIT ACTIONS
+    // ==========================================
+    function openModalAgendaBaru(defaultDate) {
+        const modal = document.getElementById('modal-agenda');
+        const backdrop = document.getElementById('modal-agenda-backdrop');
+        const form = document.getElementById('agenda-calendar-form');
+        if (!modal || !backdrop || !form) return;
+
+        form.reset();
+        document.getElementById('agenda-input-id').value = '';
+        document.getElementById('agenda-modal-title').textContent = 'Tambah Agenda Kalender';
+        document.getElementById('agenda-btn-delete').classList.add('hidden');
+        document.getElementById('agenda-btn-submit').textContent = 'Simpan Agenda';
+
+        const targetDate = defaultDate || currentSelectedDateStr || new Date().toISOString().split('T')[0];
+        document.getElementById('agenda-input-mulai').value = targetDate;
+        document.getElementById('agenda-input-selesai').value = targetDate;
+
+        backdrop.classList.remove('hidden');
+        setTimeout(() => modal.classList.remove('translate-x-full'), 10);
+    }
+
+    function openModalEditAgenda(id) {
+        const ev = window.userAgendaEvents.find(e => e.id == id);
+        if (!ev) return;
+
+        const modal = document.getElementById('modal-agenda');
+        const backdrop = document.getElementById('modal-agenda-backdrop');
+        const form = document.getElementById('agenda-calendar-form');
+        if (!modal || !backdrop || !form) return;
+
+        document.getElementById('agenda-input-id').value = ev.id;
+        document.getElementById('agenda-modal-title').textContent = 'Edit Agenda Kalender';
+        document.getElementById('agenda-input-judul').value = ev.judul;
+        document.getElementById('agenda-input-kategori').value = ev.kategori;
+        document.getElementById('agenda-input-prioritas').value = ev.prioritas;
+        document.getElementById('agenda-input-status').value = ev.status;
+        document.getElementById('agenda-input-mulai').value = ev.start || '';
+        document.getElementById('agenda-input-selesai').value = ev.end || '';
+        document.getElementById('agenda-input-catatan').value = ev.catatan || '';
+
+        // Select color radio
+        const colorRadio = form.querySelector(`input[name="warna"][value="${ev.warna}"]`);
+        if (colorRadio) {
+            colorRadio.checked = true;
+        }
+
+        document.getElementById('agenda-btn-delete').classList.remove('hidden');
+        document.getElementById('agenda-btn-submit').textContent = 'Simpan Perubahan';
+
+        backdrop.classList.remove('hidden');
+        setTimeout(() => modal.classList.remove('translate-x-full'), 10);
+    }
+
+    function closeModalAgenda() {
+        const modal = document.getElementById('modal-agenda');
+        const backdrop = document.getElementById('modal-agenda-backdrop');
+        if (modal && backdrop) {
+            modal.classList.add('translate-x-full');
+            setTimeout(() => backdrop.classList.add('hidden'), 200);
+        }
+    }
+
+    async function handleSaveAgenda(e) {
+        e.preventDefault();
+        const form = e.target;
+        const id = document.getElementById('agenda-input-id').value;
+        const formData = new FormData(form);
+
+        const url = id ? `/jurnal-kerja/${id}/update` : '/jurnal-kerja/store';
+
+        try {
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: formData
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                closeModalAgenda();
+                // Refresh calendar events
+                await refreshCalendarEvents();
+                // If realtime active, trigger sync
+                if (typeof syncRealtime === 'function') syncRealtime(true);
+            } else {
+                alert('Gagal menyimpan agenda: ' + (data.message || 'Terjadi kesalahan.'));
+            }
+        } catch (err) {
+            form.submit();
+        }
+    }
+
+    async function handleDeleteAgenda() {
+        const id = document.getElementById('agenda-input-id').value;
+        if (!id || !confirm('Apakah Anda yakin ingin menghapus agenda ini dari kalender?')) return;
+
+        try {
+            const res = await fetch(`/jurnal-kerja/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                }
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                closeModalAgenda();
+                await refreshCalendarEvents();
+            }
+        } catch (e) {
+            location.reload();
+        }
+    }
+
+    async function refreshCalendarEvents() {
+        try {
+            const res = await fetch('/jurnal-kerja/events', { credentials: 'same-origin' });
+            const events = await res.json();
+            window.userAgendaEvents = events;
+            renderDashboardCalendar(currentCalDate);
+            selectCalendarDate(currentSelectedDay, currentCalDate.getMonth(), currentCalDate.getFullYear());
+        } catch (e) {}
     }
 
     document.addEventListener('DOMContentLoaded', function() {
         renderDashboardCalendar(currentCalDate);
     });
 </script>
+
+    @include('partials.modal-agenda')
 @endsection

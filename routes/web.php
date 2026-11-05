@@ -49,8 +49,11 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/jurnal/remind/{id}', [JurnalController::class, 'remindGuruKbm'])->name('jurnal.remind');
     Route::post('/tahfidz/store', [JurnalController::class, 'storeTahfidz'])->name('tahfidz.store');
     Route::post('/jurnal-kerja/store', [JurnalController::class, 'storeJurnalKerja'])->name('jurnal-kerja.store');
+    Route::post('/jurnal-kerja/{id}/update', [JurnalController::class, 'updateJurnalKerja'])->name('jurnal-kerja.update');
     Route::post('/jurnal-kerja/{id}/toggle', [JurnalController::class, 'toggleJurnalKerja'])->name('jurnal-kerja.toggle');
     Route::delete('/jurnal-kerja/{id}', [JurnalController::class, 'destroyJurnalKerja'])->name('jurnal-kerja.destroy');
+    Route::get('/jurnal-kerja/events', [JurnalController::class, 'getCalendarEvents'])->name('jurnal-kerja.events');
+    Route::post('/jurnal-kerja/check-deadlines', [JurnalController::class, 'triggerCheckDeadlines'])->name('jurnal-kerja.check-deadlines');
 
     // 7. Monitoring Kurikulum Terpadu Seluruh Unit (Khusus Pengurus Yayasan)
     Route::get('/yayasan/monitoring', [YayasanController::class, 'index'])->name('yayasan.monitoring');

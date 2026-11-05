@@ -16,14 +16,22 @@ class JurnalKerja extends Model
         'judul',
         'kategori',
         'tanggal_target',
+        'tanggal_mulai',
+        'tanggal_selesai',
         'prioritas',
         'status',
+        'warna',
         'catatan_refleksi',
+        'catatan',
         'waktu_pengingat',
+        'notif_deadline_sent',
     ];
 
     protected $casts = [
         'tanggal_target' => 'date',
+        'tanggal_mulai' => 'date',
+        'tanggal_selesai' => 'date',
+        'notif_deadline_sent' => 'boolean',
     ];
 
     public function user()
@@ -36,22 +44,58 @@ class JurnalKerja extends Model
         return $this->status === 'selesai';
     }
 
+    public function getDeadlineDateAttribute()
+    {
+        return $this->tanggal_selesai ?? $this->tanggal_target;
+    }
+
+    public function getStartDateAttribute()
+    {
+        return $this->tanggal_mulai ?? $this->tanggal_target;
+    }
+
     public function isOverdue(): bool
     {
-        if ($this->isSelesai() || !$this->tanggal_target) {
+        if ($this->isSelesai()) {
             return false;
         }
 
-        return $this->tanggal_target->isPast() && !$this->tanggal_target->isToday();
+        $deadline = $this->deadline_date;
+        if (!$deadline) {
+            return false;
+        }
+
+        return $deadline->isPast() && !$deadline->isToday();
     }
 
     public function isDueToday(): bool
     {
-        if ($this->isSelesai() || !$this->tanggal_target) {
+        if ($this->isSelesai()) {
             return false;
         }
 
-        return $this->tanggal_target->isToday();
+        $deadline = $this->deadline_date;
+        if (!$deadline) {
+            return false;
+        }
+
+        return $deadline->isToday();
+    }
+
+    public function spansDate($date): bool
+    {
+        $target = \Carbon\Carbon::parse($date)->toDateString();
+        $start = ($this->tanggal_mulai ?? $this->tanggal_target)?->toDateString();
+        $end = ($this->tanggal_selesai ?? $this->tanggal_target)?->toDateString();
+
+        if ($start && $end) {
+            return $target >= $start && $target <= $end;
+        } elseif ($start) {
+            return $target === $start;
+        } elseif ($end) {
+            return $target === $end;
+        }
+        return false;
     }
 
     public function getKategoriBadgeAttribute(): array

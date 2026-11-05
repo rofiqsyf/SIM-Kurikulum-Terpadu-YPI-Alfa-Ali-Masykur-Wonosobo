@@ -372,6 +372,7 @@ class SimKurikulumCompleteFlowTest extends TestCase
         $responseArsip = $this->actingAs($wakaSMP)->get(route('arsip.index'));
         $responseArsip->assertStatus(200);
         $responseArsip->assertSee('Arsip Dokumen Kurikulum &amp; Pengawasan Tahunan', false);
+        $responseArsip->assertSee('Daftar Arsip Dokumen');
 
         // 2. Waka can store a new inspection document
         $storeResponse = $this->actingAs($wakaSMP)->post(route('arsip.store'), [
@@ -478,5 +479,118 @@ class SimKurikulumCompleteFlowTest extends TestCase
         $arsipMIResponse = $this->actingAs($wakaMI)->get(route('arsip.index'));
         $arsipMIResponse->assertStatus(200);
         $arsipMIResponse->assertSee('MI Tahfidz Alfa Ali Masykur');
+    }
+
+    public function test_calendar_agenda_editing_date_range_colors_and_deadline_notifications(): void
+    {
+        $guru = User::where('username', 'guru.ahmad')->first();
+        $this->assertNotNull($guru);
+
+        // 1. Create agenda with date range, custom color, and note
+        $startDate = now()->format('Y-m-d');
+        $endDate = now()->addDays(3)->format('Y-m-d');
+
+        $storeResponse = $this->actingAs($guru)->post(route('jurnal-kerja.store'), [
+            'judul' => 'Penyusunan Modul Ajar Aljabar',
+            'kategori' => 'administrasi',
+            'prioritas' => 'tinggi',
+            'tanggal_mulai' => $startDate,
+            'tanggal_selesai' => $endDate,
+            'warna' => '#059669',
+            'catatan' => 'Siapkan modul ajar dan lembar asesmen formatif',
+        ], ['Accept' => 'application/json']);
+
+        $storeResponse->assertStatus(200);
+        $storeResponse->assertJson(['success' => true]);
+
+        $createdTask = \App\Models\JurnalKerja::where('user_id', $guru->id)
+            ->where('judul', 'Penyusunan Modul Ajar Aljabar')
+            ->first();
+        $this->assertNotNull($createdTask);
+        $this->assertEquals($startDate, $createdTask->tanggal_mulai->format('Y-m-d'));
+        $this->assertEquals($endDate, $createdTask->tanggal_selesai->format('Y-m-d'));
+        $this->assertEquals('#059669', $createdTask->warna);
+        $this->assertEquals('Siapkan modul ajar dan lembar asesmen formatif', $createdTask->catatan);
+        $this->assertFalse((bool)$createdTask->notif_deadline_sent);
+
+        // 2. Edit / update agenda (change dates, color, notes, status)
+        $newEndDate = now()->addDays(5)->format('Y-m-d');
+        $updateResponse = $this->actingAs($guru)->post("/jurnal-kerja/{$createdTask->id}/update", [
+            'judul' => 'Penyusunan Modul Ajar Aljabar Revisi',
+            'kategori' => 'administrasi',
+            'prioritas' => 'tinggi',
+            'status' => 'proses',
+            'tanggal_mulai' => $startDate,
+            'tanggal_selesai' => $newEndDate,
+            'warna' => '#e11d48',
+            'catatan' => 'Tambahkan rubrik penilaian kelompok',
+        ], ['Accept' => 'application/json']);
+
+        $updateResponse->assertStatus(200);
+        $updateResponse->assertJson(['success' => true]);
+
+        $createdTask->refresh();
+        $this->assertEquals('Penyusunan Modul Ajar Aljabar Revisi', $createdTask->judul);
+        $this->assertEquals($newEndDate, $createdTask->tanggal_selesai->format('Y-m-d'));
+        $this->assertEquals('#e11d48', $createdTask->warna);
+        $this->assertEquals('Tambahkan rubrik penilaian kelompok', $createdTask->catatan);
+        $this->assertEquals('proses', $createdTask->status);
+
+        // 3. Calendar events JSON endpoint feed
+        $eventsResponse = $this->actingAs($guru)->get('/jurnal-kerja/events');
+        $eventsResponse->assertStatus(200);
+        $events = $eventsResponse->json();
+        $this->assertIsArray($events);
+        $eventFound = collect($events)->firstWhere('id', $createdTask->id);
+        $this->assertNotNull($eventFound);
+        $this->assertEquals('#e11d48', $eventFound['warna']);
+        $this->assertEquals($startDate, $eventFound['start']);
+        $this->assertEquals($newEndDate, $eventFound['end']);
+
+        // 4. Automated deadline notification
+        // Simulate a task due today or overdue
+        $deadlineTask = \App\Models\JurnalKerja::create([
+            'user_id' => $guru->id,
+            'judul' => 'Deadline Submit Soal PTS Matematika',
+            'kategori' => 'penilaian',
+            'tanggal_mulai' => now()->subDays(2)->format('Y-m-d'),
+            'tanggal_selesai' => now()->format('Y-m-d'), // Today
+            'tanggal_target' => now()->format('Y-m-d'),
+            'prioritas' => 'tinggi',
+            'status' => 'belum',
+            'warna' => '#e11d48',
+            'catatan' => 'Serahkan naskah soal ke Waka Kurikulum',
+            'notif_deadline_sent' => false,
+        ]);
+
+        $notifCountBefore = \App\Models\Notifikasi::where('user_id', $guru->id)
+            ->where('tipe', 'deadline_reminder')
+            ->count();
+
+        // Run deadline checker
+        \App\Services\NotificationService::checkAndNotifyUserDeadlines($guru->id);
+
+        $deadlineTask->refresh();
+        $this->assertTrue((bool)$deadlineTask->notif_deadline_sent);
+
+        $notifCountAfter = \App\Models\Notifikasi::where('user_id', $guru->id)
+            ->where('tipe', 'deadline_reminder')
+            ->count();
+        $this->assertEquals($notifCountBefore + 1, $notifCountAfter);
+
+        // Re-running checker should not produce duplicates
+        \App\Services\NotificationService::checkAndNotifyUserDeadlines($guru->id);
+        $notifCountAfterSecond = \App\Models\Notifikasi::where('user_id', $guru->id)
+            ->where('tipe', 'deadline_reminder')
+            ->count();
+        $this->assertEquals($notifCountAfter, $notifCountAfterSecond);
+
+        // 5. Delete agenda
+        $deleteResponse = $this->actingAs($guru)->delete("/jurnal-kerja/{$createdTask->id}", [], ['Accept' => 'application/json']);
+        $deleteResponse->assertStatus(200);
+        $deleteResponse->assertJson(['success' => true]);
+        $this->assertDatabaseMissing('jurnal_kerja', ['id' => $createdTask->id]);
+
+        $deadlineTask->delete();
     }
 }

@@ -503,9 +503,16 @@
             <div class="space-y-1">
                 <label class="font-semibold text-slate-700">Mata Pelajaran</label>
                 <select name="mapel_id" id="proposal_mapel_id" required class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-800 text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-600 focus:border-brand-600">
-                    @foreach(\App\Models\MataPelajaran::with('kurikulum.unit')->get() as $mp)
+                    @php
+                        $drawerMapelQuery = \App\Models\MataPelajaran::with('kurikulum.unit');
+                        if (auth()->check() && !auth()->user()->canAccessAllUnits() && auth()->user()->unit_id) {
+                            $drawerMapelQuery->whereHas('kurikulum', fn($q) => $q->where('unit_id', auth()->user()->unit_id));
+                        }
+                        $drawerMapels = $drawerMapelQuery->get();
+                    @endphp
+                    @foreach($drawerMapels as $mp)
                         <option value="{{ $mp->id }}">
-                            {{ $mp->nama_mapel }} ({{ $mp->kurikulum->unit->nama_unit ?? 'SMP Alfa' }})
+                            {{ $mp->nama_mapel }} ({{ $mp->kurikulum->unit->nama_unit ?? 'Unit' }})
                         </option>
                     @endforeach
                 </select>

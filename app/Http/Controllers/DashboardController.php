@@ -8,6 +8,7 @@ use App\Models\MataPelajaran;
 use App\Models\TujuanPembelajaran;
 use App\Models\UnitPendidikan;
 use App\Models\UsulanPerubahan;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -19,6 +20,9 @@ class DashboardController extends Controller
         if (!$user) {
             return redirect()->route('login');
         }
+
+        // Otomatis cek dan beri notifikasi jika ada agenda yang deadline hari ini atau lewat
+        NotificationService::checkAndNotifyUserDeadlines($user->id);
 
         // Scope unit: Admin & Yayasan can switch units or view all. Others are strictly locked to their unit.
         $availableUnits = UnitPendidikan::all();
@@ -96,6 +100,27 @@ class DashboardController extends Controller
             ->take(4)
             ->get();
 
+        // Seluruh agenda kalender pengguna untuk penanda warna & tanggal
+        $allUserAgendas = JurnalKerja::where('user_id', $user->id)->get();
+
+        $formattedUserAgendas = $allUserAgendas->map(function ($t) {
+            return [
+                'id' => $t->id,
+                'judul' => $t->judul,
+                'kategori' => $t->kategori,
+                'kategori_label' => $t->kategori_badge['label'] ?? ucfirst($t->kategori),
+                'start' => ($t->tanggal_mulai ?? $t->tanggal_target)?->toDateString(),
+                'end' => ($t->tanggal_selesai ?? $t->tanggal_target)?->toDateString(),
+                'warna' => $t->warna ?: '#2563eb',
+                'catatan' => $t->catatan ?? $t->catatan_refleksi ?? '',
+                'prioritas' => $t->prioritas,
+                'status' => $t->status,
+                'is_overdue' => $t->isOverdue(),
+                'is_due_today' => $t->isDueToday(),
+                'is_selesai' => $t->isSelesai(),
+            ];
+        })->values()->toArray();
+
         // Unit Inspection & Teacher Stats
         $unitArsipQuery = \App\Models\ArsipDokumen::query();
         if ($unit) {
@@ -129,7 +154,9 @@ class DashboardController extends Controller
             'totalArsipUnit',
             'terverifikasiArsipUnit',
             'persentaseArsip',
-            'totalGuruUnit'
+            'totalGuruUnit',
+            'allUserAgendas',
+            'formattedUserAgendas'
         ));
     }
 }

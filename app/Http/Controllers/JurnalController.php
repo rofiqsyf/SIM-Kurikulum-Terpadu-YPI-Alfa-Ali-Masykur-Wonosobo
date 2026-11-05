@@ -22,6 +22,9 @@ class JurnalController extends Controller
             return redirect()->route('login');
         }
 
+        // Cek dan buat notifikasi otomatis jika ada agenda yang deadline hari ini atau telah lewat
+        NotificationService::checkAndNotifyUserDeadlines($user->id);
+
         // Auto-seed starter agenda tasks if empty to immediately assist teachers and staff
         if (JurnalKerja::where('user_id', $user->id)->count() === 0) {
             $this->seedStarterTasksForUser($user);
@@ -37,6 +40,24 @@ class JurnalController extends Controller
         $completedKerjaCount = $jurnalKerjaList->where('status', 'selesai')->count();
         $dueTodayCount = $jurnalKerjaList->filter(fn($t) => $t->isDueToday())->count();
         $overdueCount = $jurnalKerjaList->filter(fn($t) => $t->isOverdue())->count();
+
+        $formattedUserAgendas = $jurnalKerjaList->map(function ($t) {
+            return [
+                'id' => $t->id,
+                'judul' => $t->judul,
+                'kategori' => $t->kategori,
+                'kategori_label' => $t->kategori_badge['label'] ?? ucfirst($t->kategori),
+                'start' => ($t->tanggal_mulai ?? $t->tanggal_target)?->toDateString(),
+                'end' => ($t->tanggal_selesai ?? $t->tanggal_target)?->toDateString(),
+                'warna' => $t->warna ?: '#2563eb',
+                'catatan' => $t->catatan ?? $t->catatan_refleksi ?? '',
+                'prioritas' => $t->prioritas,
+                'status' => $t->status,
+                'is_overdue' => $t->isOverdue(),
+                'is_due_today' => $t->isDueToday(),
+                'is_selesai' => $t->isSelesai(),
+            ];
+        })->values()->toArray();
 
         // Jurnal Mengajar KBM di Kelas (Unit-scoped: Guru hanya melihat mandiri, Waka/Kepsek hanya melihat unitnya)
         $jurnalQuery = JurnalMengajar::with(['guru.unit', 'mataPelajaran', 'kelas'])
@@ -144,7 +165,8 @@ class JurnalController extends Controller
             'kelasList',
             'units',
             'guruMonitoringList',
-            'unitKbmStats'
+            'unitKbmStats',
+            'formattedUserAgendas'
         ));
     }
 
@@ -155,27 +177,99 @@ class JurnalController extends Controller
         $validated = $request->validate([
             'judul' => 'required|string|max:255',
             'kategori' => 'required|string|in:kbm,administrasi,penilaian,bimbingan,rapat,umum',
+            'tanggal_mulai' => 'nullable|date',
+            'tanggal_selesai' => 'nullable|date',
             'tanggal_target' => 'nullable|date',
             'prioritas' => 'required|string|in:tinggi,sedang,rendah',
+            'warna' => 'nullable|string|max:30',
+            'catatan' => 'nullable|string',
             'catatan_refleksi' => 'nullable|string',
             'waktu_pengingat' => 'nullable|string|max:50',
         ]);
 
-        $task = JurnalKerja::create(array_merge($validated, [
+        $startDate = $validated['tanggal_mulai'] ?? $validated['tanggal_target'] ?? now()->toDateString();
+        $endDate = $validated['tanggal_selesai'] ?? $validated['tanggal_target'] ?? $startDate;
+        $targetDate = $validated['tanggal_target'] ?? $endDate;
+
+        $task = JurnalKerja::create([
             'user_id' => $user->id,
+            'judul' => $validated['judul'],
+            'kategori' => $validated['kategori'],
+            'tanggal_mulai' => $startDate,
+            'tanggal_selesai' => $endDate,
+            'tanggal_target' => $targetDate,
+            'prioritas' => $validated['prioritas'],
             'status' => 'belum',
-            'tanggal_target' => $validated['tanggal_target'] ?? now()->toDateString(),
-        ]));
+            'warna' => (!empty($validated['warna'])) ? $validated['warna'] : '#2563eb',
+            'catatan' => $validated['catatan'] ?? $validated['catatan_refleksi'] ?? null,
+            'catatan_refleksi' => $validated['catatan_refleksi'] ?? $validated['catatan'] ?? null,
+            'waktu_pengingat' => $validated['waktu_pengingat'] ?? '08.00 WIB',
+            'notif_deadline_sent' => false,
+        ]);
+
+        // Cek batas waktu langsung
+        NotificationService::checkAndNotifyUserDeadlines($user->id);
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Agenda tugas berhasil dicatat.',
+                'message' => 'Agenda di kalender berhasil dicatat.',
                 'task' => $task,
             ]);
         }
 
-        return back()->with('success', 'Agenda tugas dan catatan kerja berhasil disimpan.');
+        return back()->with('success', 'Agenda tugas dan catatan kerja kalender berhasil disimpan.');
+    }
+
+    public function updateJurnalKerja(Request $request, $id)
+    {
+        $user = Auth::user();
+        $task = JurnalKerja::where('id', $id)->where('user_id', $user->id)->firstOrFail();
+
+        $validated = $request->validate([
+            'judul' => 'required|string|max:255',
+            'kategori' => 'required|string|in:kbm,administrasi,penilaian,bimbingan,rapat,umum',
+            'tanggal_mulai' => 'nullable|date',
+            'tanggal_selesai' => 'nullable|date',
+            'tanggal_target' => 'nullable|date',
+            'prioritas' => 'required|string|in:tinggi,sedang,rendah',
+            'status' => 'required|string|in:belum,proses,selesai',
+            'warna' => 'nullable|string|max:30',
+            'catatan' => 'nullable|string',
+            'catatan_refleksi' => 'nullable|string',
+            'waktu_pengingat' => 'nullable|string|max:50',
+        ]);
+
+        $startDate = $validated['tanggal_mulai'] ?? $task->tanggal_mulai ?? $task->tanggal_target;
+        $endDate = $validated['tanggal_selesai'] ?? $task->tanggal_selesai ?? $task->tanggal_target ?? $startDate;
+        $targetDate = $validated['tanggal_target'] ?? $endDate;
+
+        $task->update([
+            'judul' => $validated['judul'],
+            'kategori' => $validated['kategori'],
+            'tanggal_mulai' => $startDate,
+            'tanggal_selesai' => $endDate,
+            'tanggal_target' => $targetDate,
+            'prioritas' => $validated['prioritas'],
+            'status' => $validated['status'],
+            'warna' => (!empty($validated['warna'])) ? $validated['warna'] : ($task->warna ?: '#2563eb'),
+            'catatan' => $validated['catatan'] ?? $validated['catatan_refleksi'] ?? $task->catatan,
+            'catatan_refleksi' => $validated['catatan_refleksi'] ?? $validated['catatan'] ?? $task->catatan_refleksi,
+            'waktu_pengingat' => $validated['waktu_pengingat'] ?? $task->waktu_pengingat,
+            'notif_deadline_sent' => $validated['status'] === 'selesai' ? true : false,
+        ]);
+
+        NotificationService::checkAndNotifyUserDeadlines($user->id);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Agenda di kalender berhasil diperbarui.',
+                'task' => $task,
+            ]);
+        }
+
+        return back()->with('success', 'Agenda dan catatan kalender berhasil diperbarui.');
     }
 
     public function toggleJurnalKerja(Request $request, $id)
@@ -207,11 +301,66 @@ class JurnalController extends Controller
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Agenda tugas telah dihapus.',
+                'message' => 'Agenda berhasil dihapus dari kalender.',
             ]);
         }
 
-        return back()->with('success', 'Agenda tugas berhasil dihapus.');
+        return back()->with('success', 'Agenda berhasil dihapus.');
+    }
+
+    public function getCalendarEvents(Request $request)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json([]);
+        }
+
+        NotificationService::checkAndNotifyUserDeadlines($user->id);
+
+        $tasks = JurnalKerja::where('user_id', $user->id)->get();
+
+        $events = $tasks->map(function ($t) {
+            $startDate = ($t->tanggal_mulai ?? $t->tanggal_target)?->toDateString();
+            $endDate = ($t->tanggal_selesai ?? $t->tanggal_target)?->toDateString();
+
+            return [
+                'id' => $t->id,
+                'judul' => $t->judul,
+                'kategori' => $t->kategori,
+                'kategori_label' => $t->kategori_badge['label'] ?? ucfirst($t->kategori),
+                'start' => $startDate,
+                'end' => $endDate,
+                'tanggal_mulai' => $startDate,
+                'tanggal_selesai' => $endDate,
+                'tanggal_target' => $t->tanggal_target?->toDateString(),
+                'prioritas' => $t->prioritas,
+                'status' => $t->status,
+                'warna' => $t->warna ?: '#2563eb',
+                'catatan' => $t->catatan ?? $t->catatan_refleksi ?? '',
+                'waktu_pengingat' => $t->waktu_pengingat,
+                'is_overdue' => $t->isOverdue(),
+                'is_due_today' => $t->isDueToday(),
+                'is_selesai' => $t->isSelesai(),
+            ];
+        });
+
+        return response()->json($events);
+    }
+
+    public function triggerCheckDeadlines(Request $request)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['count' => 0]);
+        }
+
+        $count = NotificationService::checkAndNotifyUserDeadlines($user->id);
+
+        return response()->json([
+            'success' => true,
+            'notifications_created' => $count,
+            'message' => $count > 0 ? "{$count} notifikasi batas waktu agenda telah dikirim." : 'Tidak ada agenda yang jatuh tempo baru.',
+        ]);
     }
 
     public function storeJurnal(Request $request)
