@@ -25,34 +25,69 @@ class CurriculumController extends Controller
         // View mode: 'katalog' (grid of shape cards) or 'workspace' (CP -> TP -> Materi tree)
         $viewMode = $request->get('view', $request->has('mapel_id') ? 'workspace' : 'katalog');
 
-        // Unit aktif
-        $unitId = $request->get('unit_id', $user->unit_id ?? 2); // Default SMP Alfa
-        $currentUnit = UnitPendidikan::find($unitId) ?? UnitPendidikan::first();
+        // Scope unit: Admin & Yayasan can switch units or view all. Others are strictly locked to their own unit.
+        if ($user->canAccessAllUnits()) {
+            $unitId = $request->get('unit_id', 2); // Default SMP Alfa
+            $currentUnit = UnitPendidikan::find($unitId) ?? UnitPendidikan::first();
+        } else {
+            $currentUnit = $user->unit ?? UnitPendidikan::first();
+        }
 
-        // All subjects across units with relationships for the catalog cards
-        $allCatalogMapel = MataPelajaran::with([
+        // Catalog of subjects: If user is scoped to their unit, only fetch their unit's subjects!
+        $catalogQuery = MataPelajaran::with([
             'kurikulum.unit',
             'penugasanGuru.user',
             'kelas.fase',
             'tujuanPembelajaran',
-        ])->withCount(['tujuanPembelajaran'])->get();
+        ])->withCount(['tujuanPembelajaran']);
+
+        if (!$user->canAccessAllUnits()) {
+            $catalogQuery->whereHas('kurikulum', fn($q) => $q->where('unit_id', $currentUnit->id));
+        }
+
+        $allCatalogMapel = $catalogQuery->get();
 
         // Daftar Mata Pelajaran pada unit ini
         $availableMapel = MataPelajaran::whereHas('kurikulum', function ($q) use ($currentUnit) {
             $q->where('unit_id', $currentUnit->id);
         })->get();
 
-        $selectedMapelId = $request->get('mapel_id', $availableMapel->first()?->id);
-        $selectedMapel = MataPelajaran::with(['kurikulum', 'kelas.fase', 'penugasanGuru.user'])->find($selectedMapelId) ?? $availableMapel->first();
+        // Selected Mapel with strict authorization check
+        if ($request->has('mapel_id')) {
+            $candidate = MataPelajaran::with(['kurikulum.unit', 'kelas.fase', 'penugasanGuru.user'])->find($request->get('mapel_id'));
+            if ($candidate) {
+                if (!$user->canAccessAllUnits() && $candidate->kurikulum?->unit_id !== $currentUnit->id) {
+                    return redirect()->route('curriculum.index', ['view' => 'katalog'])
+                        ->with('error', "Akses Dibatasi: Anda terdaftar pada unit {$currentUnit->nama_unit} dan tidak berwenang mengakses mata pelajaran di unit {$candidate->kurikulum?->unit?->nama_unit}.");
+                }
+                $selectedMapel = $candidate;
+                if ($user->canAccessAllUnits()) {
+                    $currentUnit = $candidate->kurikulum?->unit ?? $currentUnit;
+                }
+            } else {
+                $selectedMapel = $availableMapel->first();
+            }
+        } else {
+            $selectedMapel = $availableMapel->first();
+        }
 
-        // Search query auto-switch subject
+        // Search query auto-switch subject within permitted scope
         if ($search = $request->get('q')) {
-            $matchedMapel = MataPelajaran::where('nama_mapel', 'like', "%{$search}%")
-                ->orWhere('kode_mapel', 'like', "%{$search}%")
-                ->first();
+            $searchQuery = MataPelajaran::where(function ($sq) use ($search) {
+                $sq->where('nama_mapel', 'like', "%{$search}%")
+                   ->orWhere('kode_mapel', 'like', "%{$search}%");
+            });
+
+            if (!$user->canAccessAllUnits()) {
+                $searchQuery->whereHas('kurikulum', fn($q) => $q->where('unit_id', $currentUnit->id));
+            }
+
+            $matchedMapel = $searchQuery->first();
             if ($matchedMapel) {
                 $selectedMapel = $matchedMapel;
-                $currentUnit = $matchedMapel->kurikulum?->unit ?? $currentUnit;
+                if ($user->canAccessAllUnits()) {
+                    $currentUnit = $matchedMapel->kurikulum?->unit ?? $currentUnit;
+                }
             }
         }
 
@@ -123,6 +158,9 @@ class CurriculumController extends Controller
         ]);
 
         $mapel = MataPelajaran::with('kurikulum')->findOrFail($validated['mapel_id']);
+        if (!$user->canAccessAllUnits() && $user->unit_id && $mapel->kurikulum?->unit_id !== $user->unit_id) {
+            return back()->with('error', 'Akses Dibatasi: Anda hanya berhak mengajukan usulan kurikulum pada mata pelajaran di unit sekolah Anda.');
+        }
         $unitId = $mapel->kurikulum->unit_id;
 
         // Generate Nomor Usulan unik (Menghindari tabrakan unik dengan nomor eksisting)

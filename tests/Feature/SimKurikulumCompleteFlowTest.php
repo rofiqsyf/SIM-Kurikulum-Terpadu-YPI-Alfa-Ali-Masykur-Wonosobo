@@ -57,7 +57,7 @@ class SimKurikulumCompleteFlowTest extends TestCase
         $this->actingAs($guru)->get('/mata-pelajaran?view=katalog')
             ->assertStatus(200)
             ->assertSee('Katalog Mata Pelajaran &amp; Silabus', false)
-            ->assertSee('MI Tahfidz Alfa Ali Masykur');
+            ->assertSee('SMP Alfa Ali Masykur');
         $this->actingAs($guru)->get('/mata-pelajaran?view=workspace')
             ->assertStatus(200)
             ->assertSee('Kembali ke Katalog Kartu Mapel');
@@ -423,5 +423,60 @@ class SimKurikulumCompleteFlowTest extends TestCase
         $adminDeleteResponse = $this->actingAs($admin)->delete(route('arsip.destroy', $doc->id));
         $adminDeleteResponse->assertSessionHas('success');
         $this->assertDatabaseMissing('arsip_dokumen', ['id' => $doc->id]);
+    }
+
+    public function test_multi_tenancy_and_strict_unit_scoping_per_user_role(): void
+    {
+        $wakaMI = User::where('username', 'waka.mi')->first();
+        $kepsekMI = User::where('username', 'kepsek.mi')->first();
+        $wakaSMP = User::where('username', 'waka.smp')->first();
+        $yayasan = User::where('username', 'yayasan')->first();
+        $admin = User::where('username', 'admin')->first();
+
+        $mapelSMP = \App\Models\MataPelajaran::whereHas('kurikulum.unit', fn($q) => $q->where('kode_unit', 'SMP-ALFA'))->first();
+        $mapelMI = \App\Models\MataPelajaran::whereHas('kurikulum.unit', fn($q) => $q->where('kode_unit', 'MI-ALFA'))->first();
+        $mapelSMA = \App\Models\MataPelajaran::whereHas('kurikulum.unit', fn($q) => $q->where('kode_unit', 'SMA-ALFA'))->first();
+
+        // 1. Waka MI cannot access /yayasan/monitoring (restricted to Admin & Yayasan)
+        $wakaYayasanAttempt = $this->actingAs($wakaMI)->get('/yayasan/monitoring');
+        $wakaYayasanAttempt->assertRedirect(route('dashboard'));
+        $wakaYayasanAttempt->assertSessionHas('error');
+
+        // 2. Yayasan and Admin CAN access /yayasan/monitoring
+        $this->actingAs($yayasan)->get('/yayasan/monitoring')->assertStatus(200);
+        $this->actingAs($admin)->get('/yayasan/monitoring')->assertStatus(200);
+
+        // 3. Waka MI in Katalog view only sees MI subjects, NOT SMP or SMA
+        $katalogMIResponse = $this->actingAs($wakaMI)->get('/mata-pelajaran?view=katalog');
+        $katalogMIResponse->assertStatus(200);
+        $katalogMIResponse->assertSee($mapelMI->nama_mapel);
+        $katalogMIResponse->assertDontSee($mapelSMP->nama_mapel);
+        $katalogMIResponse->assertDontSee($mapelSMA->nama_mapel);
+
+        // 4. Waka MI cannot access SMP subject workspace via mapel_id (redirected with error)
+        $crossUnitAttempt = $this->actingAs($wakaMI)->get('/mata-pelajaran?mapel_id=' . $mapelSMP->id . '&view=workspace');
+        $crossUnitAttempt->assertRedirect(route('curriculum.index', ['view' => 'katalog']));
+        $crossUnitAttempt->assertSessionHas('error');
+
+        // 5. Yayasan can see all subjects in Katalog (MI, SMP, SMA)
+        $katalogYayasanResponse = $this->actingAs($yayasan)->get('/mata-pelajaran?view=katalog');
+        $katalogYayasanResponse->assertStatus(200);
+        $katalogYayasanResponse->assertSee($mapelMI->nama_mapel);
+        $katalogYayasanResponse->assertSee($mapelSMP->nama_mapel);
+        $katalogYayasanResponse->assertSee($mapelSMA->nama_mapel);
+
+        // 6. Waka MI cannot review proposals from SMP
+        $usulanSMP = \App\Models\UsulanPerubahan::whereHas('mataPelajaran.kurikulum.unit', fn($q) => $q->where('kode_unit', 'SMP-ALFA'))->first();
+        if ($usulanSMP) {
+            $crossReviewAttempt = $this->actingAs($wakaMI)->post(route('usulan.review', $usulanSMP->id), [
+                'keputusan' => 'setujui',
+            ]);
+            $crossReviewAttempt->assertSessionHas('error');
+        }
+
+        // 7. Waka MI in Arsip only sees MI documents
+        $arsipMIResponse = $this->actingAs($wakaMI)->get(route('arsip.index'));
+        $arsipMIResponse->assertStatus(200);
+        $arsipMIResponse->assertSee('MI Tahfidz Alfa Ali Masykur');
     }
 }

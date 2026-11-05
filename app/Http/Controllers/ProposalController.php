@@ -21,11 +21,15 @@ class ProposalController extends Controller
 
         $query = UsulanPerubahan::with(['pengusul', 'peninjau', 'mataPelajaran', 'unit']);
 
-        // Filter hak akses
+        // Filter batasan hak akses multi-tenant unit
         if ($user->isGuru()) {
             $query->where('pengusul_id', $user->id);
-        } elseif (($user->isKepalaSekolah() || $user->isWakaKurikulum()) && $user->unit_id) {
+        } elseif (!$user->canAccessAllUnits()) {
+            // Waka Kurikulum & Kepala Sekolah hanya melihat usulan pada unit sekolahnya sendiri
             $query->where('unit_id', $user->unit_id);
+        } elseif ($user->canAccessAllUnits() && $request->filled('unit_id') && $request->get('unit_id') !== 'all') {
+            // Admin & Yayasan dapat menyaring berdasarkan unit tertentu
+            $query->where('unit_id', $request->get('unit_id'));
         }
 
         // Metrics
@@ -57,7 +61,12 @@ class ProposalController extends Controller
 
         $proposals = $query->latest('tanggal_pengajuan')->get();
 
-        $availableMapel = MataPelajaran::all();
+        // Mapel yang tersedia untuk pengajuan usulan baru
+        if (!$user->canAccessAllUnits() && $user->unit_id) {
+            $availableMapel = MataPelajaran::whereHas('kurikulum', fn($q) => $q->where('unit_id', $user->unit_id))->get();
+        } else {
+            $availableMapel = MataPelajaran::with('kurikulum.unit')->get();
+        }
 
         return view('proposals.index', compact(
             'user',
@@ -73,6 +82,20 @@ class ProposalController extends Controller
 
     public function show(UsulanPerubahan $usulan)
     {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['error' => 'Unauthenticated'], 401);
+        }
+
+        if (!$user->canAccessAllUnits()) {
+            if ($user->isGuru() && $usulan->pengusul_id !== $user->id) {
+                return response()->json(['error' => 'Akses Dibatasi: Anda hanya berhak melihat usulan mandiri.'], 403);
+            }
+            if (($user->isKepalaSekolah() || $user->isWakaKurikulum()) && $usulan->unit_id !== $user->unit_id) {
+                return response()->json(['error' => 'Akses Dibatasi: Usulan ini berada di luar unit wewenang Anda.'], 403);
+            }
+        }
+
         $usulan->load(['pengusul', 'peninjau', 'mataPelajaran', 'unit']);
         return response()->json($usulan);
     }
@@ -84,8 +107,8 @@ class ProposalController extends Controller
             return back()->with('error', 'Hanya Kepala Sekolah, Waka Kurikulum, atau Admin yang berhak meninjau usulan ini.');
         }
 
-        if (!$user->isAdmin() && $user->unit_id && $usulan->unit_id !== $user->unit_id) {
-            return back()->with('error', 'Anda hanya berhak meninjau usulan kurikulum pada unit sekolah Anda sendiri.');
+        if (!$user->canManageUnit($usulan->unit_id)) {
+            return back()->with('error', 'Akses Dibatasi: Anda hanya berhak meninjau usulan kurikulum pada unit sekolah Anda sendiri.');
         }
 
         $validated = $request->validate([

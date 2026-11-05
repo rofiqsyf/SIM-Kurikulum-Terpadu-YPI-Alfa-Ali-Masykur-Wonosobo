@@ -114,4 +114,22 @@ class User extends Authenticatable
     {
         return str_contains(strtolower($this->peran?->nama_peran ?? ''), 'pembina');
     }
+
+    public function canAccessAllUnits(): bool
+    {
+        return $this->isAdmin() || $this->isYayasan();
+    }
+
+    public function canManageUnit($unitId): bool
+    {
+        if ($this->canAccessAllUnits()) {
+            return true;
+        }
+
+        if (!$this->unit_id || !$unitId) {
+            return false;
+        }
+
+        return (int) $this->unit_id === (int) $unitId;
+    }
 }

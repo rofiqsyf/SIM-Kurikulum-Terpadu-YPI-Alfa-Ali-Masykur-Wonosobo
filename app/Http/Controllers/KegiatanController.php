@@ -17,8 +17,13 @@ class KegiatanController extends Controller
             return redirect()->route('login');
         }
 
-        $units = UnitPendidikan::all();
-        $selectedUnitId = $request->get('unit_id', $user->unit_id ?? $units->first()?->id);
+        if ($user->canAccessAllUnits()) {
+            $units = UnitPendidikan::all();
+            $selectedUnitId = $request->get('unit_id', $units->first()?->id);
+        } else {
+            $units = UnitPendidikan::where('id', $user->unit_id)->get();
+            $selectedUnitId = $user->unit_id;
+        }
 
         $kokurikuler = KegiatanKokurikuler::where('unit_id', $selectedUnitId)
             ->with(['pengelola', 'unit'])

@@ -23,19 +23,26 @@
                     <span class="font-semibold text-brand-800">Kegiatan Santri</span>
                 </div>
 
-                <!-- Unit Selector Form -->
-                <form method="GET" action="{{ route('kegiatan.index') }}" 
-                      class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-2xl border border-slate-100 shadow-subtle shrink-0">
-                    <span class="text-xs font-semibold text-slate-400">Unit:</span>
-                    <select name="unit_id" onchange="this.form.submit()" 
-                            class="bg-transparent text-xs font-bold text-slate-800 focus:outline-none cursor-pointer">
-                        @foreach($units as $u)
-                            <option value="{{ $u->id }}" {{ $selectedUnitId == $u->id ? 'selected' : '' }}>
-                                {{ $u->nama_unit }}
-                            </option>
-                        @endforeach
-                    </select>
-                </form>
+                <!-- Unit Selector or Locked Scope -->
+                @if($user->canAccessAllUnits())
+                    <form method="GET" action="{{ route('kegiatan.index') }}" 
+                          class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-2xl border border-slate-100 shadow-subtle shrink-0">
+                        <span class="text-xs font-semibold text-slate-400">Unit:</span>
+                        <select name="unit_id" onchange="this.form.submit()" 
+                                class="bg-transparent text-xs font-bold text-slate-800 focus:outline-none cursor-pointer">
+                            @foreach($units as $u)
+                                <option value="{{ $u->id }}" {{ $selectedUnitId == $u->id ? 'selected' : '' }}>
+                                    {{ $u->nama_unit }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </form>
+                @else
+                    <div class="flex items-center gap-2 bg-slate-100 px-3.5 py-1.5 rounded-2xl border border-slate-200/80 shrink-0 text-xs font-bold text-slate-800">
+                        <span class="material-symbols-outlined text-sm text-brand-700">lock</span>
+                        <span>{{ $user->unit->nama_unit ?? 'Unit Anda' }}</span>
+                    </div>
+                @endif
             </div>
 
             <!-- HERO OVERVIEW CARD -->

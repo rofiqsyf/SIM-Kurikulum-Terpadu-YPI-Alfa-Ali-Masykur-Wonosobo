@@ -23,16 +23,13 @@ class ArsipController extends Controller
             $this->seedInitialInspectionDocuments();
         }
 
-        $units = UnitPendidikan::all();
-        
-        // Default unit context
-        $selectedUnitId = $request->get('unit_id');
-        if (!$selectedUnitId) {
-            if ($user->unit_id) {
-                $selectedUnitId = $user->unit_id;
-            } else {
-                $selectedUnitId = 'all';
-            }
+        // Scope units according to user role
+        if ($user->canAccessAllUnits()) {
+            $units = UnitPendidikan::all();
+            $selectedUnitId = $request->get('unit_id', 'all');
+        } else {
+            $units = UnitPendidikan::where('id', $user->unit_id)->get();
+            $selectedUnitId = $user->unit_id; // Forced strictly
         }
 
         $selectedTahun = $request->get('tahun', '2024/2025');
@@ -118,6 +115,10 @@ class ArsipController extends Controller
         ]);
 
         // Generate unique document code
+        if (!$user->canAccessAllUnits() && $user->unit_id) {
+            $validated['unit_id'] = $user->unit_id;
+        }
+
         $prefix = 'DOK-' . strtoupper(substr($validated['kategori'], 0, 3));
         $count = ArsipDokumen::where('kode_dokumen', 'like', "{$prefix}-%")->count() + 1;
         do {
@@ -156,6 +157,9 @@ class ArsipController extends Controller
         ]);
 
         $doc = ArsipDokumen::findOrFail($id);
+        if (!$user->canManageUnit($doc->unit_id)) {
+            return back()->with('error', 'Akses Dibatasi: Anda hanya berhak memverifikasi status dokumen pada unit sekolah Anda sendiri.');
+        }
         $doc->update($validated);
 
         return back()->with('success', "Status supervisi dokumen {$doc->kode_dokumen} berhasil diperbarui.");
@@ -169,6 +173,9 @@ class ArsipController extends Controller
         }
 
         $doc = ArsipDokumen::findOrFail($id);
+        if (!$user->canManageUnit($doc->unit_id)) {
+            return back()->with('error', 'Akses Dibatasi: Anda hanya berhak menghapus arsip dokumen pada unit sekolah Anda sendiri.');
+        }
         $kode = $doc->kode_dokumen;
         $doc->delete();
 

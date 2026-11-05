@@ -27,19 +27,19 @@ class AdminController extends Controller
 
         $query = User::with(['peran', 'unit', 'penugasan.mataPelajaran']);
         
-        // Scope to unit for Waka Kurikulum & Kepala Sekolah
-        if (($user->isWakaKurikulum() || $user->isKepalaSekolah()) && $user->unit_id) {
+        // Scope to unit for non-admin/yayasan (Waka Kurikulum & Kepala Sekolah)
+        if (!$user->canAccessAllUnits() && $user->unit_id) {
             $query->where('unit_id', $user->unit_id);
         }
 
         $users = $query->get();
         $roles = Peran::all();
-        $units = ($user->isWakaKurikulum() || $user->isKepalaSekolah()) && $user->unit
+        $units = !$user->canAccessAllUnits() && $user->unit_id
             ? UnitPendidikan::where('id', $user->unit_id)->get()
             : UnitPendidikan::all();
 
         $mapelQuery = MataPelajaran::query();
-        if (($user->isWakaKurikulum() || $user->isKepalaSekolah()) && $user->unit_id) {
+        if (!$user->canAccessAllUnits() && $user->unit_id) {
             $mapelQuery->whereHas('kurikulum', fn($q) => $q->where('unit_id', $user->unit_id));
         }
         $mapelList = $mapelQuery->get();
@@ -88,8 +88,8 @@ class AdminController extends Controller
         ]);
 
         $guruTarget = User::findOrFail($validated['pengguna_id']);
-        if (($user->isWakaKurikulum() || $user->isKepalaSekolah()) && $guruTarget->unit_id !== $user->unit_id) {
-            return back()->with('error', 'Anda hanya dapat mengatur penugasan guru di unit pendidikan Anda sendiri.');
+        if (!$user->canManageUnit($guruTarget->unit_id)) {
+            return back()->with('error', 'Akses Dibatasi: Anda hanya dapat mengatur penugasan guru di unit pendidikan Anda sendiri.');
         }
 
         PenugasanGuru::updateOrCreate(

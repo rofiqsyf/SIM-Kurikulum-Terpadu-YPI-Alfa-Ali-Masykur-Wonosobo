@@ -129,11 +129,13 @@
 
                     <div class="bg-white p-4 sm:p-5 rounded-3xl border border-slate-100 shadow-card flex items-center justify-between">
                         <div>
-                            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">Unit Terintegrasi</span>
-                            <span class="text-xl sm:text-2xl font-bold text-slate-900 mt-1 block">3 Lembaga</span>
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">Unit Otoritas</span>
+                            <span class="text-xl sm:text-2xl font-bold text-slate-900 mt-1 block">
+                                {{ $user->canAccessAllUnits() ? '3 Lembaga' : ($currentUnit->kode_unit ?? 'Unit Anda') }}
+                            </span>
                         </div>
                         <div class="w-8 h-8 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center font-bold">
-                            <span class="material-symbols-outlined text-lg">domain</span>
+                            <span class="material-symbols-outlined text-lg">{{ $user->canAccessAllUnits() ? 'domain' : 'verified_user' }}</span>
                         </div>
                     </div>
 
@@ -151,26 +153,33 @@
                 <!-- FILTER & SEARCH TOOLBAR -->
                 <div class="bg-white rounded-3xl p-5 border border-slate-100 shadow-card space-y-4">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                        <!-- Unit Filter Pills -->
-                        <div class="flex items-center gap-1.5 flex-wrap">
-                            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mr-1">Lembaga:</span>
-                            <button type="button" onclick="filterKatalogUnit('all')" id="katalog-tab-all" 
-                                    class="katalog-unit-tab px-3.5 py-1.5 rounded-full text-xs font-bold transition-all bg-brand-800 text-white shadow-subtle cursor-pointer">
-                                Semua ({{ $allCatalogMapel->count() }})
-                            </button>
-                            <button type="button" onclick="filterKatalogUnit('MI-ALFA')" id="katalog-tab-MI-ALFA" 
-                                    class="katalog-unit-tab px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 cursor-pointer">
-                                MI Tahfidz ({{ $allCatalogMapel->where('kurikulum.unit.kode_unit', 'MI-ALFA')->count() }})
-                            </button>
-                            <button type="button" onclick="filterKatalogUnit('SMP-ALFA')" id="katalog-tab-SMP-ALFA" 
-                                    class="katalog-unit-tab px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 cursor-pointer">
-                                SMP Alfa ({{ $allCatalogMapel->where('kurikulum.unit.kode_unit', 'SMP-ALFA')->count() }})
-                            </button>
-                            <button type="button" onclick="filterKatalogUnit('SMA-ALFA')" id="katalog-tab-SMA-ALFA" 
-                                    class="katalog-unit-tab px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 cursor-pointer">
-                                SMA Alfa ({{ $allCatalogMapel->where('kurikulum.unit.kode_unit', 'SMA-ALFA')->count() }})
-                            </button>
-                        </div>
+                        <!-- Unit Filter Pills or Locked Scope Badge -->
+                        @if($user->canAccessAllUnits())
+                            <div class="flex items-center gap-1.5 flex-wrap">
+                                <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mr-1">Lembaga:</span>
+                                <button type="button" onclick="filterKatalogUnit('all')" id="katalog-tab-all" 
+                                        class="katalog-unit-tab px-3.5 py-1.5 rounded-full text-xs font-bold transition-all bg-brand-800 text-white shadow-subtle cursor-pointer">
+                                    Semua ({{ $allCatalogMapel->count() }})
+                                </button>
+                                <button type="button" onclick="filterKatalogUnit('MI-ALFA')" id="katalog-tab-MI-ALFA" 
+                                        class="katalog-unit-tab px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 cursor-pointer">
+                                    MI Tahfidz ({{ $allCatalogMapel->where('kurikulum.unit.kode_unit', 'MI-ALFA')->count() }})
+                                </button>
+                                <button type="button" onclick="filterKatalogUnit('SMP-ALFA')" id="katalog-tab-SMP-ALFA" 
+                                        class="katalog-unit-tab px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 cursor-pointer">
+                                    SMP Alfa ({{ $allCatalogMapel->where('kurikulum.unit.kode_unit', 'SMP-ALFA')->count() }})
+                                </button>
+                                <button type="button" onclick="filterKatalogUnit('SMA-ALFA')" id="katalog-tab-SMA-ALFA" 
+                                        class="katalog-unit-tab px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 cursor-pointer">
+                                    SMA Alfa ({{ $allCatalogMapel->where('kurikulum.unit.kode_unit', 'SMA-ALFA')->count() }})
+                                </button>
+                            </div>
+                        @else
+                            <div class="inline-flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-brand-50 border border-brand-200/80 text-brand-900 text-xs font-bold shadow-subtle">
+                                <span class="material-symbols-outlined text-base text-brand-700">lock</span>
+                                <span>Lingkup Otoritas: <strong>{{ $currentUnit->nama_unit }}</strong> (Terkunci Sesuai Wewenang)</span>
+                            </div>
+                        @endif
 
                         <!-- Instant Live Search Bar -->
                         <div class="relative w-full sm:w-72">
@@ -677,47 +686,83 @@
         <div class="xl:col-span-4 2xl:col-span-3 space-y-6">
 
             @if($viewMode === 'katalog')
-                <!-- 1. RINGKASAN DISTRIBUSI MAPEL 3 UNIT -->
-                <div class="bg-white rounded-3xl border border-slate-100 shadow-card p-6 space-y-4">
-                    <div class="flex items-center justify-between pb-2 border-b border-slate-100">
-                        <div class="flex items-center gap-2">
-                            <span class="material-symbols-outlined text-brand-700 text-lg">domain</span>
-                            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-900">Distribusi Mapel Lembaga</h4>
+                @if($user->canAccessAllUnits())
+                    <!-- 1. RINGKASAN DISTRIBUSI MAPEL 3 UNIT (PENGURUS YAYASAN & ADMIN) -->
+                    <div class="bg-white rounded-3xl border border-slate-100 shadow-card p-6 space-y-4">
+                        <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                            <div class="flex items-center gap-2">
+                                <span class="material-symbols-outlined text-brand-700 text-lg">domain</span>
+                                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-900">Distribusi Mapel Lembaga</h4>
+                            </div>
+                        </div>
+
+                        <div class="space-y-2.5 text-xs">
+                            <div class="p-3 rounded-2xl bg-blue-50/70 border border-blue-100 flex items-center justify-between">
+                                <div>
+                                    <span class="font-bold text-blue-950 block">MI Tahfidz Alfa</span>
+                                    <span class="text-[11px] text-blue-700">Fase A, B, C (Kelas 1-6)</span>
+                                </div>
+                                <span class="text-xs font-black px-2.5 py-1 rounded-full bg-blue-200 text-blue-900">
+                                    {{ $allCatalogMapel->where('kurikulum.unit.kode_unit', 'MI-ALFA')->count() }} Mapel
+                                </span>
+                            </div>
+
+                            <div class="p-3 rounded-2xl bg-emerald-50/70 border border-emerald-100 flex items-center justify-between">
+                                <div>
+                                    <span class="font-bold text-emerald-950 block">SMP Alfa Ali Masykur</span>
+                                    <span class="text-[11px] text-emerald-700">Fase D (Kelas 7, 8, 9)</span>
+                                </div>
+                                <span class="text-xs font-black px-2.5 py-1 rounded-full bg-emerald-200 text-emerald-900">
+                                    {{ $allCatalogMapel->where('kurikulum.unit.kode_unit', 'SMP-ALFA')->count() }} Mapel
+                                </span>
+                            </div>
+
+                            <div class="p-3 rounded-2xl bg-purple-50/70 border border-purple-100 flex items-center justify-between">
+                                <div>
+                                    <span class="font-bold text-purple-950 block">SMA Alfa Ali Masykur</span>
+                                    <span class="text-[11px] text-purple-700">Fase E &amp; F (Kelas 10-12)</span>
+                                </div>
+                                <span class="text-xs font-black px-2.5 py-1 rounded-full bg-purple-200 text-purple-900">
+                                    {{ $allCatalogMapel->where('kurikulum.unit.kode_unit', 'SMA-ALFA')->count() }} Mapel
+                                </span>
+                            </div>
                         </div>
                     </div>
-
-                    <div class="space-y-2.5 text-xs">
-                        <div class="p-3 rounded-2xl bg-blue-50/70 border border-blue-100 flex items-center justify-between">
-                            <div>
-                                <span class="font-bold text-blue-950 block">MI Tahfidz Alfa</span>
-                                <span class="text-[11px] text-blue-700">Fase A, B, C (Kelas 1-6)</span>
+                @else
+                    <!-- 1. RINGKASAN OTORITAS UNIT PENDIDIKAN (SCOPED USER) -->
+                    <div class="bg-white rounded-3xl border border-slate-100 shadow-card p-6 space-y-4">
+                        <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                            <div class="flex items-center gap-2">
+                                <span class="material-symbols-outlined text-brand-700 text-lg">verified_user</span>
+                                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-900">Otoritas Unit Anda</h4>
                             </div>
-                            <span class="text-xs font-black px-2.5 py-1 rounded-full bg-blue-200 text-blue-900">
-                                {{ $allCatalogMapel->where('kurikulum.unit.kode_unit', 'MI-ALFA')->count() }} Mapel
-                            </span>
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-brand-100 text-brand-800">{{ $currentUnit->kode_unit }}</span>
                         </div>
 
-                        <div class="p-3 rounded-2xl bg-emerald-50/70 border border-emerald-100 flex items-center justify-between">
-                            <div>
-                                <span class="font-bold text-emerald-950 block">SMP Alfa Ali Masykur</span>
-                                <span class="text-[11px] text-emerald-700">Fase D (Kelas 7, 8, 9)</span>
+                        <div class="space-y-3 text-xs">
+                            <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/70 space-y-1.5">
+                                <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Satuan Pendidikan</span>
+                                <span class="font-bold text-slate-900 text-sm block leading-snug">{{ $currentUnit->nama_unit }}</span>
+                                <span class="text-[11px] text-slate-500 block">Kepala Sekolah: {{ $currentUnit->kepala_sekolah ?? '-' }}</span>
                             </div>
-                            <span class="text-xs font-black px-2.5 py-1 rounded-full bg-emerald-200 text-emerald-900">
-                                {{ $allCatalogMapel->where('kurikulum.unit.kode_unit', 'SMP-ALFA')->count() }} Mapel
-                            </span>
-                        </div>
 
-                        <div class="p-3 rounded-2xl bg-purple-50/70 border border-purple-100 flex items-center justify-between">
-                            <div>
-                                <span class="font-bold text-purple-950 block">SMA Alfa Ali Masykur</span>
-                                <span class="text-[11px] text-purple-700">Fase E &amp; F (Kelas 10-12)</span>
+                            <div class="grid grid-cols-2 gap-2 text-center">
+                                <div class="p-2.5 rounded-2xl bg-brand-50/60 border border-brand-100">
+                                    <span class="text-[10px] font-bold text-brand-700 block uppercase">Mapel Unit</span>
+                                    <span class="text-base font-extrabold text-brand-900">{{ $allCatalogMapel->count() }} Mapel</span>
+                                </div>
+                                <div class="p-2.5 rounded-2xl bg-emerald-50/60 border border-emerald-100">
+                                    <span class="text-[10px] font-bold text-emerald-700 block uppercase">Total TP</span>
+                                    <span class="text-base font-extrabold text-emerald-900">{{ $allCatalogMapel->sum('tujuan_pembelajaran_count') }} TP</span>
+                                </div>
                             </div>
-                            <span class="text-xs font-black px-2.5 py-1 rounded-full bg-purple-200 text-purple-900">
-                                {{ $allCatalogMapel->where('kurikulum.unit.kode_unit', 'SMA-ALFA')->count() }} Mapel
-                            </span>
+
+                            <p class="text-[11px] text-slate-400 leading-relaxed italic">
+                                Sesuai regulasi tata kelola YPI Alfa Ali Masykur, ruang kerja Anda terisolasi secara aman pada unit pendidikan ini.
+                            </p>
                         </div>
                     </div>
-                </div>
+                @endif
 
                 <!-- 2. PANDUAN STRUKTUR SILABUS -->
                 <div class="bg-white rounded-3xl border border-slate-100 shadow-card p-6 space-y-3">

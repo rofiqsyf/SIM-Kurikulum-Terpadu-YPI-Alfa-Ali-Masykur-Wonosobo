@@ -170,18 +170,28 @@
                 <form id="filter-arsip-form" method="GET" action="{{ route('arsip.index') }}" class="space-y-4">
                     <!-- Top Filters: Lembaga & Tahun Ajaran & Search -->
                     <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
-                        <!-- Unit Dropdown -->
+                        <!-- Unit Dropdown / Locked Scope -->
                         <div class="sm:col-span-4">
-                            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Unit Lembaga</label>
-                            <select name="unit_id" onchange="this.form.submit()" 
-                                    class="w-full text-xs font-semibold px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-600 text-slate-800">
-                                <option value="all" {{ $selectedUnitId === 'all' ? 'selected' : '' }}>Seluruh Lembaga (MI, SMP, SMA)</option>
-                                @foreach($units as $u)
-                                    <option value="{{ $u->id }}" {{ (string)$selectedUnitId === (string)$u->id ? 'selected' : '' }}>
-                                        {{ $u->nama_unit }} ({{ $u->kode_unit }})
-                                    </option>
-                                @endforeach
-                            </select>
+                            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                                {{ $user->canAccessAllUnits() ? 'Unit Lembaga' : 'Unit Otoritas (Terkunci)' }}
+                            </label>
+                            @if($user->canAccessAllUnits())
+                                <select name="unit_id" onchange="this.form.submit()" 
+                                        class="w-full text-xs font-semibold px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-600 text-slate-800">
+                                    <option value="all" {{ $selectedUnitId === 'all' ? 'selected' : '' }}>Seluruh Lembaga (MI, SMP, SMA)</option>
+                                    @foreach($units as $u)
+                                        <option value="{{ $u->id }}" {{ (string)$selectedUnitId === (string)$u->id ? 'selected' : '' }}>
+                                            {{ $u->nama_unit }} ({{ $u->kode_unit }})
+                                        </option>
+                                    @endforeach
+                                </select>
+                            @else
+                                <div class="flex items-center gap-2 px-3 py-2 bg-slate-100 border border-slate-200/80 rounded-xl text-xs font-bold text-slate-800">
+                                    <span class="material-symbols-outlined text-sm text-brand-700">lock</span>
+                                    <span>{{ $user->unit->nama_unit ?? 'Unit Anda' }}</span>
+                                    <input type="hidden" name="unit_id" value="{{ $user->unit_id }}">
+                                </div>
+                            @endif
                         </div>
 
                         <!-- Tahun Ajaran Dropdown -->

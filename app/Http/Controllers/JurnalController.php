@@ -38,19 +38,38 @@ class JurnalController extends Controller
         $dueTodayCount = $jurnalKerjaList->filter(fn($t) => $t->isDueToday())->count();
         $overdueCount = $jurnalKerjaList->filter(fn($t) => $t->isOverdue())->count();
 
-        // Jurnal Mengajar KBM di Kelas
-        $jurnals = JurnalMengajar::with(['guru', 'mataPelajaran', 'kelas'])
-            ->latest('tanggal')
-            ->get();
+        // Jurnal Mengajar KBM di Kelas (Unit-scoped: Guru hanya melihat mandiri, Waka/Kepsek hanya melihat unitnya)
+        $jurnalQuery = JurnalMengajar::with(['guru.unit', 'mataPelajaran', 'kelas'])
+            ->latest('tanggal');
 
-        // Monitoring Setoran Tahfidz Santri
-        $tahfidzRecords = MonitoringTahfidz::with(['unit', 'penguji'])
-            ->latest('tanggal_setoran')
-            ->get();
+        if ($user->isGuru()) {
+            $jurnalQuery->where('guru_id', $user->id);
+        } elseif (!$user->canAccessAllUnits() && $user->unit_id) {
+            $jurnalQuery->whereHas('guru', fn($q) => $q->where('unit_id', $user->unit_id));
+        }
 
-        $mapelList = MataPelajaran::all();
-        $kelasList = Kelas::all();
-        $units = UnitPendidikan::all();
+        $jurnals = $jurnalQuery->get();
+
+        // Monitoring Setoran Tahfidz Santri (Unit-scoped)
+        $tahfidzQuery = MonitoringTahfidz::with(['unit', 'penguji'])
+            ->latest('tanggal_setoran');
+
+        if (!$user->canAccessAllUnits() && $user->unit_id) {
+            $tahfidzQuery->where('unit_id', $user->unit_id);
+        }
+
+        $tahfidzRecords = $tahfidzQuery->get();
+
+        // Scoped resources for dropdowns and forms
+        if (!$user->canAccessAllUnits() && $user->unit_id) {
+            $mapelList = MataPelajaran::whereHas('kurikulum', fn($q) => $q->where('unit_id', $user->unit_id))->get();
+            $kelasList = Kelas::whereHas('jenjang', fn($q) => $q->where('id', $user->unit?->jenjang_id))->get();
+            $units = UnitPendidikan::where('id', $user->unit_id)->get();
+        } else {
+            $mapelList = MataPelajaran::all();
+            $kelasList = Kelas::all();
+            $units = UnitPendidikan::all();
+        }
 
         // Monitoring KBM Guru Unit untuk Waka Kurikulum & Kepala Sekolah
         $guruMonitoringList = collect();
@@ -241,6 +260,10 @@ class JurnalController extends Controller
             'tanggal_setoran' => 'required|date',
         ]);
 
+        if (!$user->canAccessAllUnits() && $user->unit_id) {
+            $validated['unit_id'] = $user->unit_id;
+        }
+
         MonitoringTahfidz::create(array_merge($validated, [
             'penguji_id' => $user->id,
         ]));
@@ -264,6 +287,9 @@ class JurnalController extends Controller
         }
 
         $guru = User::findOrFail($id);
+        if (!$user->canManageUnit($guru->unit_id)) {
+            return back()->with('error', 'Akses Dibatasi: Anda hanya berhak mengirimkan pengingat KBM kepada dewan guru di unit sekolah Anda.');
+        }
         $roleTitle = $user->isWakaKurikulum() ? 'Waka Kurikulum' : ($user->isKepalaSekolah() ? 'Kepala Sekolah' : 'Admin Sistem');
 
         NotificationService::send(

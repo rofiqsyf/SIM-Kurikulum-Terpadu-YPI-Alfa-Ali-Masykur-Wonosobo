@@ -20,6 +20,10 @@ class YayasanController extends Controller
             return redirect()->route('login');
         }
 
+        if (!$user->canAccessAllUnits()) {
+            return redirect()->route('dashboard')->with('error', 'Akses Dibatasi: Hanya Pengurus Yayasan dan Admin Sistem yang berhak mengakses Dasbor Monitoring Lintas Unit.');
+        }
+
         $units = UnitPendidikan::with(['jenjang', 'kurikulum.mataPelajaran'])->get();
 
         // Statistik komparatif antar-unit

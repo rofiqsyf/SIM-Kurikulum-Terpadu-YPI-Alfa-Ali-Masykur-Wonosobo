@@ -13,19 +13,30 @@ use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $user = Auth::user();
         if (!$user) {
             return redirect()->route('login');
         }
 
+        // Scope unit: Admin & Yayasan can switch units or view all. Others are strictly locked to their unit.
+        $availableUnits = UnitPendidikan::all();
+        if ($user->canAccessAllUnits()) {
+            $selectedUnitId = $request->get('unit_id');
+            $unit = $selectedUnitId ? UnitPendidikan::find($selectedUnitId) : null;
+        } else {
+            $unit = $user->unit ?? UnitPendidikan::first();
+        }
+
         // Statistik Usulan
         $queryUsulan = UsulanPerubahan::query();
         if ($user->isGuru()) {
             $queryUsulan->where('pengusul_id', $user->id);
-        } elseif (($user->isKepalaSekolah() || $user->isWakaKurikulum()) && $user->unit_id) {
+        } elseif (!$user->canAccessAllUnits() && $user->unit_id) {
             $queryUsulan->where('unit_id', $user->unit_id);
+        } elseif ($user->canAccessAllUnits() && $unit) {
+            $queryUsulan->where('unit_id', $unit->id);
         }
 
         $totalUsulan = (clone $queryUsulan)->count();
@@ -33,21 +44,20 @@ class DashboardController extends Controller
         $usulanDisetujui = (clone $queryUsulan)->where('status', 'Disetujui')->count();
         $usulanDitolak = (clone $queryUsulan)->where('status', 'Ditolak')->count();
 
-        $recentUsulan = (clone $queryUsulan)->with(['mataPelajaran', 'pengusul', 'peninjau'])
+        $recentUsulan = (clone $queryUsulan)->with(['mataPelajaran', 'pengusul', 'peninjau', 'unit'])
             ->latest('tanggal_pengajuan')
             ->take(5)
             ->get();
 
         // Data Akademik & Kurikulum
-        $unit = $user->unit ?? UnitPendidikan::first();
-        $mapelList = MataPelajaran::whereHas('kurikulum', function ($q) use ($unit) {
-            if ($unit) {
-                $q->where('unit_id', $unit->id);
-            }
-        })
-        ->withCount('tujuanPembelajaran')
-        ->with(['penugasanGuru.user'])
-        ->get();
+        $mapelQuery = MataPelajaran::with(['penugasanGuru.user', 'kurikulum.unit'])
+            ->withCount('tujuanPembelajaran');
+
+        if ($unit) {
+            $mapelQuery->whereHas('kurikulum', fn($q) => $q->where('unit_id', $unit->id));
+        }
+
+        $mapelList = $mapelQuery->get();
 
         $currentDateStr = now()->locale('id')->translatedFormat('d M Y, l');
 
@@ -63,13 +73,20 @@ class DashboardController extends Controller
             }
         })->count();
 
-        // Pending review list for Kepala Sekolah & Waka Kurikulum
+        // Pending review list for Kepala Sekolah & Waka Kurikulum (Unit-scoped) or Admin/Yayasan
         $pendingReviews = [];
-        if (($user->isKepalaSekolah() || $user->isWakaKurikulum()) && $user->unit_id) {
+        if (!$user->canAccessAllUnits() && ($user->isKepalaSekolah() || $user->isWakaKurikulum()) && $user->unit_id) {
             $pendingReviews = UsulanPerubahan::where('unit_id', $user->unit_id)
                 ->where('status', 'Menunggu Persetujuan')
-                ->with(['pengusul', 'mataPelajaran'])
+                ->with(['pengusul', 'mataPelajaran', 'unit'])
                 ->get();
+        } elseif ($user->canAccessAllUnits()) {
+            $pendingQuery = UsulanPerubahan::where('status', 'Menunggu Persetujuan')
+                ->with(['pengusul', 'mataPelajaran', 'unit']);
+            if ($unit) {
+                $pendingQuery->where('unit_id', $unit->id);
+            }
+            $pendingReviews = $pendingQuery->get();
         }
 
         // User Work Journal & Reminder Tasks (agar tidak kelupaan tugas mengajar/kerja)
@@ -79,19 +96,25 @@ class DashboardController extends Controller
             ->take(4)
             ->get();
 
-        // Unit Inspection & Teacher Stats (for Waka Kurikulum & Kepala Sekolah)
-        $unitArsipQuery = \App\Models\ArsipDokumen::where('unit_id', $unit?->id);
+        // Unit Inspection & Teacher Stats
+        $unitArsipQuery = \App\Models\ArsipDokumen::query();
+        if ($unit) {
+            $unitArsipQuery->where('unit_id', $unit->id);
+        }
         $totalArsipUnit = (clone $unitArsipQuery)->count();
         $terverifikasiArsipUnit = (clone $unitArsipQuery)->where('status_verifikasi', 'Terverifikasi')->count();
         $persentaseArsip = $totalArsipUnit > 0 ? round(($terverifikasiArsipUnit / $totalArsipUnit) * 100) : 0;
 
-        $totalGuruUnit = \App\Models\User::where('unit_id', $unit?->id)
-            ->whereHas('peran', fn($q) => $q->where('nama_peran', 'like', '%guru%'))
-            ->count();
+        $guruQuery = \App\Models\User::whereHas('peran', fn($q) => $q->where('nama_peran', 'like', '%guru%'));
+        if ($unit) {
+            $guruQuery->where('unit_id', $unit->id);
+        }
+        $totalGuruUnit = $guruQuery->count();
 
         return view('dashboard.index', compact(
             'user',
             'unit',
+            'availableUnits',
             'totalUsulan',
             'usulanMenunggu',
             'usulanDisetujui',

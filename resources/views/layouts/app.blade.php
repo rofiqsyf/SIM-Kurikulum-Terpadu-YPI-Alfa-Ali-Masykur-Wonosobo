@@ -168,7 +168,13 @@
                             </div>
 
                             @php
-                                $pendingCount = \App\Models\UsulanPerubahan::where('status', 'Menunggu Persetujuan')->count();
+                                $pendingQuery = \App\Models\UsulanPerubahan::where('status', 'Menunggu Persetujuan');
+                                if (auth()->user()->isGuru()) {
+                                    $pendingQuery->where('pengusul_id', auth()->id());
+                                } elseif (!auth()->user()->canAccessAllUnits() && auth()->user()->unit_id) {
+                                    $pendingQuery->where('unit_id', auth()->user()->unit_id);
+                                }
+                                $pendingCount = $pendingQuery->count();
                             @endphp
                             @if($pendingCount > 0)
                                 <span class="px-2 py-0.5 rounded-full text-[10px] font-bold {{ request()->routeIs('usulan.index') ? 'bg-brand-700 text-white' : 'bg-amber-100 text-amber-800' }}">
@@ -211,7 +217,11 @@
                                 <span>Arsip &amp; Supervisi</span>
                             </div>
                             @php
-                                $arsipPerluCount = \App\Models\ArsipDokumen::where('status_verifikasi', 'Perlu Dilengkapi')->count();
+                                $arsipPerluQuery = \App\Models\ArsipDokumen::where('status_verifikasi', 'Perlu Dilengkapi');
+                                if (!auth()->user()->canAccessAllUnits() && auth()->user()->unit_id) {
+                                    $arsipPerluQuery->where('unit_id', auth()->user()->unit_id);
+                                }
+                                $arsipPerluCount = $arsipPerluQuery->count();
                             @endphp
                             @if($arsipPerluCount > 0)
                                 <span class="px-2 py-0.5 rounded-full text-[10px] font-bold {{ request()->routeIs('arsip.*') ? 'bg-brand-700 text-white' : 'bg-amber-100 text-amber-800' }}" title="{{ $arsipPerluCount }} dokumen perlu dilengkapi">
@@ -220,17 +230,21 @@
                             @endif
                         </a>
 
-                        <a href="{{ route('yayasan.monitoring') }}" 
-                           class="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-semibold transition-all {{ request()->routeIs('yayasan.monitoring') ? 'bg-brand-50 text-brand-800 font-bold shadow-subtle' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-                            <span class="material-symbols-outlined text-[20px] {{ request()->routeIs('yayasan.monitoring') ? 'text-brand-700' : 'text-slate-400' }}">domain</span>
-                            <span>Monitoring 3 Unit</span>
-                        </a>
+                        @if(auth()->user()->canAccessAllUnits())
+                            <a href="{{ route('yayasan.monitoring') }}" 
+                               class="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-semibold transition-all {{ request()->routeIs('yayasan.monitoring') ? 'bg-brand-50 text-brand-800 font-bold shadow-subtle' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
+                                <span class="material-symbols-outlined text-[20px] {{ request()->routeIs('yayasan.monitoring') ? 'text-brand-700' : 'text-slate-400' }}">domain</span>
+                                <span>Monitoring 3 Unit</span>
+                            </a>
+                        @endif
 
-                        <a href="{{ route('admin.users') }}" 
-                           class="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-semibold transition-all {{ request()->routeIs('admin.users') ? 'bg-brand-50 text-brand-800 font-bold shadow-subtle' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-                            <span class="material-symbols-outlined text-[20px] {{ request()->routeIs('admin.users') ? 'text-brand-700' : 'text-slate-400' }}">manage_accounts</span>
-                            <span>{{ auth()->user()->isWakaKurikulum() ? 'Guru & Beban Jam' : 'Pengguna & Peran' }}</span>
-                        </a>
+                        @if(auth()->user()->isAdmin() || auth()->user()->isYayasan() || auth()->user()->isWakaKurikulum() || auth()->user()->isKepalaSekolah())
+                            <a href="{{ route('admin.users') }}" 
+                               class="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-semibold transition-all {{ request()->routeIs('admin.users') ? 'bg-brand-50 text-brand-800 font-bold shadow-subtle' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
+                                <span class="material-symbols-outlined text-[20px] {{ request()->routeIs('admin.users') ? 'text-brand-700' : 'text-slate-400' }}">manage_accounts</span>
+                                <span>{{ auth()->user()->isWakaKurikulum() ? 'Guru & Beban Jam' : (auth()->user()->isKepalaSekolah() ? 'Dewan Guru Unit' : 'Pengguna & Peran') }}</span>
+                            </a>
+                        @endif
                     </nav>
                 </div>
 
