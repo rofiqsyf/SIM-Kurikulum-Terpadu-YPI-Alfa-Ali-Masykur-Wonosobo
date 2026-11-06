@@ -24,8 +24,10 @@ class SimKurikulumCompleteFlowTest extends TestCase
         $guru = User::where('username', 'guru.ahmad')->first();
         $this->assertNotNull($guru);
 
-        // Test Landing Page
+        // Test Landing Page & Public SOP Page
         $this->get('/')->assertStatus(200);
+        $this->get('/standar-prosedur')->assertStatus(200)->assertSee('SOP-KUR-01');
+        $this->get('/sop')->assertStatus(200)->assertSee('Standar Operasional Prosedur');
 
         // Test Login Page
         $this->get('/login')->assertStatus(200);

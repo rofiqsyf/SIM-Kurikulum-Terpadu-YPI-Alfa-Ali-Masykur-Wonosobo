@@ -19,6 +19,10 @@ Route::get('/', function () {
     return auth()->check() ? redirect()->route('dashboard') : view('welcome');
 });
 
+// Standar Prosedur (SOP) Publik - Halaman Awal Sebelum Masuk Portal
+Route::get('/standar-prosedur', [GuideController::class, 'publicSop'])->name('sop.public');
+Route::get('/sop', [GuideController::class, 'publicSop']);
+
 // Authentication
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
