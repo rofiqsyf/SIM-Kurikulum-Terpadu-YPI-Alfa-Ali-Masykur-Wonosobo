@@ -71,5 +71,49 @@ class UsulanPerubahan extends Model
             ],
         };
     }
+
+    /**
+     * Rekomendasi 5: Indikator SLA Review Kepala Sekolah
+     */
+    public function getSlaStatusAttribute(): array
+    {
+        if ($this->status !== 'Menunggu Persetujuan') {
+            return [
+                'status' => 'completed',
+                'label' => 'Selesai Ditelaah',
+                'days' => 0,
+                'color' => 'slate',
+                'badge_class' => 'bg-slate-100 text-slate-700 border-slate-200',
+            ];
+        }
+
+        $days = $this->tanggal_pengajuan ? (int) $this->tanggal_pengajuan->diffInDays(now()) : 0;
+
+        if ($days < 3) {
+            return [
+                'status' => 'normal',
+                'label' => $days == 0 ? 'Hari Ini (SLA Aman)' : "{$days} Hari Lalu (SLA Aman)",
+                'days' => $days,
+                'color' => 'emerald',
+                'badge_class' => 'bg-emerald-50 text-emerald-800 border-emerald-200',
+            ];
+        } elseif ($days < 7) {
+            return [
+                'status' => 'warning',
+                'label' => "Perlu Ditelaah ({$days} Hari)",
+                'days' => $days,
+                'color' => 'amber',
+                'badge_class' => 'bg-amber-50 text-amber-800 border-amber-300 font-semibold',
+            ];
+        } else {
+            return [
+                'status' => 'urgent',
+                'label' => "Melebihi Batas SLA ({$days} Hari)",
+                'days' => $days,
+                'color' => 'rose',
+                'badge_class' => 'bg-rose-50 text-rose-800 border-rose-300 font-bold',
+            ];
+        }
+    }
 }
 

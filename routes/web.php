@@ -14,14 +14,12 @@ use App\Http\Controllers\ProposalController;
 use App\Http\Controllers\YayasanController;
 use Illuminate\Support\Facades\Route;
 
-// Home landing page (or dashboard if authenticated)
-Route::get('/', function () {
-    return auth()->check() ? redirect()->route('dashboard') : view('welcome');
-});
+// Root (/) langsung menampilkan portal login (atau redirect ke dashboard jika sudah login)
+Route::get('/', [AuthController::class, 'showLogin'])->name('home');
 
-// Standar Prosedur (SOP) Publik - Halaman Awal Sebelum Masuk Portal
-Route::get('/standar-prosedur', [GuideController::class, 'publicSop'])->name('sop.public');
-Route::get('/sop', [GuideController::class, 'publicSop']);
+// Redirect legacy link SOP ke login
+Route::redirect('/standar-prosedur', '/login');
+Route::redirect('/sop', '/login');
 
 // Authentication
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -40,11 +38,14 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/kurikulum/materi/{id}/upload-dokumen', [CurriculumController::class, 'uploadMateriDocument'])->name('curriculum.materi.upload');
     Route::delete('/kurikulum/materi/{id}/delete-dokumen', [CurriculumController::class, 'deleteMateriDocument'])->name('curriculum.materi.delete_file');
     Route::get('/kurikulum/materi/{id}/download-dokumen', [CurriculumController::class, 'downloadMateriDocument'])->name('curriculum.materi.download');
+    Route::get('/mata-pelajaran/{id}/export-resmi', [CurriculumController::class, 'exportOfficialSyllabus'])->name('curriculum.mapel.export');
+    Route::post('/kurikulum/{kurikulum}/toggle-lock', [CurriculumController::class, 'toggleLock'])->name('curriculum.toggle_lock');
 
     // 3. Riwayat Usulan & Pelacak Status Kurikulum
     Route::get('/usulan', [ProposalController::class, 'index'])->name('usulan.index');
     Route::get('/usulan/json/{usulan}', [ProposalController::class, 'show'])->name('usulan.show');
     Route::post('/usulan/{usulan}/review', [ProposalController::class, 'review'])->name('usulan.review');
+    Route::post('/usulan/{usulan}/resubmit', [ProposalController::class, 'resubmit'])->name('usulan.resubmit');
 
     // 4. Pusat Bantuan & Panduan Guru (SOP & FAQ)
     Route::get('/panduan', [GuideController::class, 'index'])->name('guide.index');

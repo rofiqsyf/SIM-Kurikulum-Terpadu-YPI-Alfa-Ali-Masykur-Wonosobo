@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <title>Portal Masuk - SIM Kurikulum YPI Alfa Ali Masykur</title>
+    <title>Portal Masuk - SIM Kurikulum YPI Ali Masykur</title>
 
     <!-- Favicon Logo Yayasan -->
     <link rel="icon" type="image/png" href="{{ asset('images/logo-yayasan.png') }}">
@@ -63,11 +63,11 @@
         <!-- Header Branding -->
         <div class="text-center mb-6 space-y-2">
             <div class="w-14 h-14 rounded-2xl bg-white border border-slate-100 p-1.5 shadow-card mx-auto flex items-center justify-center">
-                <img src="{{ asset('images/logo-yayasan.png') }}" alt="Logo Yayasan YPI Alfa Ali Masykur" class="w-full h-full object-contain">
+                <img src="{{ asset('images/logo-yayasan.png') }}" alt="Logo YPI Ali Masykur" class="w-full h-full object-contain">
             </div>
             <div>
                 <h1 class="text-xl font-bold tracking-tight text-slate-900">SIM Kurikulum Terpadu</h1>
-                <p class="text-xs text-slate-500 font-medium mt-0.5">YPI Alfa Ali Masykur Wonosobo</p>
+                <p class="text-xs text-slate-500 font-medium mt-0.5">YPI Ali Masykur Wonosobo</p>
             </div>
         </div>
 
@@ -77,14 +77,14 @@
             <!-- Error Alerts -->
             @if(isset($errors) && $errors->any())
                 <div class="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2">
-                    <span class="material-symbols-outlined text-base">error</span>
+                    <span class="material-symbols-outlined text-base shrink-0">error</span>
                     <span>{{ $errors->first() }}</span>
                 </div>
             @endif
 
             @if(session('info'))
                 <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 text-slate-800 text-xs flex items-center gap-2">
-                    <span class="material-symbols-outlined text-base text-brand-700">info</span>
+                    <span class="material-symbols-outlined text-base text-brand-700 shrink-0">info</span>
                     <span>{{ session('info') }}</span>
                 </div>
             @endif
@@ -117,9 +117,15 @@
                         <input id="password-input" name="password" type="password" required
                                placeholder="Masukkan kata sandi Anda" 
                                class="w-full pl-9 pr-10 py-2.5 bg-slate-50 border border-slate-200/90 rounded-2xl text-slate-800 text-xs placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-700 transition-all shadow-subtle">
-                        <button type="button" onclick="togglePasswordVisibility()" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1">
+                        <button type="button" onclick="togglePasswordVisibility()" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer">
                             <span class="material-symbols-outlined text-base" id="password-toggle-icon">visibility</span>
                         </button>
+                    </div>
+
+                    <!-- Peringatan Caps Lock Otomatis (Micro-UX) -->
+                    <div id="caps-lock-warning" class="hidden text-amber-800 bg-amber-50 border border-amber-200/90 text-[11px] rounded-xl px-3 py-1.5 flex items-center gap-1.5 mt-1 transition-all">
+                        <span class="material-symbols-outlined text-sm text-amber-600">warning</span>
+                        <span>Perhatian: <strong>Caps Lock</strong> Anda dalam keadaan aktif.</span>
                     </div>
                 </div>
 
@@ -148,10 +154,10 @@
 
     <!-- FOOTER COPYRIGHT -->
     <div class="max-w-md w-full mx-auto text-center text-xs text-slate-400 py-2">
-        © 2024–2026 Yayasan Pendidikan Islam Alfa Ali Masykur Wonosobo.
+        © 2024–2026 YPI Ali Masykur Wonosobo.
     </div>
 
-    <!-- TOGGLE PASSWORD SCRIPT -->
+    <!-- SCRIPTS -->
     <script>
         function togglePasswordVisibility() {
             const input = document.getElementById('password-input');
@@ -163,6 +169,25 @@
                 input.type = 'password';
                 icon.textContent = 'visibility';
             }
+        }
+
+        // Deteksi Caps Lock
+        const passwordInput = document.getElementById('password-input');
+        const capsLockWarning = document.getElementById('caps-lock-warning');
+        if (passwordInput && capsLockWarning) {
+            ['keydown', 'keyup'].forEach(eventType => {
+                passwordInput.addEventListener(eventType, function(event) {
+                    if (event.getModifierState && event.getModifierState('CapsLock')) {
+                        capsLockWarning.classList.remove('hidden');
+                    } else {
+                        capsLockWarning.classList.add('hidden');
+                    }
+                });
+            });
+
+            passwordInput.addEventListener('blur', function() {
+                capsLockWarning.classList.add('hidden');
+            });
         }
     </script>
 </body>

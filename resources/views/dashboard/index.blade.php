@@ -18,7 +18,7 @@
                 <div class="space-y-3.5 max-w-xl z-10">
                     <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-[11px] font-semibold">
                         <span class="w-1.5 h-1.5 rounded-full bg-brand-600 animate-pulse"></span>
-                        <span>{{ $user->unit->nama_unit ?? 'Yayasan Alfa Ali Masykur' }}</span>
+                        <span>{{ $user->unit->nama_unit ?? 'YPI Ali Masykur' }}</span>
                         <span>•</span>
                         <span>T.A 2024/2025</span>
                     </div>

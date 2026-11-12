@@ -81,7 +81,7 @@
                             </span>
                         </div>
                         <p class="text-xs text-slate-500 flex items-center gap-2 flex-wrap">
-                            <span>{{ $user->unit->nama_unit ?? 'Yayasan Pendidik Ali Masykur' }}</span>
+                            <span>{{ $user->unit->nama_unit ?? 'YPI Ali Masykur' }}</span>
                             <span>•</span>
                             <span class="font-mono text-slate-700 font-semibold">NIP: {{ $user->nip ?? 'Belum diisi' }}</span>
                             <span>•</span>
@@ -249,7 +249,7 @@
 
                         <div class="space-y-1.5">
                             <label class="block text-xs font-bold text-slate-500">Unit Lembaga Terdaftar (Terkunci)</label>
-                            <input type="text" value="{{ $user->unit->nama_unit ?? 'Yayasan Pendidik Ali Masykur' }}" disabled
+                            <input type="text" value="{{ $user->unit->nama_unit ?? 'YPI Ali Masykur' }}" disabled
                                    class="w-full px-3.5 py-2.5 bg-slate-100 border border-slate-200 rounded-2xl text-xs text-slate-500 cursor-not-allowed">
                         </div>
                     </div>

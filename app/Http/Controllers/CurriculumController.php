@@ -162,6 +162,20 @@ class CurriculumController extends Controller
         if (!$user->canAccessAllUnits() && $user->unit_id && $mapel->kurikulum?->unit_id !== $user->unit_id) {
             return back()->with('error', 'Akses Dibatasi: Anda hanya berhak mengajukan usulan kurikulum pada mata pelajaran di unit sekolah Anda.');
         }
+
+        // Rekomendasi 4: Pengecekan status periode kurikulum terkunci
+        if ($mapel->kurikulum?->is_locked) {
+            return back()->with('error', "Periode Kurikulum Terkunci: Pengajuan usulan silabus pada {$mapel->kurikulum?->nama_kurikulum} sedang dibekukan/dikunci oleh pimpinan unit untuk periode berjalan.");
+        }
+
+        // Rekomendasi 1: Strict Subject Assignment for Guru
+        if ($user->isGuru() && !$user->canAccessAllUnits()) {
+            $isAssigned = $user->penugasan()->where('mapel_id', $mapel->id)->exists();
+            if (!$isAssigned) {
+                return back()->with('error', "Akses Dibatasi: Anda belum terdaftar sebagai guru pengampu mata pelajaran '{$mapel->nama_mapel}'. Guru hanya berhak mengajukan usulan pada mata pelajaran yang menjadi tanggung jawab penugasannya.");
+            }
+        }
+
         $unitId = $mapel->kurikulum->unit_id;
 
         // Generate Nomor Usulan unik (Menghindari tabrakan unik dengan nomor eksisting)
@@ -401,6 +415,68 @@ class CurriculumController extends Controller
         }
 
         return Storage::disk('public')->download($materi->file_path, $materi->file_name);
+    }
+
+    /**
+     * Rekomendasi 4: Kunci / Buka Kunci Periode Usulan Kurikulum
+     */
+    public function toggleLock(Request $request, \App\Models\Kurikulum $kurikulum)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        if (!$user->isKepalaSekolah() && !$user->isWakaKurikulum() && !$user->isAdmin()) {
+            return back()->with('error', 'Hanya Kepala Sekolah, Waka Kurikulum, atau Admin yang berwenang mengubah status kunci periode kurikulum.');
+        }
+
+        if (!$user->canManageUnit($kurikulum->unit_id)) {
+            return back()->with('error', 'Akses Dibatasi: Anda hanya berhak mengunci/membuka kurikulum pada unit sekolah Anda sendiri.');
+        }
+
+        $kurikulum->is_locked = !$kurikulum->is_locked;
+        if ($kurikulum->is_locked) {
+            $kurikulum->locked_at = now();
+            $kurikulum->locked_by = $user->id;
+            $msg = "Periode kurikulum '{$kurikulum->nama_kurikulum}' berhasil DIKUNCI. Guru tidak dapat mengajukan usulan revisi baru hingga kunci dibuka.";
+        } else {
+            $kurikulum->locked_at = null;
+            $kurikulum->locked_by = null;
+            $msg = "Periode kurikulum '{$kurikulum->nama_kurikulum}' berhasil DIBUKA KEMBALI. Guru dapat mengajukan usulan perbaikan silabus.";
+        }
+        $kurikulum->save();
+
+        return back()->with('success', $msg);
+    }
+
+    /**
+     * Rekomendasi 3: Ekspor Silabus Resmi Format Dinas & Kemenag (PDF / Cetak Kop YPI)
+     */
+    public function exportOfficialSyllabus(Request $request, $id)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        $mapel = MataPelajaran::with([
+            'kurikulum.unit.jenjang',
+            'kelas.fase',
+            'penugasanGuru.user',
+            'capaianPembelajaran.tujuanPembelajaran.materi',
+        ])->findOrFail($id);
+
+        $unitId = $mapel->kurikulum?->unit_id;
+        if (!$user->canAccessAllUnits() && $user->unit_id && $unitId && $user->unit_id !== $unitId) {
+            return redirect()->route('curriculum.index')
+                ->with('error', 'Akses Dibatasi: Anda tidak berhak mencetak silabus resmi dari unit sekolah lain.');
+        }
+
+        // Guru Pengampu
+        $pengampu = $mapel->penugasanGuru->map(fn($p) => $p->user)->filter();
+
+        return view('curriculum.export_official', compact('user', 'mapel', 'pengampu'));
     }
 }
 

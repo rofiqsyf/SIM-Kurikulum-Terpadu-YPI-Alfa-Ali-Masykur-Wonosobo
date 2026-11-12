@@ -157,11 +157,13 @@
                                placeholder="Cari kode, judul, atau pengusul..." 
                                class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200/80 rounded-2xl text-xs placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-700 transition-all">
                     </div>
-                    <button type="button" onclick="openGlobalProposalModal()" 
-                            class="px-3.5 py-2 rounded-2xl bg-brand-800 hover:bg-brand-900 text-white font-semibold transition-all shadow-subtle shrink-0 flex items-center gap-1 cursor-pointer">
-                        <span class="material-symbols-outlined text-sm">edit_document</span>
-                        <span>Buat Usulan</span>
-                    </button>
+                    @if($user->isGuru())
+                        <button type="button" onclick="openGlobalProposalModal()" 
+                                class="px-3.5 py-2 rounded-2xl bg-brand-800 hover:bg-brand-900 text-white font-semibold transition-all shadow-subtle shrink-0 flex items-center gap-1 cursor-pointer">
+                            <span class="material-symbols-outlined text-sm">edit_document</span>
+                            <span>Buat Usulan</span>
+                        </button>
+                    @endif
                 </div>
             </div>
 
@@ -222,17 +224,30 @@
                                                 <span>Perlu Revisi</span>
                                             </span>
                                         @else
-                                            <span class="inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200 whitespace-nowrap leading-none min-w-[96px]">
-                                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse shrink-0"></span>
-                                                <span>Menunggu</span>
-                                            </span>
+                                            @php $sla = $prop->sla_status; @endphp
+                                            <div class="inline-flex flex-col items-center gap-1">
+                                                <span class="inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200 whitespace-nowrap leading-none min-w-[96px]">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse shrink-0"></span>
+                                                    <span>Menunggu</span>
+                                                </span>
+                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold border {{ $sla['badge_class'] }}">
+                                                    <span class="material-symbols-outlined text-[10px]">schedule</span>
+                                                    {{ $sla['label'] }}
+                                                </span>
+                                            </div>
                                         @endif
                                     </td>
-                                    <td class="py-3.5 px-5 text-right">
+                                    <td class="py-3.5 px-5 text-right whitespace-nowrap space-x-1" onclick="event.stopPropagation()">
                                         <button type="button" onclick="showProposalDetail({{ json_encode($prop) }})" 
                                                 class="px-3 py-1 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold transition-colors">
                                             Rincian
                                         </button>
+                                        @if($prop->status === 'Ditolak' && auth()->id() === $prop->pengusul_id)
+                                            <button type="button" onclick="openResubmitModal({{ json_encode($prop) }})" 
+                                                    class="px-3 py-1 rounded-xl bg-brand-800 hover:bg-brand-900 text-white text-xs font-semibold shadow-subtle transition-colors">
+                                                Revisi
+                                            </button>
+                                        @endif
                                     </td>
                                 </tr>
                             @empty
@@ -365,6 +380,152 @@
     </div>
 </div>
 
+<!-- MODAL TOLAK / EVALUASI USULAN -->
+<div id="reject-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-floating border border-slate-200 space-y-4">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-rose-600">feedback</span>
+                <h3 class="text-sm font-bold text-slate-900">Catatan Evaluasi / Penolakan</h3>
+            </div>
+            <button onclick="closeRejectModal()" class="text-slate-400 hover:text-slate-600">
+                <span class="material-symbols-outlined text-xl">close</span>
+            </button>
+        </div>
+        
+        <form id="reject-form" method="POST" action="">
+            @csrf
+            <input type="hidden" name="keputusan" value="tolak">
+            <div class="space-y-3 text-xs">
+                <p class="text-slate-600">
+                    Berikan alasan pedagogis atau koreksi yang jelas agar pengusul dapat melakukan revisi perbaikan:
+                </p>
+                <div class="p-3 rounded-2xl bg-slate-50 border border-slate-100">
+                    <span class="font-bold text-slate-800 block" id="reject-target-code"></span>
+                    <span class="text-slate-500 text-[11px] block" id="reject-target-title"></span>
+                </div>
+                <div>
+                    <label class="font-bold text-slate-700 block mb-1">Catatan Koreksi (Wajib Diisi):</label>
+                    <textarea name="alasan_penolakan" rows="4" required
+                              placeholder="Misal: Indikator TP pertemuan ke-3 belum mencerminkan profil lulusan..."
+                              class="w-full p-3 rounded-2xl border border-slate-200 bg-slate-50 text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-rose-500"></textarea>
+                </div>
+            </div>
+            <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2">
+                <button type="button" onclick="closeRejectModal()" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold">
+                    Batal
+                </button>
+                <button type="submit" class="px-4 py-2 rounded-xl bg-rose-700 hover:bg-rose-800 text-white text-xs font-semibold">
+                    Kirim Catatan &amp; Kembalikan
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL AJUKAN REVISI USULAN (GURU) -->
+<div id="resubmit-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-floating border border-slate-200 space-y-4 max-h-[90vh] flex flex-col justify-between overflow-hidden">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100 shrink-0">
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-brand-700">edit_document</span>
+                <div>
+                    <h3 class="text-sm font-bold text-slate-900">Revisi &amp; Ajukan Ulang Usulan</h3>
+                    <p class="text-[11px] text-slate-500" id="resubmit-target-code"></p>
+                </div>
+            </div>
+            <button onclick="closeResubmitModal()" class="text-slate-400 hover:text-slate-600">
+                <span class="material-symbols-outlined text-xl">close</span>
+            </button>
+        </div>
+
+        <form id="resubmit-form" method="POST" action="" enctype="multipart/form-data" class="flex-1 overflow-y-auto space-y-4 text-xs pr-1">
+            @csrf
+
+            <!-- Riwayat Catatan Evaluator -->
+            <div class="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 space-y-1">
+                <span class="font-bold text-rose-800 flex items-center gap-1">
+                    <span class="material-symbols-outlined text-sm">history_edu</span> Catatan Evaluasi Kepala Sekolah / Peninjau:
+                </span>
+                <p class="text-rose-900 italic text-[11px] pl-3 border-l-2 border-rose-400" id="resubmit-previous-notes"></p>
+            </div>
+
+            <!-- Judul Usulan (Pre-filled) -->
+            <div class="space-y-1">
+                <label class="font-bold text-slate-700 block" for="resubmit-judul">
+                    Judul Usulan Kurikulum: <span class="text-rose-500">*</span>
+                </label>
+                <input type="text" id="resubmit-judul" name="judul_usulan" required
+                       class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-2xl text-xs placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-700">
+            </div>
+
+            <!-- Rumusan / Deskripsi Usulan (Pre-filled) -->
+            <div class="space-y-1">
+                <label class="font-bold text-slate-700 block" for="resubmit-deskripsi">
+                    Rumusan / Deskripsi Usulan (CP / TP / Materi):
+                </label>
+                <textarea id="resubmit-deskripsi" name="deskripsi_usulan" rows="3"
+                          placeholder="Rumusan capaian, tujuan pembelajaran, atau ringkasan materi..."
+                          class="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-700"></textarea>
+            </div>
+
+            <!-- Beban JP & Media Ajar (Pre-filled) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="space-y-1">
+                    <label class="font-bold text-slate-700 block" for="resubmit-beban-jp">
+                        Alokasi Jam Pelajaran (JP):
+                    </label>
+                    <input type="number" id="resubmit-beban-jp" name="beban_jp" min="1" max="100"
+                           class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-2xl text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-700">
+                </div>
+                <div class="space-y-1">
+                    <label class="font-bold text-slate-700 block" for="resubmit-media-ajar">
+                        Media / Sumber Belajar:
+                    </label>
+                    <input type="text" id="resubmit-media-ajar" name="media_ajar"
+                           class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-2xl text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-700">
+                </div>
+            </div>
+
+            <!-- Rincian Revisi / Rasional (Pre-filled so teacher does not type from scratch) -->
+            <div class="space-y-1">
+                <div class="flex items-center justify-between">
+                    <label class="font-bold text-slate-700" for="resubmit-alasan">
+                        Rasional Pedagogis &amp; Tanggapan Catatan Revisi: <span class="text-rose-500">*</span>
+                    </label>
+                    <span class="text-[10px] text-slate-400">Terisi otomatis dari usulan awal</span>
+                </div>
+                <textarea id="resubmit-alasan" name="alasan_pengajuan" rows="3" required
+                          placeholder="Jelaskan perbaikan yang telah dilakukan menanggapi catatan evaluasi pimpinan..."
+                          class="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-700"></textarea>
+            </div>
+
+            <!-- Lampiran Dokumen Baru -->
+            <div class="space-y-1">
+                <label class="font-bold text-slate-700 block" for="resubmit-lampiran">
+                    Perbarui Berkas Pendukung (Opsional, PDF/DOCX/XLSX maks 10MB):
+                </label>
+                <div id="resubmit-current-file-badge" class="hidden mb-1.5 p-2 rounded-xl bg-slate-100 border border-slate-200 text-[11px] text-slate-600 flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-sm text-slate-500">attach_file</span>
+                    <span>Berkas saat ini: <strong id="resubmit-current-file-name" class="text-slate-800"></strong></span>
+                </div>
+                <input type="file" id="resubmit-lampiran" name="dokumen_materi" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
+                       class="w-full p-2 bg-slate-50 border border-slate-200 rounded-2xl text-xs text-slate-600 file:mr-3 file:py-1 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-brand-50 file:text-brand-800 hover:file:bg-brand-100">
+            </div>
+
+            <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2 shrink-0">
+                <button type="button" onclick="closeResubmitModal()" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold">
+                    Batal
+                </button>
+                <button type="submit" class="px-4 py-2 rounded-xl bg-brand-800 hover:bg-brand-900 text-white text-xs font-semibold shadow-subtle flex items-center gap-1">
+                    <span class="material-symbols-outlined text-sm">send</span>
+                    <span>Kirim Ulang ke Peninjau</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
     function showProposalDetail(prop) {
         const modal = document.getElementById('proposal-detail-modal');
@@ -465,7 +626,7 @@
 
         if (prop.status === 'Ditolak') {
             actions.innerHTML += `
-                <button type="button" onclick="closeProposalDetailModal(); openGlobalProposalModal('${prop.objek_data}', 'Revisi Ulang: ' + '${prop.judul_usulan}', '${prop.data_id}', null, '${prop.mapel_id}')"
+                <button type="button" onclick="closeProposalDetailModal(); openResubmitModal(window.currentProposalData)"
                         class="px-4 py-2 rounded-xl bg-brand-800 hover:bg-brand-900 text-white text-xs font-semibold shadow-subtle transition-all flex items-center gap-1">
                     <span class="material-symbols-outlined text-sm">edit_note</span>
                     <span>Ajukan Revisi Ulang</span>
@@ -473,11 +634,61 @@
             `;
         }
 
+        window.currentProposalData = prop;
         modal.classList.remove('hidden');
     }
 
     function closeProposalDetailModal() {
         document.getElementById('proposal-detail-modal').classList.add('hidden');
+    }
+
+    function openRejectModal(proposalId, proposalCode, proposalTitle) {
+        const modal = document.getElementById('reject-modal');
+        const form = document.getElementById('reject-form');
+        document.getElementById('reject-target-code').textContent = proposalCode;
+        document.getElementById('reject-target-title').textContent = proposalTitle || '';
+        form.action = `/usulan/${proposalId}/review`;
+        modal.classList.remove('hidden');
+    }
+
+    function closeRejectModal() {
+        document.getElementById('reject-modal').classList.add('hidden');
+    }
+
+    function openResubmitModal(prop) {
+        const modal = document.getElementById('resubmit-modal');
+        const form = document.getElementById('resubmit-form');
+        
+        document.getElementById('resubmit-target-code').textContent = (prop.nomor_usulan || '') + ' • ' + (prop.jenis_usulan || '') + ' ' + (prop.objek_data || '') + ' (' + (prop.mata_pelajaran ? prop.mata_pelajaran.nama_mapel : 'Mapel') + ')';
+        document.getElementById('resubmit-previous-notes').textContent = prop.alasan_penolakan || 'Belum ada catatan detail dari peninjau.';
+        
+        // Pre-fill form fields with previous data so teacher doesn't start from scratch!
+        document.getElementById('resubmit-judul').value = prop.judul_usulan || '';
+        
+        const dataUsulan = (typeof prop.data_usulan === 'object' && prop.data_usulan !== null) ? prop.data_usulan : {};
+        document.getElementById('resubmit-deskripsi').value = dataUsulan.isi_usulan || prop.judul_usulan || '';
+        document.getElementById('resubmit-beban-jp').value = dataUsulan.beban_jp || '';
+        document.getElementById('resubmit-media-ajar').value = dataUsulan.media_ajar || '';
+        
+        // Pre-fill existing rationale so teacher only modifies or appends their clarification
+        document.getElementById('resubmit-alasan').value = prop.alasan_pengajuan || '';
+        
+        // Show current attachment file badge if exists
+        const fileBadge = document.getElementById('resubmit-current-file-badge');
+        const fileNameEl = document.getElementById('resubmit-current-file-name');
+        if (prop.file_name) {
+            fileNameEl.textContent = prop.file_name;
+            fileBadge.classList.remove('hidden');
+        } else {
+            fileBadge.classList.add('hidden');
+        }
+
+        form.action = `/usulan/${prop.id}/resubmit`;
+        modal.classList.remove('hidden');
+    }
+
+    function closeResubmitModal() {
+        document.getElementById('resubmit-modal').classList.add('hidden');
     }
 
     function filterProposalsLive() {

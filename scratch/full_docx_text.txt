@@ -1,0 +1,1290 @@
+[1] PENGEMBANGAN SISTEM INFORMASI MANAJEMEN KURIKULUM BERBASIS WEB UNTUK INTEGRASI DATA MATA PELAJARAN, CAPAIAN PEMBELAJARAN, TUJUAN PEMBELAJARAN, MATERI, KOKULIKULER, DAN EKSTRAKULIKULER
+[2] Guna Memenuhi Tugas Basis Data Terapan
+[3] Yang Diampu Oleh : Dimas Prasetyo Utomo, S.Kom., M.Kom.
+[4] Disusun Oleh :
+[5] Annisa Oktora Nurusyifa
+[6] 2024150008
+[7] M. Akmal Hamdani
+[8] 2024150045
+[9] Ahmad Fahrezi Suhendar
+[10] 2024150041
+[11] Destia Tsani Azzahra
+[12] 2024150034
+[13] Choirur Ridwan
+[14] 2024150043
+[15] Rofiq Syaifurrohman
+[16] 2024150032
+[17] PROGRAM STUDI TEKNIK INFORMATIKA
+[18] FAKULTAS TEKNIK DAN ILMU KOMPUTER
+[19] UNIVERSITAS SAINS AL-QUR’AN
+[20] 2026
+[21] Pendahuluan
+[22] Latar Belakang
+[23] Kurikulum merupakan bagian penting dalam penyelenggaraan pendidikan karena menjadi pedoman dalam pelaksanaan proses pembelajaran. Pengelolaan kurikulum mencakup berbagai informasi, antara lain jenjang pendidikan, kelas, fase, mata pelajaran, capaian pembelajaran, tujuan pembelajaran, materi pembelajaran, kegiatan kokurikuler, dan kegiatan ekstrakurikuler. Informasi tersebut perlu dikelola secara terstruktur agar dapat digunakan sesuai dengan kebutuhan dan kewenangan masing-masing pengguna.
+[24] Yayasan Ali Masykur menaungi tiga unit pendidikan, yaitu MI Tahfidz Alfa Ali Masykur, SMP Alfa Ali Masykur, dan SMA Alfa Ali Masykur. Ketiga unit pendidikan tersebut memiliki jenjang dan kebutuhan kurikulum masing-masing. Oleh karena itu, diperlukan sistem yang dapat mengintegrasikan informasi kurikulum dari seluruh unit pendidikan dalam satu platform serta mengatur akses pengguna berdasarkan peran dan tanggung jawabnya.
+[25] Sistem Informasi Manajemen Kurikulum Berbasis Web dirancang untuk mendukung pengelolaan informasi kurikulum di lingkungan Yayasan Ali Masykur. Sistem ini mencakup pengelolaan data jenjang, kelas, fase, kurikulum, mata pelajaran, capaian pembelajaran, tujuan pembelajaran, materi pembelajaran, serta informasi kokurikuler dan ekstrakurikuler. Sistem juga dirancang untuk membedakan kewenangan pengurus yayasan, admin sistem, kepala sekolah atau madrasah, guru mata pelajaran, dan pengelola kegiatan sesuai kebutuhan pengelolaan data.
+[26] Dalam pengembangan sistem tersebut, diperlukan analisis sistem untuk mengidentifikasi kebutuhan pengguna, menentukan fungsi yang harus tersedia, menetapkan aturan bisnis, serta menggambarkan interaksi pengguna dengan sistem. Hasil analisis ini menjadi acuan bagi anggota tim yang bertanggung jawab atas perancangan antarmuka, basis data, pengembangan backend dan frontend, serta pengujian sistem.
+[27] Berdasarkan hal tersebut, dokumen analisis sistem ini disusun sebagai pedoman dalam pengembangan Sistem Informasi Manajemen Kurikulum Berbasis Web untuk Integrasi Data Mata Pelajaran, Capaian Pembelajaran, Tujuan Pembelajaran, dan Materi pada Yayasan Ali Masykur.
+[28] Rumusan Masalah
+[29] Berdasarkan ruang lingkup sistem yang akan dikembangkan, rumusan masalah dalam analisis sistem ini adalah sebagai berikut.
+[30] Apa saja kebutuhan pengguna dalam pengelolaan informasi kurikulum pada MI Tahfidz Alfa Ali Masykur, SMP Alfa Ali Masykur, dan SMA Alfa Ali Masykur?
+[31] Bagaimana menentukan kebutuhan fungsional dan nonfungsional sistem informasi manajemen kurikulum yang akan dikembangkan?
+[32] Bagaimana menentukan hak akses setiap pengguna berdasarkan peran, unit pendidikan, dan tanggung jawabnya?
+[33] Bagaimana merumuskan aturan bisnis serta hubungan antara data jenjang, kelas, fase, mata pelajaran, capaian pembelajaran, tujuan pembelajaran, materi, kokurikuler, dan ekstrakurikuler?
+[34] Bagaimana memodelkan proses dan interaksi pengguna agar dapat menjadi acuan bagi tim dalam mengembangkan sistem?
+[35] Bagaimana menetapkan spesifikasi kebutuhan dan kriteria pengujian untuk memeriksa kesesuaian sistem dengan kebutuhan yang telah dianalisis?
+[36] Tujuan
+[37] Tujuan penyusunan dokumen analisis sistem ini adalah sebagai berikut.
+[38] Mengidentifikasi kebutuhan pengguna dalam pengelolaan informasi kurikulum pada seluruh unit pendidikan di bawah Yayasan Ali Masykur.
+[39] Menentukan kebutuhan fungsional dan nonfungsional sebagai spesifikasi sistem yang akan dikembangkan.
+[40] Menetapkan pembagian hak akses pengguna berdasarkan peran, unit pendidikan, dan tanggung jawab masing-masing.
+[41] Merumuskan aturan bisnis dan kebutuhan pengelolaan hubungan antar-data kurikulum.
+[42] Menyusun model sistem yang menggambarkan interaksi pengguna dan alur proses utama sebagai pedoman pengembangan.
+[43] Menetapkan kriteria keberhasilan dan skenario pengujian untuk memvalidasi kesesuaian fungsi sistem dengan kebutuhan yang telah ditentukan.
+[44] Manfaat
+[45] Penyusunan dokumen analisis sistem ini diharapkan memberikan manfaat sebagai berikut.
+[46] Bagi Tim Pengembang
+[47] Dokumen ini menjadi acuan bersama dalam mengembangkan sistem agar perancangan antarmuka, struktur basis data, implementasi fungsi, dan pengujian mengacu pada kebutuhan yang sama.
+[48] Bagi Yayasan Ali Masykur
+[49] Hasil analisis diharapkan menjadi dasar pengembangan sistem yang mendukung integrasi informasi kurikulum dari MI Tahfidz Alfa Ali Masykur, SMP Alfa Ali Masykur, dan SMA Alfa Ali Masykur.
+[50] Bagi Kepala Sekolah atau Madrasah
+[51] Dokumen ini menjadi dasar penetapan kebutuhan akses terhadap informasi kurikulum pada unit pendidikan masing-masing.
+[52] Bagi Guru Mata Pelajaran
+[53] Hasil analisis menjadi acuan dalam menentukan kebutuhan akses dan pengelolaan data kurikulum yang berkaitan dengan mata pelajaran yang menjadi tanggung jawab guru.
+[54] Bagi Admin Sistem
+[55] Dokumen ini menjadi pedoman untuk menentukan kebutuhan pengelolaan akun, hak akses, dan administrasi sistem sesuai kewenangan yang ditetapkan.
+[56] Bagi Pengelola Kokurikuler dan Ekstrakurikuler
+[57] Dokumen ini membantu mengidentifikasi kebutuhan pengelolaan informasi kegiatan serta kewenangan pihak yang bertanggung jawab atas kegiatan tersebut.
+[58] Ruang Lingkup dan Batasan Sistem
+[59] Ruang lingkup analisis sistem ini mencakup kebutuhan pengelolaan informasi kurikulum pada MI Tahfidz Alfa Ali Masykur, SMP Alfa Ali Masykur, dan SMA Alfa Ali Masykur yang berada di bawah Yayasan Ali Masykur.
+[60] Ruang lingkup sistem meliputi:
+[61] Pengelolaan informasi jenjang pendidikan, kelas, dan fase.
+[62] Pengelolaan informasi kurikulum dan mata pelajaran pada setiap unit pendidikan.
+[63] Pengelolaan capaian pembelajaran, tujuan pembelajaran, dan materi pembelajaran.
+[64] Pengelolaan informasi kegiatan kokurikuler dan ekstrakurikuler.
+[65] Pengaturan hak akses berdasarkan peran pengguna, unit pendidikan, dan tanggung jawabnya.
+[66] Penyediaan akses informasi kurikulum sesuai kewenangan masing-masing pengguna.
+[67] Penentuan spesifikasi kebutuhan, pemodelan proses, serta kriteria pengujian sistem.
+[68] Batasan sistem dalam analisis awal ini adalah sebagai berikut.
+[69] Sistem berfokus pada manajemen informasi kurikulum dan tidak mencakup seluruh administrasi sekolah.
+[70] Pengelolaan nilai, presensi, pembayaran, penggajian, dan penerimaan peserta didik baru tidak termasuk dalam ruang lingkup awal.
+[71] Data kelas difokuskan pada tingkat pendidikan, yaitu kelas 1–6 untuk MI, kelas 7–9 untuk SMP, dan kelas 10–12 untuk SMA. Pengelolaan rombongan belajar, seperti kelas 7A dan 7B, belum dimasukkan sebelum kebutuhan tersebut dikonfirmasi.
+[72] Hak akses pengguna dibatasi sesuai peran dan kewenangan yang ditetapkan dalam analisis kebutuhan sistem.
+[73] Pengelolaan akun siswa dan fitur pendaftaran ekstrakurikuler belum termasuk dalam ruang lingkup awal.
+[74] Rincian teknis implementasi, struktur tabel basis data, dan desain antarmuka akan dikembangkan oleh anggota tim sesuai pembagian tugas berdasarkan hasil analisis kebutuhan.
+[75] Ruang lingkup dan batasan tersebut merupakan rancangan awal yang dapat disesuaikan berdasarkan hasil diskusi dengan dosen dan kesepakatan tim pengembang.
+[76] Analisis Kebutuhan Sistem
+[77] Gambaran Umum Sistem
+[78] Sistem Informasi Manajemen Kurikulum Berbasis Web merupakan sistem yang dirancang untuk mengintegrasikan pengelolaan informasi kurikulum pada tiga unit pendidikan di bawah Yayasan Ali Masykur, yaitu MI Tahfidz Alfa Ali Masykur, SMP Alfa Ali Masykur, dan SMA Alfa Ali Masykur.
+[79] Sistem menyediakan pengelolaan data kurikulum yang mencakup jenjang pendidikan, kelas, fase, mata pelajaran, capaian pembelajaran, tujuan pembelajaran, materi pembelajaran, kegiatan kokurikuler, dan kegiatan ekstrakurikuler. Informasi tersebut dikelompokkan berdasarkan unit pendidikan agar data dari masing-masing unit dapat dibedakan dan dikelola secara terstruktur.
+[80] Sistem dirancang dengan menerapkan pembagian hak akses berdasarkan peran pengguna. Pengurus yayasan dapat mengakses informasi dari seluruh unit pendidikan, sedangkan kepala sekolah atau madrasah dibatasi pada unit yang dipimpinnya. Guru mata pelajaran memperoleh akses terhadap data yang berkaitan dengan mata pelajaran dan unit pendidikan tempatnya bertugas. Admin sistem bertanggung jawab terhadap pengelolaan administrasi sistem sesuai kewenangannya.
+[81] Selain itu, sistem menyediakan pengelolaan informasi kokurikuler dan ekstrakurikuler oleh pihak yang diberi tanggung jawab. Dengan adanya pembagian akses dan pengelompokan data tersebut, sistem diharapkan dapat mendukung pengelolaan serta pemantauan informasi kurikulum secara terintegrasi di lingkungan Yayasan Ali Masykur.
+[82] Identifikasi Pengguna
+[83] Daftar Pengguna Sistem
+[84] No.
+[85] Pengguna
+[86] Deskripsi
+[87] 1
+[88] Pengurus Yayasan
+[89] Pihak yang memantau informasi kurikulum dari seluruh unit pendidikan di bawah Yayasan Ali Masykur.
+[90] 2
+[91] Admin Sistem
+[92] Pihak yang mengelola akun pengguna, pengaturan hak akses, dan administrasi sistem.
+[93] 3
+[94] Kepala MI
+[95] Pihak yang mengakses informasi kurikulum seluruh mata pelajaran pada MI Tahfidz Alfa Ali Masykur.
+[96] 4
+[97] Kepala SMP
+[98] Pihak yang mengakses informasi kurikulum seluruh mata pelajaran pada SMP Alfa Ali Masykur.
+[99] 5
+[100] Kepala SMA
+[101] Pihak yang mengakses informasi kurikulum seluruh mata pelajaran pada SMA Alfa Ali Masykur.
+[102] 6
+[103] Guru Mata Pelajaran
+[104] Pihak yang mengakses dan, sesuai kewenangannya, mengelola data kurikulum pada mata pelajaran yang menjadi tanggung jawabnya.
+[105] 7
+[106] Pembina atau Koordinator Ekstrakulikuler
+[107] Pihak yang mengelola informasi kegiatan ekstrakurikuler yang menjadi tanggung jawabnya.
+[108] Rancangan Hak Akses Pengguna
+[109] Pengguna
+[110] Cakupan Akses
+[111] Kewenangan Awal
+[112] Pengurus Yayasan
+[113] Seluruh unit pendidikan
+[114] Melihat informasi kurikulum MI, SMP, dan SMA.
+[115] Admin Sistem
+[116] Seluruh sistem
+[117] Mengelola akun pengguna, peran, hak akses, dan administrasi sitem. Tidak mengelola isi kurikulum sebagai tugas utamnya.
+[118] Kepala MI
+[119] MI Tahfidz Alfa Ali Masykur
+[120] Melihat, menambah, dan mengubah data kurikulum MI.
+[121] Kepala SMP
+[122] SMP Alfa Ali Masykur
+[123] Melihat, menambah, dan mengubah data kurikulum SMP.
+[124] Kepala SMA
+[125] SMA Alfa Ali Masykur
+[126] Melihat, menambah, dan mengubah data kurikulum SMA.
+[127] Guru Mata Pelajaran
+[128] Unit dan mata Pelajaran yang ditugaskan
+[129] Melihat data mata Pelajaran yang menjadi tanggung jawabnya, mengajukan penambahan atau perubahan data, serta melihat status persetujuan
+[130] Pembina atau Koordinator Ekstrakulikuler
+[131] Kegiatan yang menjadi tanggung jawabnya
+[132] Mengelola informasi kegiatan yang menjadi tanggung jawabnya sesuai kewenangan dan mekanisme persetujuan yang ditetapkan.
+[133] Pembagian hak akses tersebut merupakan rancangan awal. Kewenangan untuk menambah, mengubah, menghapus, menyetujui, atau memublikasikan data perlu dikonfirmasi kepada pihak terkait sebelum implementasi.
+[134] Siswa tidak ditetapkan sebagai pengguna sistem pada tahap awal karena ruang lingkup sistem berfokus pada pengelolaan informasi kurikulum oleh pihak yang bertanggung jawab. Jika nantinya dibutuhkan fitur untuk melihat informasi atau mendaftar kegiatan ekstrakurikuler, kebutuhan akses siswa dapat ditambahkan.
+[135] Kebutuhan Nonfungsional
+[136] Kebutuhan nonfungsional menjelaskan standar kualitas dan batasan operasional sistem.
+[137] ID
+[138] Kebutuhan
+[139] Deskripsi
+[140] KNF-01
+[141] Keamanan
+[142] Sistem harus melakukan autentikasi pengguna dan membatasi akses terhadap data sesuai hak akses.
+[143] KNF-02
+[144] Kerahasiaan Data
+[145] Informasi internal hanya dapat diakses oleh pengguna yang memiliki kewenangan.
+[146] KNF-03
+[147] Kemudahan Penggunaan
+[148] Antarmuka harus mudah dipahami dan digunakan oleh pengguna dengan tingkat kemampuan teknologi yang berbeda.
+[149] KNF-04
+[150] Kompabilitas
+[151] Sistem berbasis web dan dapat digunakan melalui peramban modern pada perangkat yang didukung.
+[152] KNF-05
+[153] Konsistensi Data
+[154] Sistem harus menjaga konsistensi hubungan data jenjang, kelas, fase, mata pelajaran, CP, TP, dan materi.
+[155] KNF-06
+[156] Kinerja
+[157] Sistem harus memberikan respons yang wajar saat pengguna mengakses dan mengelola data dalam kondisi penggunaan yang direncanakan.
+[158] KNF-07
+[159] Pemeliharaan
+[160] Struktur sistem harus mendukung perbaikan dan pengembangan fitur pada masa mendatang.
+[161] KNF-08
+[162] Keandalan
+[163] Sistem harus menangani kesalahan input dan kegagalan proses secara terkendali agar tidak menghasilkan data yang tidak valid.
+[164] Target teknis, seperti waktu respons, kapasitas pengguna bersamaan, mekanisme pencadangan, dan standar keamanan terukur, perlu ditentukan bersama tim berdasarkan teknologi dan kebutuhan implementasi.
+[165] Kebutuhan Fungsional
+[166] Kebutuhan fungsional menjelaskan fungsi yang harus disediakan oleh sistem agar dapat memenuhi kebutuhan pengguna.
+[167] ID
+[168] Kebutuhan Fungsional
+[169] Deskripsi
+[170] KF-01
+[171] Login Pengguna
+[172] Sistem menyediakan autentikasi bagi pengguna yang memiliki akun.
+[173] KF-02
+[174] Pengelolaan Pengguna
+[175] Admin dapat menambah, melihat, mengubah, dan menonaktifkan akun pengguna sesuai kewenangannya.
+[176] KF-03
+[177] Pengaturan Hak Akses
+[178] Sistem membatasi akses berdasarkan peran, unit pendidikan, dan tanggung jawab pengguna.
+[179] KF-04
+[180] Pengelolaan Jenjang
+[181] Sistem menyimpan dan menampilkan data jenjang MI, SMP, dan SMA.
+[182] KF-05
+[183] Pengelolaan Kelas
+[184] Sistem menyediakan pengelolaan tingkat kelas sesuai jenjang pendidikan.
+[185] KF-06
+[186] Pengelolaan Fase
+[187] Sistem menyediakan pengelolaan informasi fase yang berkaitan dengan kelas dan jenjang.
+[188] KF-07
+[189] Pengelolaan Kurikulim
+[190] Sistem menyediakan pengelolaan informasi kurikulum pada setiap unit pendidikan.
+[191] KF-08
+[192] Pengelolaan Mata Pelajaran
+[193] Sistem menyediakan pengelolaan data mata pelajaran berdasarkan unit, jenjang, kelas, atau fase yang sesuai.
+[194] KF-09
+[195] Pengelolaan Capaian Pembelajaran
+[196] Sistem menyediakan pencatatan dan penayangan capaian pembelajaran (CP).
+[197] KF-10
+[198] Pengelolaan Tujuan Pembelajaran
+[199] Sistem menyediakan pencatatan dan penayangan tujuan pembelajaran (TP) yang berkaitan dengan capaian pembelajaran.
+[200] KF-11
+[201] Pengeloaan Materi
+[202] Sistem menyediakan pencatatan dan penayangan materi pembelajaran yang berkaitan dengan mata pelajaran dan tujuan pembelajaran.
+[203] KF-12
+[204] Pengelolaan Kokulikuler
+[205] Sistem menyediakan pengelolaan informasi kegiatan kokurikuler pada unit pendidikan terkait.
+[206] KF-13
+[207] Pengelolaan Ekstrakulikuler
+[208] Sistem menyediakan pengelolaan nama kegiatan, deskripsi, pembina, dan unit pendidikan terkait.
+[209] KF-14
+[210] Pembatasan Data
+[211] Sistem memastikan pengguna hanya dapat mengakses data sesuai dengan cakupan kewenangannya.
+[212] KF-15
+[213] Pencarian dan Penyaringan
+[214] Sistem menyediakan pencarian dan penyaringan data kurikulum berdasarkan kriteria yang tersedia, seperti unit, kelas, fase, atau mata pelajaran.
+[215] KF-16
+[216] Penayangan Informasi
+[217] Sistem menampilkan informasi kurikulum sesuai hak akses pengguna.
+[218] Fungsi tambah, ubah, dan hapus pada data kurikulum harus mengikuti hak akses yang ditetapkan. Dengan demikian, kemampuan melihat informasi tidak otomatis memberikan kewenangan untuk mengubahnya.
+[219] Daftar Fitur dan Prioritas
+[220] Prioritas fitur ditetapkan untuk membantu tim menentukan fungsi yang harus diselesaikan terlebih dahulu.
+[221] ID
+[222] Fitur
+[223] Prioritas
+[224] Alasan
+[225] FT-01
+[226] Login dan autentifikasi
+[227] Tinggi
+[228] Diperlukan untuk mengidentifikasi pengguna.
+[229] FT-02
+[230] Pengaturan akun dan hak akses
+[231] Tinggi
+[232] Menjadi dasar pembatasan akses data.
+[233] FT-03
+[234] Pengelolaan jenjang, kelas, dan fase
+[235] Tinggi
+[236] Menjadi struktur dasar data kurikulum.
+[237] FT-04
+[238] Pengelolaan kurikulim dan mata Pelajaran
+[239] Tinggi
+[240] Merupakan fungsi inti sistem.
+[241] FT-05
+[242] Pengelolaan CP, TP, dan materi
+[243] Tinggi
+[244] Merupakan inti informasi pembelajaran yang terintegrasi.
+[245] FT-06
+[246] Pemisahan akses MI, SMP, dan SMA
+[247] Tinggi
+[248] Menjamin pengguna mengakses data unit yang sesuai.
+[249] FT-07
+[250] Pencarian dan penyaringan data
+[251] Sedang
+[252] Mempermudah pengguna menemukan informasi.
+[253] FT-08
+[254] Pengelolaan kokulikuler
+[255] Sedang
+[256] Mendukung pengelolaan kegiatan di luar pembelajaran intrakurikuler.
+[257] FT-09
+[258] Pengelolaan ekstrakulikuler
+[259] Sedang
+[260] Mendukung pengelolaan kegiatan ekstrakurikuler.
+[261] FT-10
+[262] Penyempurnaan tampilan dan respondivitasi
+[263] Sedang
+[264] Meningkatkan kemudahan penggunaan sistem.
+[265] Prioritas tersebut merupakan usulan awal. Penetapan akhir dilakukan bersama tim berdasarkan waktu pengerjaan, kebutuhan dosen, dan kesepakatan mengenai fitur wajib proyek.
+[266] Aturan Bisnis Sitem
+[267] Aturan bisnis merupakan ketentuan yang harus diikuti oleh sistem dalam mengelola data dan membatasi kewenangan pengguna.
+[268] Pengurus yayasan memiliki hak untuk melihat informasi kurikulum dari seluruh unit pendidikan yang berada di bawah Yayasan Ali Masykur.
+[269] Admin sistem bertanggung jawab atas pengelolaan akun pengguna, pengaturan peran dan hak akses, serta administrasi sistem. Admin tidak menjadi pengelola utama isi kurikulum.
+[270] Kepala sekolah atau madrasah memiliki hak untuk melihat, menambah, dan mengubah data kurikulum pada unit pendidikan yang dipimpinnya.
+[271] Kepala sekolah atau madrasah hanya dapat mengelola data pada unitnya sendiri dan tidak dapat mengubah data kurikulum unit pendidikan lain.
+[272] Guru mata pelajaran hanya dapat mengakses data sesuai dengan unit pendidikan dan mata pelajaran yang menjadi tanggung jawabnya.
+[273] Penambahan atau perubahan data kurikulum yang diajukan oleh guru harus melalui proses persetujuan kepala sekolah atau madrasah yang berwenang sebelum diterapkan pada data kurikulum utama.
+[274] Setiap pengajuan perubahan data memiliki status yang menunjukkan tahap prosesnya, yaitu menunggu persetujuan, disetujui, atau ditolak.
+[275] Pengajuan yang disetujui dapat diterapkan pada data kurikulum utama, sedangkan pengajuan yang ditolak tidak diterapkan. Alasan penolakan perlu dicatat agar dapat diketahui oleh guru yang mengajukan.
+[276] Kepala sekolah atau madrasah dapat meninjau pengajuan guru hanya pada unit pendidikan yang menjadi tanggung jawabnya.
+[277] Sistem harus mencegah pengguna melakukan penambahan, perubahan, atau penghapusan data di luar kewenangannya.
+[278] Aturan bisnis ini menjadi dasar bagi perancangan basis data, implementasi pembatasan akses, dan penyusunan pengujian sistem. Ketentuan yang berkaitan dengan persetujuan perubahan kurikulum, penghapusan data, dan kewenangan final setiap jabatan perlu dikonfirmasi sebelum diterapkan.
+[279] Pemodelan Sistem
+[280] Use Case Diagram
+[281] Use Case Diagram digunakan untuk menggambarkan hubungan antara aktor dan fungsi-fungsi yang tersedia pada Sistem Informasi Manajemen Kurikulum Berbasis Web. Aktor merupakan pihak yang berinteraksi dengan sistem, sedangkan use case merupakan aktivitas yang dapat dilakukan oleh aktor tersebut.
+[282] Dalam sistem ini, aktor utama terdiri atas pengurus yayasan, kepala sekolah atau madrasah, guru mata pelajaran, pembina atau koordinator kegiatan, dan admin sistem. Hak akses setiap aktor dibatasi berdasarkan peran, unit pendidikan, dan penugasan masing-masing.
+[283] Identifikasi Aktor
+[284] Aktor
+[285] Deskripsi
+[286] Pengurus Yayasan
+[287] Pengguna yang dapat melihat informasi kurikulum dari MI Tahfidz Alfa Ali Masykur, SMP Alfa Ali Masykur, dan SMA Alfa Ali Masykur.
+[288] Kepala Sekolah
+[289] Pengguna yang dapat melihat, menambah, dan mengubah data kurikulum pada unit pendidikan yang dipimpinnya.
+[290] Guru Mata Pelajaran
+[291] Pengguna yang dapat mengakses data kurikulum sesuai mata pelajaran dan unit tempatnya ditugaskan serta mengajukan penambahan atau perubahan data untuk disetujui.
+[292] Pembina/Koordinator Ekstrakulikuler
+[293] Pengguna yang berkaitan dengan pengelolaan informasi kokurikuler atau ekstrakurikuler sesuai penugasan. Rincian kewenangannya perlu dikonfirmasi bersama tim.
+[294] Admin Sistem
+[295] Pengguna yang mengelola akun, peran, hak akses, dan administrasi sistem, tanpa kewenangan mengubah isi kurikulum.
+[296] Daftar Use Case
+[297] Kode
+[298] Use Case
+[299] Aktor
+[300] UC-01
+[301] Login ke sistem
+[302] Semua aktor
+[303] UC-02
+[304] Melihat data kurikulum
+[305] Pengurus yayasan, kepala unit, guru
+[306] UC-03
+[307] Melihat data berdasarkan unit pendidikan
+[308] Pengurus yayasan, kepala unit
+[309] UC-04
+[310] Mengelola data kurikulum unit
+[311] Kepala sekolah/madrasah
+[312] UC-05
+[313] Melihat data mata pelajaran yang ditugaskan
+[314] Guru mata pelajaran
+[315] UC-06
+[316] Mengajukan penambahan atau perubahan data
+[317] Guru mata pelajaran
+[318] UC-07
+[319] Meninjau usulan perubahan data
+[320] Kepala sekolah/madrasah
+[321] UC-08
+[322] Menyetujui atau menolak usulan
+[323] Kepala sekolah/madrasah
+[324] UC-09
+[325] Melihat status usulan
+[326] Guru mata pelajaran
+[327] UC-10
+[328] Melihat data kokurikuler dan ekstrakurikuler
+[329] Pengguna sesuai hak akses
+[330] UC-11
+[331] Mengelola akun pengguna
+[332] Admin sistem
+[333] UC-12
+[334] Mengatur peran dan hak akses
+[335] Admin sistem
+[336] UC-13
+[337] Mencari dan memfilter informasi
+[338] Pengguna sesuai hak akses
+[339] Kewenangan pembina atau koordinator kegiatan dalam menambah dan mengubah data kokurikuler maupun ekstrakurikuler perlu ditetapkan lebih lanjut sebelum implementasi.
+[340] Deskripsi Use Case Diagram
+[341] Pengguna harus melakukan login sebelum mengakses fitur yang memerlukan autentikasi. Setelah login, sistem menampilkan fungsi sesuai peran dan hak akses pengguna.
+[342] Pengurus yayasan dapat melihat data kurikulum dari seluruh unit pendidikan. Kepala sekolah atau madrasah hanya dapat mengakses unit yang dipimpinnya dan dapat mengelola data kurikulum pada unit tersebut.
+[343] Guru mata pelajaran hanya dapat mengakses data sesuai penugasan. Jika guru mengajukan penambahan atau perubahan data, sistem menyimpan usulan tersebut dengan status menunggu persetujuan. Usulan tidak langsung diterapkan ke data kurikulum utama sebelum memperoleh persetujuan dari kepala unit yang berwenang.
+[344] Admin sistem bertanggung jawab terhadap akun dan pengaturan hak akses pengguna, bukan terhadap pengelolaan isi kurikulum.
+[345] Deskripsi Use Case
+[346] Bagian ini menjelaskan alur interaksi antara pengguna dan sistem untuk fungsi-fungsi utama.
+[347] Use Case Login
+[348] Aktor: Semua pengguna terdaftar.
+[349] Tujuan: Memastikan pengguna dapat masuk ke sistem sesuai hak aksesnya.
+[350] Prasyarat: Pengguna telah memiliki akun.
+[351] Alur utama:
+[352] Pengguna membuka halaman login.
+[353] Pengguna memasukkan identitas akun dan kata sandi.
+[354] Sistem memvalidasi data login.
+[355] Sistem menampilkan halaman sesuai peran pengguna.
+[356] Alur alternatif: Jika data login tidak valid, sistem menampilkan pesan kesalahan dan meminta pengguna memeriksa kembali data yang dimasukkan.
+[357] Hasil: Pengguna berhasil masuk atau tetap berada pada halaman login.
+[358] Use Case Melihat Data Kurikulum
+[359] Aktor: Pengurus yayasan, kepala sekolah/madrasah, dan guru.
+[360] Tujuan: Melihat informasi kurikulum sesuai hak akses pengguna.
+[361] Prasyarat: Pengguna telah login.
+[362] Alur utama:
+[363] Pengguna membuka menu kurikulum.
+[364] Sistem memeriksa peran, unit, dan penugasan pengguna.
+[365] Sistem menampilkan data yang boleh diakses.
+[366] Pengguna memilih jenjang, kelas, fase, mata pelajaran, atau kategori informasi yang tersedia.
+[367] Sistem menampilkan informasi yang sesuai.
+[368] Alur alternatif: Jika pengguna meminta data di luar hak aksesnya, sistem menolak akses tersebut.
+[369] Hasil: Informasi kurikulum ditampilkan sesuai hak akses.
+[370] Use Case Mengelola Data Kurikulum oleh Kepala Unit
+[371] Aktor: Kepala sekolah/madrasah.
+[372] Tujuan: Menambah atau mengubah data kurikulum pada unit yang dipimpin.
+[373] Prasyarat: Pengguna telah login dan memiliki hak akses kepala unit.
+[374] Alur utama:
+[375] Kepala unit membuka menu pengelolaan kurikulum.
+[376] Sistem menampilkan data dari unit yang menjadi kewenangannya.
+[377] Kepala unit memilih data yang akan ditambah atau diubah.
+[378] Kepala unit mengisi atau memperbarui informasi.
+[379] Sistem memvalidasi kelengkapan dan hubungan antar-data.
+[380] Sistem menyimpan perubahan yang valid.
+[381] Sistem menampilkan pemberitahuan bahwa data berhasil disimpan.
+[382] Alur alternatif: Jika data tidak lengkap atau tidak sesuai aturan, sistem menampilkan pesan kesalahan dan tidak menyimpan perubahan.
+[383] Hasil: Data kurikulum pada unit terkait bertambah atau diperbarui.
+[384] Use Case Pengajuan Perubahan oleh Guru
+[385] Aktor: Guru mata pelajaran.
+[386] Tujuan: Mengusulkan penambahan atau perubahan data kurikulum sesuai penugasannya.
+[387] Prasyarat: Guru telah login dan memiliki akses ke mata pelajaran terkait.
+[388] Alur utama:
+[389] Guru membuka data kurikulum yang sesuai penugasannya.
+[390] Guru memilih fungsi pengajuan penambahan atau perubahan.
+[391] Guru mengisi data atau perubahan yang diusulkan.
+[392] Sistem memvalidasi data.
+[393] Sistem menyimpan usulan dengan status menunggu persetujuan.
+[394] Usulan tersedia untuk ditinjau oleh kepala unit yang berwenang.
+[395] Guru dapat melihat status usulannya.
+[396] Alur alternatif: Jika data tidak valid, sistem meminta guru memperbaikinya sebelum pengajuan dikirim.
+[397] Hasil: Usulan tersimpan dan belum menjadi bagian dari data kurikulum utama.
+[398] Use Case Persetujuan Usulan
+[399] Aktor: Kepala sekolah/madrasah.
+[400] Tujuan: Memeriksa dan menentukan keputusan atas usulan guru.
+[401] Prasyarat: Terdapat usulan yang menunggu persetujuan pada unit terkait.
+[402] Alur utama:
+[403] Kepala unit membuka daftar usulan.
+[404] Sistem menampilkan usulan yang berada dalam kewenangannya.
+[405] Kepala unit memeriksa rincian usulan.
+[406] Kepala unit menyetujui atau menolak usulan.
+[407] Jika disetujui, sistem menerapkan perubahan ke data kurikulum utama.
+[408] Jika ditolak, sistem mempertahankan data utama dan mencatat alasan penolakan.
+[409] Sistem memperbarui status usulan agar dapat diketahui oleh guru.
+[410] Alur alternatif: Jika usulan tidak sesuai atau belum lengkap, kepala unit dapat menolaknya dengan alasan yang jelas.
+[411] Hasil: Usulan berstatus disetujui atau ditolak.
+[412] Catatan: kewenangan kepala unit sebagai pihak pemberi persetujuan merupakan rancangan awal berdasarkan aturan akses yang telah dibahas dan perlu dikonfirmasi oleh tim.
+[413] Use Case Pengelolaan Akun oleh Admin
+[414] Aktor: Admin sistem.
+[415] Tujuan: Mengelola akun dan pengaturan hak akses pengguna.
+[416] Prasyarat: Admin telah login dengan hak administrasi sistem.
+[417] Alur utama:
+[418] Admin membuka menu pengelolaan pengguna.
+[419] Sistem menampilkan daftar akun.
+[420] Admin menambah atau memperbarui informasi akun.
+[421] Admin menetapkan peran, unit, dan penugasan sesuai kebutuhan.
+[422] Sistem memvalidasi dan menyimpan pengaturan.
+[423] Alur alternatif: Jika data akun atau penetapan hak akses tidak valid, sistem menampilkan pesan kesalahan.
+[424] Hasil: Akun dan hak akses pengguna tersimpan sesuai pengaturan.
+[425] Admin tidak diberi kewenangan untuk mengubah isi data kurikulum melalui fungsi administrasi akun.
+[426] Use Case Diagram
+[427] Flow Chart
+[428] Diagram alur proses sistem menggambarkan urutan langkah sistem mulai dari autentikasi hingga penanganan usulan perubahan data dan manajemen akun.
+[429] Class Diagram
+[430] Diagram Kelas memodelkan struktur berorientasi objek dalam sistem, yang menggambarkan kelas, atribut, metode, serta hubungan antar-kelas (Inheritance, Association, Aggregation/Composition).
+[431] Activity Diagram
+[432] Activity Diagram Login
+[433] Pengguna dari seluruh peran memasukkan identitas akun dan kata sandi. Sistem memvalidasi data, lalu menampilkan halaman sesuai peran; jika tidak valid, sistem menampilkan pesan kesalahan dan pengguna mengisi ulang.
+[434] Gambar 1 Activity Diagram Login
+[435] Activity Diagram Melihat Data Kurikulum
+[436] Sistem memeriksa peran, unit, dan penugasan pengguna sebelum menampilkan data. Permintaan di luar hak akses ditolak.
+[437] Gambar 2 Activity Diagram Melihat Data Kurikulum
+[438] Activity Diagram Pengelolaan Data Kurikulum oleh Kepala Sekolah/Madrasah
+[439] Kepala unit menambah atau mengubah data kurikulum pada unit yang dipimpinnya. Sistem memvalidasi kelengkapan dan hubungan antar-data sebelum menyimpan.
+[440] Gambar 3 Activity Diagram Pengelolaan Data Kurikulum oleh Kepala Sekolah/Madrasah
+[441] Activity Diagram Pengajuan Usulan Perubahan Data oleh Guru
+[442] Usulan guru disimpan dengan status Menunggu Persetujuan dan belum mengubah data kurikulum utama.
+[443] Gambar 4 Activity Diagram Pengajuan Usulan Perubahan Data oleh Guru
+[444] Activity Diagram Peninjauan dan Persetujuan Usulan
+[445] Kepala unit menyetujui atau menolak usulan. Usulan yang disetujui diterapkan ke data utama; usulan yang ditolak dicatat beserta alasannya agar dapat dilihat guru.
+[446] Gambar 5 Activity Diagram Peninjauan dan Persetujuan Usulan
+[447] Activity Diagram Pengelolaan Akun Pengguna oleh Admin Sistem
+[448] Admin menambah atau mengubah akun, peran, unit, dan penugasan. Admin tidak mengubah isi data kurikulum.
+[449] Gambar 6 Activity Diagram Pengelolaan Akun Pengguna oleh Admin Sistem
+[450] Rancangan Tabel Database
+[451] Berikut adalah rincian tabel-tabel database pada rancangan sistem kami. Rancangan ini disusun dari kebutuhan fungsional (KF-01 sampai KF-16) dan aturan bisnis pada dokumen analisis. Pembatasan akses berdasarkan peran, unit, dan penugasan diwujudkan melalui tabel Peran, Pengguna, dan Penugasan_Guru, sedangkan mekanisme persetujuan perubahan diwujudkan melalui tabel Usulan_Perubahan.
+[452] Tabel Peran
+[453] Nama Kolom
+[454] Tipe Data
+[455] Kunci
+[456] Keterangan
+[457] id
+[458] INT
+[459] Primary Key
+[460] Identifikasi unik peran
+[461] nama_peran
+[462] VARCHAR(50)
+[463] Unique
+[464] Nama peran (Pengurus Yayasan, Admin Sistem, Kepala Sekolah/Madrasah, Guru Mata Pelajaran, Pembina/Koordinator)
+[465] deskripsi
+[466] VARCHAR(255)
+[467] -
+[468] Penjelasan singkat kewenangan peran
+[469] Tabel Jenjang
+[470] Nama Kolom
+[471] Tipe Data
+[472] Kunci
+[473] Keterangan
+[474] id
+[475] INT
+[476] Primary Key
+[477] Identifikasi unik jenjang
+[478] nama_jenjang
+[479] VARCHAR(10)
+[480] Unique
+[481] Nama jenjang pendidikan (MI, SMP, SMA)
+[482] Tabel Unit_Pendidikan
+[483] Nama Kolom
+[484] Tipe Data
+[485] Kunci
+[486] Keterangan
+[487] id
+[488] INT
+[489] Primary Key
+[490] Identifikasi unik unit pendidikan
+[491] jenjang_id
+[492] INT
+[493] Foreign Key → Jenjang
+[494] Relasi ke jenjang unit tersebut
+[495] nama_unit
+[496] VARCHAR(100)
+[497] -
+[498] Nama unit (MI Tahfidz Alfa Ali Masykur, SMP Alfa Ali Masykur, SMA Alfa Ali Masykur)
+[499] Tabel Fase
+[500] Nama Kolom
+[501] Tipe Data
+[502] Kunci
+[503] Keterangan
+[504] id
+[505] INT
+[506] Primary Key
+[507] Identifikasi unik fase
+[508] nama_fase
+[509] VARCHAR(20)
+[510] Unique
+[511] Nama fase (misal: Fase A, Fase B)
+[512] keterangan
+[513] VARCHAR(255)
+[514] -
+[515] Keterangan cakupan fase
+[516] Tabel Kelas
+[517] Nama Kolom
+[518] Tipe Data
+[519] Kunci
+[520] Keterangan
+[521] id
+[522] INT
+[523] Primary Key
+[524] Identifikasi unik kelas
+[525] jenjang_id
+[526] INT
+[527] Foreign Key → Jenjang
+[528] Relasi ke jenjang kelas tersebut
+[529] fase_id
+[530] INT
+[531] Foreign Key → Fase
+[532] Relasi ke fase; boleh kosong jika tidak relevan
+[533] tingkat
+[534] TINYINT
+[535] -
+[536] Tingkat kelas (1–6 untuk MI, 7–9 untuk SMP, 10–12 untuk SMA)
+[537] Tabel Pengguna
+[538] Nama Kolom
+[539] Tipe Data
+[540] Kunci
+[541] Keterangan
+[542] id
+[543] INT
+[544] Primary Key
+[545] Identifikasi unik pengguna
+[546] peran_id
+[547] INT
+[548] Foreign Key → Peran
+[549] Menentukan peran dan hak akses pengguna
+[550] unit_id
+[551] INT
+[552] Foreign Key → Unit_Pendidikan
+[553] Unit tempat bertugas; kosong untuk pengurus yayasan dan admin sistem
+[554] nama_lengkap
+[555] VARCHAR(100)
+[556] -
+[557] Nama lengkap pengguna
+[558] username
+[559] VARCHAR(100)
+[560] Unique
+[561] Identitas akun untuk login
+[562] password
+[563] VARCHAR(255)
+[564] -
+[565] Kata sandi (terenkripsi/hash)
+[566] status_aktif
+[567] BOOLEAN
+[568] -
+[569] Status akun; akun yang dinonaktifkan tidak dapat login
+[570] dibuat_pada
+[571] DATETIME
+[572] -
+[573] Waktu akun dibuat
+[574] Tabel Kurikulum
+[575] Nama Kolom
+[576] Tipe Data
+[577] Kunci
+[578] Keterangan
+[579] id
+[580] INT
+[581] Primary Key
+[582] Identifikasi unik kurikulum
+[583] unit_id
+[584] INT
+[585] Foreign Key → Unit_Pendidikan
+[586] Unit pendidikan pemilik kurikulum
+[587] nama_kurikulum
+[588] VARCHAR(100)
+[589] -
+[590] Nama kurikulum yang digunakan unit
+[591] deskripsi
+[592] TEXT
+[593] -
+[594] Deskripsi kurikulum
+[595] Tabel Mata_Pelajaran
+[596] Nama Kolom
+[597] Tipe Data
+[598] Kunci
+[599] Keterangan
+[600] id
+[601] INT
+[602] Primary Key
+[603] Identifikasi unik mata pelajaran
+[604] kurikulum_id
+[605] INT
+[606] Foreign Key → Kurikulum
+[607] Kurikulum (dan unit) tempat mata pelajaran berada
+[608] kode_mapel
+[609] VARCHAR(20)
+[610] -
+[611] Kode mata pelajaran
+[612] nama_mapel
+[613] VARCHAR(150)
+[614] -
+[615] Nama mata pelajaran
+[616] deskripsi
+[617] TEXT
+[618] -
+[619] Deskripsi mata pelajaran
+[620] Tabel Mapel_Kelas
+[621] Nama Kolom
+[622] Tipe Data
+[623] Kunci
+[624] Keterangan
+[625] id
+[626] INT
+[627] Primary Key
+[628] Identifikasi unik baris relasi
+[629] mapel_id
+[630] INT
+[631] Foreign Key → Mata_Pelajaran
+[632] Mata pelajaran yang diajarkan
+[633] kelas_id
+[634] INT
+[635] Foreign Key → Kelas
+[636] Kelas tempat mata pelajaran diajarkan (kombinasi mapel_id dan kelas_id unik)
+[637] Tabel Penugasan_Guru
+[638] Nama Kolom
+[639] Tipe Data
+[640] Kunci
+[641] Keterangan
+[642] id
+[643] INT
+[644] Primary Key
+[645] Identifikasi unik penugasan
+[646] pengguna_id
+[647] INT
+[648] Foreign Key → Pengguna
+[649] Guru yang ditugaskan
+[650] mapel_id
+[651] INT
+[652] Foreign Key → Mata_Pelajaran
+[653] Mata pelajaran yang menjadi tanggung jawab guru; unit diperoleh dari kurikulum mata pelajaran
+[654] Tabel Capaian_Pembelajaran
+[655] Nama Kolom
+[656] Tipe Data
+[657] Kunci
+[658] Keterangan
+[659] id
+[660] INT
+[661] Primary Key
+[662] Identifikasi unik capaian pembelajaran (CP)
+[663] mapel_id
+[664] INT
+[665] Foreign Key → Mata_Pelajaran
+[666] Mata pelajaran pemilik CP
+[667] fase_id
+[668] INT
+[669] Foreign Key → Fase
+[670] Fase yang menjadi cakupan CP
+[671] kode_cp
+[672] VARCHAR(30)
+[673] -
+[674] Kode CP
+[675] deskripsi_cp
+[676] TEXT
+[677] -
+[678] Uraian capaian pembelajaran
+[679] Tabel Tujuan_Pembelajaran
+[680] Nama Kolom
+[681] Tipe Data
+[682] Kunci
+[683] Keterangan
+[684] id
+[685] INT
+[686] Primary Key
+[687] Identifikasi unik tujuan pembelajaran (TP)
+[688] cp_id
+[689] INT
+[690] Foreign Key → Capaian_Pembelajaran
+[691] CP yang menjadi dasar TP
+[692] kode_tp
+[693] VARCHAR(30)
+[694] -
+[695] Kode TP
+[696] deskripsi_tp
+[697] TEXT
+[698] -
+[699] Uraian tujuan pembelajaran
+[700] Tabel Materi
+[701] Nama Kolom
+[702] Tipe Data
+[703] Kunci
+[704] Keterangan
+[705] id
+[706] INT
+[707] Primary Key
+[708] Identifikasi unik materi
+[709] tp_id
+[710] INT
+[711] Foreign Key → Tujuan_Pembelajaran
+[712] TP yang dituju materi; mata pelajaran diperoleh melalui TP dan CP agar data tetap konsisten
+[713] judul_materi
+[714] VARCHAR(200)
+[715] -
+[716] Judul materi pembelajaran
+[717] isi_materi
+[718] TEXT
+[719] -
+[720] Uraian materi
+[721] Tabel Kegiatan_Kokurikuler
+[722] Nama Kolom
+[723] Tipe Data
+[724] Kunci
+[725] Keterangan
+[726] id
+[727] INT
+[728] Primary Key
+[729] Identifikasi unik kegiatan kokurikuler
+[730] unit_id
+[731] INT
+[732] Foreign Key → Unit_Pendidikan
+[733] Unit pendidikan penyelenggara
+[734] nama_kegiatan
+[735] VARCHAR(150)
+[736] -
+[737] Nama kegiatan
+[738] deskripsi
+[739] TEXT
+[740] -
+[741] Deskripsi kegiatan
+[742] pengelola_id
+[743] INT
+[744] Foreign Key → Pengguna
+[745] Pihak yang bertanggung jawab; boleh kosong (kewenangan masih perlu dikonfirmasi)
+[746] Tabel Kegiatan_Ekstrakurikuler
+[747] Nama Kolom
+[748] Tipe Data
+[749] Kunci
+[750] Keterangan
+[751] id
+[752] INT
+[753] Primary Key
+[754] Identifikasi unik kegiatan ekstrakurikuler
+[755] unit_id
+[756] INT
+[757] Foreign Key → Unit_Pendidikan
+[758] Unit pendidikan penyelenggara
+[759] pembina_id
+[760] INT
+[761] Foreign Key → Pengguna
+[762] Pembina atau koordinator kegiatan
+[763] nama_kegiatan
+[764] VARCHAR(150)
+[765] -
+[766] Nama kegiatan
+[767] deskripsi
+[768] TEXT
+[769] -
+[770] Deskripsi kegiatan
+[771] Tabel Usulan_Perubahan
+[772] Nama Kolom
+[773] Tipe Data
+[774] Kunci
+[775] Keterangan
+[776] id
+[777] INT
+[778] Primary Key
+[779] Identifikasi unik usulan
+[780] pengusul_id
+[781] INT
+[782] Foreign Key → Pengguna
+[783] Guru yang mengajukan usulan
+[784] unit_id
+[785] INT
+[786] Foreign Key → Unit_Pendidikan
+[787] Unit tujuan usulan; menentukan kepala unit yang berwenang meninjau
+[788] mapel_id
+[789] INT
+[790] Foreign Key → Mata_Pelajaran
+[791] Mata pelajaran yang berkaitan dengan usulan
+[792] jenis_usulan
+[793] VARCHAR(20)
+[794] -
+[795] Jenis usulan (Tambah, Ubah, Hapus)
+[796] objek_data
+[797] VARCHAR(50)
+[798] -
+[799] Jenis data yang diusulkan (misal: CP, TP, Materi)
+[800] data_id
+[801] INT
+[802] -
+[803] ID data yang diubah atau dihapus; kosong untuk usulan penambahan (tanpa Foreign Key karena objek data bervariasi)
+[804] data_usulan
+[805] TEXT
+[806] -
+[807] Isi data yang diusulkan, disimpan terpisah dari data kurikulum utama
+[808] alasan_pengajuan
+[809] TEXT
+[810] -
+[811] Alasan pengajuan dari guru
+[812] status
+[813] VARCHAR(30)
+[814] -
+[815] Status usulan (Menunggu Persetujuan, Disetujui, Ditolak)
+[816] peninjau_id
+[817] INT
+[818] Foreign Key → Pengguna
+[819] Kepala unit yang memutuskan; kosong sebelum ditinjau
+[820] alasan_penolakan
+[821] TEXT
+[822] -
+[823] Alasan penolakan; kosong jika tidak ditolak
+[824] tanggal_pengajuan
+[825] DATETIME
+[826] -
+[827] Waktu usulan diajukan
+[828] tanggal_keputusan
+[829] DATETIME
+[830] -
+[831] Waktu keputusan diambil; kosong sebelum ditinjau
+[832] Ringkasan Relasi Antar Tabel
+[833] Tabel Induk
+[834] Tabel Anak
+[835] Relasi
+[836] Peran
+[837] Pengguna
+[838] 1 : N
+[839] Jenjang
+[840] Unit_Pendidikan
+[841] 1 : N
+[842] Jenjang
+[843] Kelas
+[844] 1 : N
+[845] Fase
+[846] Kelas
+[847] 1 : N
+[848] Fase
+[849] Capaian_Pembelajaran
+[850] 1 : N
+[851] Unit_Pendidikan
+[852] Pengguna (kepala dan guru)
+[853] 1 : N
+[854] Unit_Pendidikan
+[855] Kurikulum
+[856] 1 : N
+[857] Unit_Pendidikan
+[858] Kegiatan_Kokurikuler
+[859] 1 : N
+[860] Unit_Pendidikan
+[861] Kegiatan_Ekstrakurikuler
+[862] 1 : N
+[863] Unit_Pendidikan
+[864] Usulan_Perubahan
+[865] 1 : N
+[866] Kurikulum
+[867] Mata_Pelajaran
+[868] 1 : N
+[869] Mata_Pelajaran
+[870] Mapel_Kelas
+[871] 1 : N
+[872] Kelas
+[873] Mapel_Kelas
+[874] 1 : N
+[875] Pengguna (guru)
+[876] Penugasan_Guru
+[877] 1 : N
+[878] Mata_Pelajaran
+[879] Penugasan_Guru
+[880] 1 : N
+[881] Mata_Pelajaran
+[882] Capaian_Pembelajaran
+[883] 1 : N
+[884] Capaian_Pembelajaran
+[885] Tujuan_Pembelajaran
+[886] 1 : N
+[887] Tujuan_Pembelajaran
+[888] Materi
+[889] 1 : N
+[890] Pengguna (pembina)
+[891] Kegiatan_Ekstrakurikuler
+[892] 1 : N
+[893] Pengguna (guru)
+[894] Usulan_Perubahan (pengusul)
+[895] 1 : N
+[896] Pengguna (kepala unit)
+[897] Usulan_Perubahan (peninjau)
+[898] 1 : N
+[899] Mata_Pelajaran
+[900] Usulan_Perubahan
+[901] 1 : N
+[902] Diagram Sequence
+[903] Diagram Erd
+[904] Diagram ERD dengan Diagram Chen
+[905] Penjelasan Relasi Antarentitas
+[906] Peran - Pengguna
+[907] Jenis hubungan: One to Many (1 : M)
+[908] Makna: Satu peran dapat dimiliki oleh banyak pengguna, tetapi setiap pengguna memiliki satu peran dalam sistem.
+[909] Jenjang - Unit_Pendidikan
+[910] Jenis hubungan: One to Many (1 : M)
+[911] Makna: Satu jenjang pendidikan dapat memiliki beberapa unit pendidikan, tetapi setiap unit pendidikan terdaftar pada satu jenjang.
+[912] Jenjang - Kelas
+[913] Jenis hubungan: One to Many (1 : M)
+[914] Makna: Satu jenjang pendidikan dapat memiliki banyak kelas, tetapi setiap kelas terdaftar pada satu jenjang.
+[915] Fase - Kelas
+[916] Jenis hubungan: One to Many (1 : M)
+[917] Makna: Satu fase dapat digunakan oleh beberapa kelas sesuai dengan struktur kurikulum.
+[918] Unit_Pendidikan - Pengguna
+[919] Jenis hubungan: One to Many (1 : M)
+[920] Makna: Satu unit pendidikan dapat memiliki banyak pengguna, seperti kepala unit dan guru.
+[921] Unit_Pendidikan - Kurikulum
+[922] Jenis hubungan: One to Many (1 : M)
+[923] Makna: Satu unit pendidikan dapat memiliki beberapa kurikulum untuk mengatur kegiatan pembelajaran.
+[924] Kurikulum - Mata_Pelajaran
+[925] Jenis hubungan: One to Many (1 : M)
+[926] Makna: Satu kurikulum dapat memuat banyak mata pelajaran.
+[927] Mata_Pelajaran - Kelas
+[928] Jenis hubungan: Many to Many (M : N)
+[929] Makna: Satu mata pelajaran dapat diajarkan di banyak kelas, dan satu kelas dapat memiliki banyak mata pelajaran. Hubungan ini menggunakan tabel penghubung Mapel_Kelas.
+[930] Pengguna - Mata_Pelajaran
+[931] Jenis hubungan: Many to Many (M : N)
+[932] Makna: Satu guru dapat mengajar beberapa mata pelajaran, dan satu mata pelajaran dapat diajarkan oleh beberapa guru. Hubungan ini menggunakan tabel penghubung Penugasan_Guru.
+[933] Mata_Pelajaran - Capaian_Pembelajaran
+[934] Jenis hubungan: One to Many (1 : M)
+[935] Makna: Satu mata pelajaran dapat memiliki beberapa capaian pembelajaran sebagai target kompetensi peserta didik.
+[936] Fase - Capaian_Pembelajaran
+[937] Jenis hubungan: One to Many (1 : M)
+[938] Makna: Satu fase dapat memiliki beberapa capaian pembelajaran yang sesuai dengan tahap pembelajaran.
+[939] Capaian_Pembelajaran - Tujuan_Pembelajaran
+[940] Jenis hubungan: One to Many (1 : M)
+[941] Makna: Satu capaian pembelajaran dapat dijabarkan menjadi beberapa tujuan pembelajaran.
+[942] Tujuan_Pembelajaran - Materi
+[943] Jenis hubungan: One to Many (1 : M)
+[944] Makna: Satu tujuan pembelajaran dapat memiliki beberapa materi untuk mendukung proses belajar.
+[945] Unit_Pendidikan - Kegiatan_Kokurikuler
+[946] Jenis hubungan: One to Many (1 : M)
+[947] Makna: Satu unit pendidikan dapat menyelenggarakan beberapa kegiatan kokurikuler.
+[948] Pengguna - Kegiatan_Kokurikuler
+[949] Jenis hubungan: One to Many (1 : M)
+[950] Makna: Satu pengguna dapat mengelola beberapa kegiatan kokurikuler.
+[951] Unit_Pendidikan - Kegiatan_Ekstrakurikuler
+[952] Jenis hubungan: One to Many (1 : M)
+[953] Makna: Satu unit pendidikan dapat menyelenggarakan banyak kegiatan ekstrakurikuler.
+[954] Pengguna - Kegiatan_Ekstrakurikuler
+[955] Jenis hubungan: One to Many (1 : M)
+[956] Makna: Satu pengguna yang bertugas sebagai pembina dapat membina beberapa kegiatan ekstrakurikuler.
+[957] Pengguna - Usulan_Perubahan sebagai Pengusul
+[958] Jenis hubungan: One to Many (1 : M)
+[959] Makna: Satu pengguna dapat mengajukan banyak usulan perubahan data kurikulum.
+[960] Unit_Pendidikan - Usulan_Perubahan
+[961] Jenis hubungan: One to Many (1 : M)
+[962] Makna: Satu unit pendidikan dapat memiliki beberapa usulan perubahan yang berkaitan dengan pengelolaan kurikulum.
+[963] Mata_Pelajaran - Usulan_Perubahan
+[964] Jenis hubungan: One to Many (1 : M)
+[965] Makna: Satu mata pelajaran dapat berkaitan dengan beberapa usulan perubahan.
+[966] Pengguna - Usulan_Perubahan sebagai Peninjau
+[967] Jenis hubungan: One to Many (1 : M)
+[968] Makna: Satu pengguna yang bertugas sebagai peninjau dapat meninjau beberapa usulan perubahan.
+[969] Diagram ERD berbasis kode dan hubungan tabel database
+[970] Diagram DFD
+[971] DFD Level 0 (Diagram konteks)
+[972] Diagram ini berfungsi untuk menunjukkan hubungan sistem dengan pengguna atau pihak luar
+[973] DFD Level 1
+[974] Diagram ini berfungsi untuk memecah sistem menjadi proses utama, seperti pengelolaan pengguna, kurikulum, pembelajaran, kagiatan sekolah, dan usulan perubahan.
+[975] DFD Level 2
+[976] Diagram ini berfungsi menjabarkan salah satu proses pada level 1 menjadi proses yang lebih terperinci. Salah satu nya adalah diagram proses pengusulan perubahan kurikulum di bawah ini:
+[977] Alur Proses Sistem
+[978] Alur proses sistem secara umum dimulai dari autentikasi pengguna dan pemeriksaan hak akses. Setelah berhasil login, pengguna dapat mengakses fitur sesuai perannya.
+[979] Autentikasi pengguna. Sistem memvalidasi akun dan menentukan peran pengguna.
+[980] Pemeriksaan hak akses. Sistem memeriksa unit pendidikan, mata pelajaran, dan penugasan yang melekat pada akun.
+[981] Akses informasi kurikulum. Sistem menampilkan data jenjang, kelas, fase, kurikulum, mata pelajaran, capaian pembelajaran, tujuan pembelajaran, materi, kokurikuler, dan ekstrakurikuler sesuai kewenangan.
+[982] Pengelolaan data oleh kepala unit. Kepala unit dapat menambah dan mengubah data kurikulum dalam unit yang dipimpinnya.
+[983] Pengajuan oleh guru. Guru mengirimkan usulan penambahan atau perubahan data sesuai penugasannya. Usulan disimpan terpisah dari data kurikulum utama sampai memperoleh keputusan.
+[984] Persetujuan usulan. Kepala unit meninjau usulan dalam kewenangannya. Usulan yang disetujui diterapkan ke data utama, sedangkan usulan yang ditolak tidak diterapkan dan disertai alasan penolakan.
+[985] Administrasi sistem. Admin mengelola akun, peran, dan hak akses tanpa mengubah isi kurikulum.
+[986] Penyajian informasi. Sistem menampilkan data dan status usulan sesuai hak akses pengguna.
+[987] Dalam penerapannya, sistem harus mencegah pengguna melihat atau mengubah data di luar kewenangannya. Pembatasan akses perlu diterapkan tidak hanya pada tampilan menu, tetapi juga pada proses pengambilan dan penyimpanan data di sisi server.
+[988] Spesifikasi dan Validasi Kebutuhan
+[989] Daftar Kebutuhan yang Harus dipenuhi
+[990] Daftar kebutuhan pada bab ini merupakan rangkuman kebutuhan yang telah diidentifikasi pada tahap analisis kebutuhan sistem. Rangkuman ini digunakan sebagai acuan dalam penyusunan skenario penggunaan, kriteria keberhasilan fitur, dan skenario pengujian.
+[991] Kebutuhan utama yang harus dipenuhi meliputi:
+[992] Sistem menyediakan autentikasi dan pembatasan hak akses berdasarkan peran, unit pendidikan, serta penugasan pengguna.
+[993] Sistem memungkinkan pengurus yayasan melihat data kurikulum seluruh unit pendidikan.
+[994] Sistem memungkinkan kepala sekolah atau madrasah mengelola data kurikulum pada unitnya sendiri.
+[995] Sistem memungkinkan guru mengakses data kurikulum sesuai mata pelajaran dan penugasannya.
+[996] Sistem menyediakan mekanisme pengajuan penambahan, perubahan, dan penghapusan data oleh guru sesuai kewenangannya.
+[997] Sistem menyediakan mekanisme pemeriksaan dan persetujuan usulan oleh kepala unit sebelum perubahan atau penghapusan data utama diterapkan.
+[998] Sistem mencatat status usulan dan alasan penolakan agar proses pengajuan dapat ditelusuri.
+[999] Sistem mengintegrasikan data mata pelajaran, fase jika relevan, kelas atau jenjang, capaian pembelajaran, tujuan pembelajaran, dan materi.
+[1000] Sistem menyediakan informasi kegiatan kokurikuler dan ekstrakurikuler sesuai kewenangan pengguna.
+[1001] Sistem menyediakan fungsi pencarian data serta pengelolaan akun dan hak akses sesuai tanggung jawab masing-masing pengguna.
+[1002] Skenario Penggunaan
+[1003] Skenario penggunaan menjelaskan urutan interaksi pengguna dengan sistem untuk menyelesaikan suatu proses. Skenario berikut dipilih berdasarkan fungsi utama sistem dan pembagian hak akses yang telah ditetapkan.
+[1004] Skenario Login
+[1005] Aktor: Seluruh pengguna yang memiliki akun.
+[1006] Alur utama:
+[1007] Pengguna membuka halaman login.
+[1008] Pengguna memasukkan identitas akun dan kata sandi.
+[1009] Sistem memvalidasi data login.
+[1010] Jika data valid, sistem mengarahkan pengguna ke halaman sesuai perannya.
+[1011] Jika data tidak valid, sistem menampilkan pesan kesalahan.
+[1012] Hasil yang diharapkan: Pengguna dapat masuk ke sistem dan hanya memperoleh akses sesuai kewenangannya.
+[1013] Skenario Guru Mengajukan Perubahan Data Kurikulum
+[1014] Aktor: Guru mata pelajaran dan sistem.
+[1015] Prasyarat: Guru telah login dan memiliki penugasan yang sesuai.
+[1016] Alur utama:
+[1017] Guru membuka menu kurikulum.
+[1018] Sistem menampilkan data yang sesuai dengan unit dan penugasan guru.
+[1019] Guru memilih jenis usulan berupa penambahan, perubahan, atau penghapusan data.
+[1020] Guru mengisi rincian usulan beserta alasan pengajuan jika diperlukan.
+[1021] Sistem memvalidasi kelengkapan data dan hak akses guru.
+[1022] Jika data valid, sistem menyimpan usulan dengan status Menunggu Persetujuan.
+[1023] Sistem menampilkan konfirmasi pengajuan berhasil.
+[1024] Alur alternatif: Jika data tidak lengkap atau guru tidak memiliki kewenangan, sistem menolak pengajuan dan menampilkan pesan yang sesuai.
+[1025] Hasil yang diharapkan: Usulan tercatat dan menunggu keputusan kepala unit tanpa langsung mengubah atau menghapus data utama.
+[1026] Skenario Kepala Unit Meninjau Usulan
+[1027] Aktor: Kepala sekolah atau madrasah.
+[1028] Prasyarat: Terdapat usulan yang menunggu persetujuan dari unit yang menjadi tanggung jawab kepala unit.
+[1029] Alur utama:
+[1030] Kepala unit membuka daftar usulan.
+[1031] Sistem memeriksa hak akses kepala unit.
+[1032] Sistem menampilkan usulan dari unit yang menjadi kewenangannya.
+[1033] Kepala unit memeriksa rincian usulan.
+[1034] Kepala unit memilih menyetujui atau menolak usulan.
+[1035] Jika disetujui, sistem menerapkan perubahan sesuai jenis usulan dan memperbarui statusnya.
+[1036] Jika ditolak, sistem mempertahankan data utama serta mencatat alasan penolakan.
+[1037] Sistem menyimpan hasil keputusan agar dapat diketahui oleh guru yang mengajukan.
+[1038] Hasil yang diharapkan: Usulan diproses sesuai kewenangan dan keputusan tercatat di sistem.
+[1039] Skenario Pengurus Yayasan Melihat Data Kurikulum
+[1040] Aktor: Pengurus yayasan.
+[1041] Alur utama:
+[1042] Pengurus yayasan login ke sistem.
+[1043] Pengurus membuka menu data kurikulum.
+[1044] Sistem memvalidasi peran pengguna.
+[1045] Sistem menampilkan data kurikulum dari unit pendidikan di bawah naungan yayasan.
+[1046] Pengurus memilih unit atau kriteria pencarian yang diperlukan.
+[1047] Hasil yang diharapkan: Pengurus yayasan dapat melihat data kurikulum seluruh unit sesuai kewenangannya.
+[1048] Skenario Kepala Unit Mengelola Data Kurikulum
+[1049] Aktor: Kepala sekolah atau madrasah.
+[1050] Alur utama:
+[1051] Kepala unit login ke sistem.
+[1052] Kepala unit membuka menu pengelolaan kurikulum.
+[1053] Sistem memeriksa unit yang menjadi tanggung jawabnya.
+[1054] Kepala unit memilih data yang akan ditambah atau diubah.
+[1055] Sistem memvalidasi data yang dimasukkan.
+[1056] Sistem menyimpan data jika memenuhi ketentuan.
+[1057] Hasil yang diharapkan: Data kurikulum dapat dikelola oleh kepala unit tanpa memberikan akses pengelolaan terhadap unit lain.
+[1058] Kreteria Keberhasilan Fitur
+[1059] Kriteria keberhasilan digunakan untuk menentukan apakah fitur sistem telah memenuhi kebutuhan yang ditetapkan.
+[1060] No
+[1061] Fitur
+[1062] Kriteria Keberhasilan
+[1063] 1.
+[1064] Login
+[1065] Akun valid dapat masuk dan akun tidak valid ditolak.
+[1066] 2.
+[1067] Hak akses
+[1068] Pengguna hanya dapat mengakses data dan fungsi sesuai perannya.
+[1069] 3.
+[1070] Akses pengurus yayasan
+[1071] Data kurikulum seluruh unit dapat dilihat oleh pengurus yayasan.
+[1072] 4.
+[1073] Pengelolaan kepala unit|
+[1074] Kepala unit dapat mengelola data pada unitnya sendiri.
+[1075] 5.
+[1076] Akses guru
+[1077] Guru hanya dapat melihat data sesuai unit dan penugasannya.
+[1078] 6.
+[1079] Pengajuan usulan
+[1080] Usulan valid tersimpan dengan status menunggu persetujuan.
+[1081] 7.
+[1082] Validasi data
+[1083] Data yang tidak memenuhi ketentuan ditolak dan kesalahannya diinformasikan.
+[1084] 8.
+[1085] Persetujuan usulan
+[1086] Kepala unit dapat menyetujui atau menolak usulan dari unitnya.
+[1087] 9.
+[1088] Perlindungan data utama
+[1089] Perubahan atau penghapusan yang diajukan guru tidak diterapkan sebelum disetujui.
+[1090] 10.
+[1091] Pencatatan keputusan
+[1092] Status dan alasan penolakan tersimpan serta dapat dilihat oleh pihak yang berwenang.
+[1093] 11.
+[1094] Integrasi data
+[1095] Data kurikulum yang saling berkaitan dapat diakses secara terstruktur.
+[1096] 12.
+[1097] Pencarian data
+[1098] Hasil pencarian sesuai dengan kata kunci atau filter yang digunakan.
+[1099] 13.
+[1100] Keamanan sisi server
+[1101] Permintaan tanpa hak akses ditolak meskipun dilakukan melalui alamat halaman atau permintaan langsung.
+[1102] Skenario Pengujian yang Diharapkan
+[1103] Skenario pengujian disusun untuk memeriksa kesesuaian fungsi sistem dengan kebutuhan dan kriteria keberhasilan. Pengujian dilakukan menggunakan akun dan data uji yang mewakili setiap peran pengguna.
+[1104] Kode
+[1105] Skenario Pengujian
+[1106] Hasil yang Diharapkan
+[1107] U-01
+[1108] Login menggunakan akun dan kata sandi yang benar
+[1109] Sistem menerima login dan menampilkan halaman sesuai peran
+[1110] U-02
+[1111] Login menggunakan akun atau kata sandi yang salah
+[1112] Sistem menolak login dan menampilkan pesan kesalahan
+[1113] U-03
+[1114] Guru mencoba membuka data mata pelajaran di luar penugasannya
+[1115] Sistem menolak akses terhadap data tersebu
+[1116] U-04
+[1117] Kepala unit mencoba mengelola data unit pendidikan lain
+[1118] Sistem menolak tindakan yang berada di luar kewenangannya
+[1119] U-05
+[1120] Guru mengajukan usulan dengan data lengkap
+[1121] Sistem menyimpan usulan dengan status menunggu persetujuan
+[1122] U-06
+[1123] Guru mengirimkan usulan dengan data yang belum lengkap
+[1124] Sistem menolak pengajuan dan menampilkan informasi perbaikan
+[1125] U-07
+[1126] Kepala unit menyetujui usulan perubahan data
+[1127] Sistem menerapkan perubahan dan memperbarui status usulan menjadi disetujui
+[1128] U-08
+[1129] Kepala unit menolak usulan dan mencatat alasannya
+[1130] Sistem mempertahankan data utama dan menyimpan status ditolak beserta alasa
+[1131] U-09
+[1132] Guru melihat status usulan yang telah diputuskan
+[1133] Sistem menampilkan keputusan sesuai hak akses guru
+[1134] U-10
+[1135] Pengurus yayasan membuka data dari beberapa unit pendidikan
+[1136] Sistem menampilkan data seluruh unit sesuai kewenangannya
+[1137] U-11
+[1138] Pengguna melakukan pencarian data kurikulum
+[1139] Sistem menampilkan hasil yang sesuai dengan kriteria pencarian
+[1140] U-12
+[1141] Pengguna tanpa kewenangan mengirim permintaan langsung ke server untuk membaca atau mengubah data
+[1142] Sistem menolak permintaan dan tidak menjalankan tindakan yang tidak diizinkan
+[1143] Skenario tersebut merupakan rancangan pengujian yang diharapkan, bukan hasil pengujian aktual. Setelah sistem diimplementasikan, hasil setiap pengujian perlu dicatat sebagai berhasil atau gagal beserta keterangan apabila ditemukan masalah.
+[1144] Bagian Akhir
+[1145] Kesimpulan Analisis
+[1146] Berdasarkan analisis kebutuhan dan pemodelan sistem yang telah dilakukan, Sistem Informasi Manajemen Kurikulum Berbasis Web dirancang untuk mendukung pengelolaan dan integrasi data kurikulum pada MI Tahfidz Alfa Ali Masykur, SMP Alfa Ali Masykur, dan SMA Alfa Ali Masykur di bawah naungan Yayasan Ali Masykur.
+[1147] Sistem direncanakan menyediakan pengelolaan data kurikulum yang terstruktur, pembatasan hak akses berdasarkan peran dan unit pendidikan, serta mekanisme pengajuan dan persetujuan perubahan data. Penerapan pembatasan akses dan validasi pada sisi server diperlukan untuk menjaga keamanan dan konsistensi data.
+[1148] Dokumen analisis ini menjadi acuan bagi tahap perancangan teknis, implementasi, dan pengujian sistem. Sebelum pengembangan dilanjutkan, kebutuhan dan aturan bisnis perlu dikonfirmasi bersama pihak yayasan dan perwakilan unit pendidikan agar sistem yang dibangun sesuai dengan proses kerja yang berlaku.
+[1149] Daftar Pustaka
+[1150] Dokumen Pendukung
+[1151] Data Observasi
+[1152] LAPORAN ANALISIS HASIL OBSERVASI DAN WAWANCARA
+[1153] Studi Kasus: SMA Alfa Ali Masykur & MI Tahfidz Alfa Ali Masykur
+[1154] Lokasi Studi
+[1155] Yayasan Pendidikan Islam Alfa Ali Masykur (SMA Alfa Ali Masykur, SMP Alfa Ali Masykur, dan MI Tahfidz Alfa Ali Masykur)
+[1156] Tujuan Penelitian
+[1157] Analisis Kebutuhan Sistem Manajemen Kurikulum, Administrasi Kepegawaian, & Modul Ajar Berbasis Web
+[1158] Narasumber Utama
+[1159] Ibu Ulfah Kurikulum SMA Alfa Ali Masykur
+[1160] Ibu Desi Kurikulum SMP Alfa Ali Masykur
+[1161] Ibu Anisa Kurikulum MI Tahfidz Alfa Ali Masykur
+[1162] ANALISIS UNIT 1: SMA ALFA ALI MASYKUR
+[1163] Profil dan Model Kurikulum
+[1164] Model Kurikulum Utama: Menerapkan Kurikulum Nasional (Kurikulum Merdeka) yang dikolaborasikan dan diintegrasikan secara langsung dengan Kurikulum/Kultur Positif Pesantren/Pondok.
+[1165] Integrasi Muatan Lokal: Nilai-nilai, tradisi, dan muatan keagamaan dari pondok diserap menjadi nilai tambah kurikulum nasional.
+[1166] Mekanisme Penyusunan: Disusun secara kolaboratif oleh Tim Pengembang Kurikulum yang melibatkan Kepala Sekolah, Yayasan, Komite Sekolah, dan seluruh warga sekolah pada tahap perumusan awal, sebelum kemudian digodok secara teknis oleh tim pengembang.
+[1167] Struktur Mata Pelajaran & Sistem Peminatan
+[1168] Jumlah Mata Pelajaran: Mengelola kurang lebih 20 mata pelajaran.
+[1169] Fase Kelas 10 (Fase E): Belum ada pemilihan rumpun/peminatan. Siswa mempelajari seluruh dasar rumpun IPA (Biologi, Fisika, Kimia) dan IPS (Ekonomi, Geografi, Sejarah, Sosiologi) ditambah muatan lokal pondok (Tahfidz, KRU 1, Bahasa Arab).
+[1170] Fase Kelas 11 & 12 (Fase F): Menggunakan Sistem Paket Peminatan (Paket Rumpun IPA dan Paket Rumpun IPS).
+[1171] Aturan Khusus Mata Pelajaran Sejarah: Sejarah Umum menjadi mata pelajaran umum wajib bagi seluruh siswa (baik rumpun IPA maupun IPS) di kelas 10 dan 11. Sedangkan Sejarah Tingkat Lanjut menjadi mata pelajaran pilihan khusus kelompok rumpun IPS.
+[1172] Perencanaan Pembelajaran (CP, TP, ATP) & Pengawasan
+[1173] Capaian Pembelajaran (CP): Ditentukan langsung oleh Pemerintah Pusat (Kemendikbud) dan tidak dapat diubah.
+[1174] Pengembangan TP & ATP: Sekolah menyelenggarakan workshop/training internal penyusunan modul ajar di awal tahun ajaran agar guru mampu menganalisis CP menjadi Tujuan Pembelajaran (TP) dan Alur Tujuan Pembelajaran (ATP) sesuai kebutuhan siswa.
+[1175] Proses Supervisi & Evaluasi: Supervisi dilakukan secara berkala oleh Kepala Sekolah dan Wakil Kepala (Waka) Bidang Kurikulum. Pengawasan berfokus pada kesesuaian metode pembelajaran dan penyesuaian format RPP/Modul Ajar ke format Perencanaan Pembelajaran terbaru. Forum Kombel (Komunitas Belajar) antar guru dimanfaatkan sebagai wadah evaluasi sejawat.
+[1176] Ekstrakurikuler & Ketenagakerjaan Guru
+[1177] Ekstrakurikuler (8–9 Cabang): Voli, Sepak Takraw, Badminton, Futsal, Kaligrafi, dan lainnya. Pembina diampu oleh guru internal sekolah, namun apabila dibutuhkan keahlian khusus sekolah merekrut pelatih/instruktur eksternal dari luar.
+[1178] Status Guru: Mayoritas guru mengajar penuh (pure 100%) di SMA. Hanya ada 1–2 guru yang mengajar rangkap (nyambi) di unit SMP dengan jumlah jam mengajar yang sedikit.
+[1179] Pengawasan Yayasan & Pesantren: Yayasan memantau ketercapaian program melalui Rapat Evaluasi Bulanan (setiap tanggal 10). Pihak Pondok (Umi) memantau secara langsung dalam aspek kedisiplinan, kebersihan lingkungan, serta pelaksanaan piket harian.
+[1180] Sistem Informasi, Kepegawaian, & Pengelolaan Berkas
+[1181] Kondisi Digitalisasi: Memakai sistem penyimpanan ganda (hybrid): Digital menggunakan Google Drive terpusat SMA Alfa untuk softfile, dan Berkas Fisik (hardfile) disimpan di sekolah selama minimum 1 tahun untuk kepentingan akreditasi dan arsip riwayat.
+[1182] Sistem Kepegawaian & SIMPOK: Belum memiliki sistem informasi manajemen kepegawaian internal khusus. Pelaporan resmi diunggah langsung ke portal Dinas Pendidikan Provinsi Jawa Tengah.
+[1183] Sistem Presensi: Guru menggunakan mesin fingerprint, sedangkan presensi siswa menggunakan web-aplikasi presensi kelas untuk merekap keberadaan siswa secara real-time.
+[1184] Masalah & Tantangan Administrasi Utama
+[1185] Ketepatan Waktu Jurnal Mengajar: Pengisian jurnal harian mengajar kelas dan jurnal individu guru sering mengalami keterlambatan akibat tingginya beban tugas guru.
+[1186] Pengumpulan Modul Ajar: Variasi estimasi waktu pengumpulan modul ajar antar guru (ada yang cepat, sedang, dan terlambat/molor).
+[1187] Penyimpanan Berkas Fisik: Penataan sarana penyimpanan fisik (lemari arsip) masih dalam proses penataan ulang.
+[1188] ANALISIS UNIT 2: MI TAHFIDZ ALFA ALI MASYKUR
+[1189] Profil dan Model Kurikulum
+[1190] Model Kurikulum Utama: Menerapkan Kurikulum Merdeka yang diintegrasikan dengan Kurikulum Berbasis Cinta (KBC) khas Kemenag serta nilai-nilai pesantren.
+[1191] Karakteristik Kelembagaan: Berada di bawah naungan Kementerian Agama (Kemenag) dan Yayasan Alfa Ali Masykur.
+[1192] Mekanisme Penyusunan: Dikarenakan jumlah SDM guru masih terbatas, seluruh guru dilibatkan secara langsung menjadi Tim Pengembang Kurikulum bersama Kepala Madrasah (Kamad) pada setiap awal tahun ajaran baru.
+[1193] Struktur Mata Pelajaran & Program Tahfidz
+[1194] Mata Pelajaran Kelas 1 & 2: Terdapat 13 Mata Pelajaran.
+[1195] Mata Pelajaran Kelas 3 & 4: Terdapat 16 Mata Pelajaran (ditambah mata pelajaran SKI, IPAS, dan Ke-NU-an).
+[1196] Pengelompokan Pembelajaran: Mapel Umum (Matematika, Bahasa Indonesia, Bahasa Inggris, Bahasa Jawa, Pancasila), Mapel Keagamaan Kemenag (Akidah Akhlak, Al-Qur'an Hadis, Fikih, Bahasa Arab), serta Muatan Lokal/Yayasan (Ke-NU-an dan Program Tahfidz Al-Qur'an).
+[1197] Skema Program Tahfidz Al-Qur'an: Target hafalan dibuat fleksibel dan berorientasi individu menyesuaikan kemampuan masing-masing siswa (tidak dipatok secara kaku per kelas). Siswa yang telah menyelesaikan Juz 30 di kelas 1 langsung diarahkan menambah hafalan ke juz berikutnya. Progres harian siswa dipantau dan dicatat secara sistematis pada Buku Kontrol Hafalan.
+[1198] Perencanaan Pembelajaran & Supervisi Eksternal
+[1199] Penyusunan Modul Ajar: Disusun mandiri oleh masing-masing guru kelas/mapel.
+[1200] Format Penyimpanan Modul: Modul disimpan secara mandiri dalam bentuk softfile di laptop guru/Google Drive pribadi. Modul hanya akan dicetak (hardfile) jika ada agenda supervisi resmi.
+[1201] Pengawasan & Pengesahan: Supervisi internal dilakukan oleh Kepala Madrasah (Kamad) dan Waka Kurikulum. Supervisi eksternal dilakukan secara berkala oleh Pengawas Madrasah Kemenag Kecamatan Mojotengah yang memeriksa kelayakan dokumen kurikulum dan modul. Dokumen fisik yang telah disahkan tetap disimpan sebagai arsip verifikasi pusat.
+[1202] Ketenagakerjaan Guru (SDM)
+[1203] Status Pengajaran: Seluruh guru bekerja 100% penuh (full-time) sebagai wali kelas dari pagi hingga siang hari di MI.
+[1204] Tidak Ada Rangkap Mengajar: Berbeda dengan unit SMA/SMP, guru MI tidak mengajar rangkap di unit lain karena peran wali kelas membutuhkan keterlibatan penuh (aktivitas mengajar di luar sekolah hanya sebatas bimbel mandiri).
+[1205] Sistem Informasi & Presensi
+[1206] Ketersediaan Aplikasi Internal: Belum memiliki aplikasi manajemen modul/kurikulum maupun SIMPOK internal.
+[1207] Aplikasi Terintegrasi Yayasan: Sekolah menggunakan satu aplikasi Presensi Yayasan yang digunakan bersama oleh unit PAUD, MI, dan SMA untuk memantau absensi.
+[1208] Presensi Guru: Guru menggunakan mesin fingerprint.
+[1209] Masalah & Tantangan Administrasi Utama
+[1210] Pencatatan Jurnal Harian Manual: Pengisian Jurnal Kelas dan Jurnal Harian secara manual dianggap sebagai tugas administrasi yang paling merepotkan, ribet, dan menyita waktu karena menuntut ketelatenan tinggi dari guru setiap hari.
+[1211] Penyimpanan Modul Tersebar: Penyimpanan arsip modul masih tersebar di laptop masing-masing guru tanpa adanya direktori penyimpanan bersama terpusat.
+[1212] ANALISIS UNIT 3: SMP ALFA ALI MASYKUR WONOSOBO
+[1213] Profil dan Model Kurikulum
+[1214] Model Kurikulum Utama: Menerapkan Kurikulum Nasional (Kurikulum Merdeka) yang dikolaborasikan dengan Kurikulum/Kultur Positif Pesantren/Pondok, sama seperti unit SMA.
+[1215] Integrasi Muatan Lokal: Nilai, tradisi, dan muatan keagamaan pondok diserap sebagai nilai tambah kurikulum nasional.
+[1216] Mekanisme Penyusunan: Diperkirakan disusun kolaboratif oleh Tim Pengembang Kurikulum yang melibatkan Kepala Sekolah, Yayasan, Komite Sekolah, dan warga sekolah pada tahap perumusan awal, lalu dimatangkan secara teknis oleh tim pengembang.
+[1217] Struktur Mata Pelajaran & Sistem Kelas
+[1218] Jumlah Mata Pelajaran: Mengelola sejumlah mata pelajaran nasional dan muatan lokal.
+[1219] Fase Kelas 7–9 (Fase D): Sesuai ketentuan Kurikulum Merdeka, kelas 7, 8, dan 9 berada pada Fase D. Tidak ada peminatan atau pemilihan rumpun seperti di kelas 11–12 SMA, sehingga seluruh siswa mempelajari paket mata pelajaran yang sama pada tiap tingkat.
+[1220] Muatan Pondok: Diperkirakan mencakup Tahfidz, Bahasa Arab, dan KRU seperti di SMA.
+[1221] Mata Pelajaran Khusus: Belum diketahui apakah ada aturan khusus setara aturan Sejarah di SMA.
+[1222] Perencanaan Pembelajaran (CP, TP, ATP) & Pengawasan
+[1223] Capaian Pembelajaran (CP): Ditetapkan Pemerintah Pusat dan tidak dapat diubah sekolah.
+[1224] Pengembangan TP & ATP: Guru menurunkan CP menjadi Tujuan Pembelajaran (TP) dan Alur Tujuan Pembelajaran (ATP). Diperkirakan ada workshop/training internal penyusunan modul ajar di awal tahun ajaran seperti di SMA.
+[1225] Proses Supervisi & Evaluasi: Diperkirakan dilakukan berkala oleh Kepala Sekolah dan Waka Bidang Kurikulum, dengan Forum Kombel (Komunitas Belajar) sebagai wadah evaluasi sejawat.
+[1226] Ekstrakurikuler & Ketenagakerjaan Guru
+[1227] Ekstrakurikuler: Jumlah dan jenis cabang belum diketahui. Sebagai gambaran awal, cabang di SMA meliputi olahraga (voli, sepak takraw, badminton, futsal) dan kaligrafi.
+[1228] Status Guru: Dari wawancara SMA diketahui ada 1–2 guru SMA yang mengajar rangkap di SMP dengan jam sedikit. Bagaimana pola kerja guru SMP sendiri (penuh atau rangkap) belum diketahui.
+[1229] Pengawasan Yayasan & Pesantren: Yayasan memantau program lewat Rapat Evaluasi Bulanan dan pihak Pondok memantau kedisiplinan, kebersihan, serta piket harian. Berlaku untuk SMP atau tidak perlu dikonfirmasi.
+[1230] Sistem Informasi, Kepegawaian, & Pengelolaan Berkas
+[1231] Kondisi Digitalisasi: Diperkirakan memakai penyimpanan ganda: softfile di Google Drive dan hardfile di sekolah untuk keperluan akreditasi dan arsip.
+[1232] Sistem Kepegawaian & Pelaporan: Diperkirakan belum memiliki sistem informasi manajemen kepegawaian internal. Pelaporan resmi SMP umumnya ke Dinas Pendidikan tingkat kabupaten, berbeda dengan SMA yang ke Dinas Pendidikan Provinsi Jawa Tengah.
+[1233] Sistem Presensi: Presensi guru diperkirakan memakai mesin fingerprint. Presensi siswa mungkin memakai aplikasi presensi yayasan atau web presensi kelas seperti di SMA.
+[1234] Masalah & Tantangan Administrasi Utama
+[1235] Butir berikut adalah dugaan awal berdasarkan masalah di SMA dan MI, dan perlu dikonfirmasi apakah juga dialami SMP.
+[1236] Ketepatan Waktu Jurnal Mengajar: Keterlambatan pengisian jurnal harian kelas dan jurnal individu guru akibat beban tugas yang tinggi.
+[1237] Pengumpulan Modul Ajar: Waktu pengumpulan modul antar guru bervariasi, ada yang terlambat.
+[1238] Penyimpanan Berkas Fisik: Penataan arsip fisik.
+[1239] MATRIKS PERBANDINGAN DAN INTEGRASI HASIL OBSERVASI
+[1240] Parameter Analisis
+[1241] SMA Alfa Ali Masykur
+[1242] SMP Alfa Ali Masykur Wonosobo
+[1243] MI Tahfidz Alfa Ali Masykur
+[1244] Naungan & Kurikulum
+[1245] Kemendikbud & Pesantren (Kurikulum Merdeka + Pondok)
+[1246] Kemendikbud & Pesantren (Kurikulum Merdeka + Pondok)
+[1247] Kemenag & Pesantren (Kurikulum Merdeka + KBC Kemenag)
+[1248] Pengembang Kurikulum
+[1249] Tim Khusus Pengembang Kurikulum, Kepsek, Yayasan, Komite
+[1250] Tim Pengembang Kurikulum + Kepsek
+[1251] Seluruh Guru Kelas (keterbatasan SDM) + Kamad
+[1252] Jumlah Mapel
+[1253] ±20 Mapel (Paket IPA/IPS di Kelas 11–12)
+[1254] Satu paket untuk Fase D, tanpa peminatan
+[1255] 13 Mapel (Kls 1–2) / 16 Mapel (Kls 3–4)
+[1256] Muatan Khusus
+[1257] Tahfidz, KRU 1, Bahasa Arab, Sejarah Wajib & Lanjutan
+[1258] Tahfidz, Bahasa Arab, KRU
+[1259] Tahfidz (Buku Kontrol), Ke-NU-an, Akidah Akhlak, Fikih, dll.
+[1260] Pola Kerja Guru
+[1261] Mayoritas 100% SMA, 1–2 guru rangkap di SMP
+[1262] Mayoritas 100% SMP, 1–2 guru rangkap di SMA
+[1263] 100% Wali Kelas Full-Time di MI
+[1264] Penyimpanan Modul
+[1265] Google Drive Sekolah + Cetak Fisik 1 Tahun
+[1266] Google Drive + cetak fisik
+[1267] Softfile Laptop Guru (dicetak saat supervisi)
+[1268] Supervisi Eksternal
+[1269] Dinas Pendidikan / Akreditasi
+[1270] Dinas Pendidikan Kabupaten / Akreditasi
+[1271] Pengawas Madrasah Kemenag Kecamatan Mojotengah
+[1272] Aplikasi Saat Ini
+[1273] Google Drive, Web Absen Siswa, Fingerprint, Portal Jateng
+[1274] Fingerprint, presensi siswa
+[1275] Aplikasi Absen Yayasan (PAUD/MI/SMA), Fingerprint
+[1276] Titik Lemah Administrasi
+[1277] Ketepatan input Jurnal Mengajar & Pengumpulan Modul
+[1278] Diduga serupa SMA
+[1279] Jurnal Kelas/Harian manual & Arsip modul tersebar
+[1280] REKOMENDASI PENGEMBANGAN SISTEM REKAYASA WEBSITES
+[1281] Berdasarkan temuan observasi di kedua unit sekolah, sistem manajemen kurikulum dan administrasi berbasis web yang akan dibangun oleh Tim Mahasiswa TI UNSIQ direkomendasikan memiliki fitur-fitur utama sebagai berikut:
+[1282] Modul Digital Jurnal Mengajar & Harian (Fitur Prioritas Utama)
+[1283] Menggantikan pencatatan jurnal kertas manual menjadi fitur input online ringkas yang dapat diakses melalui ponsel pintar (smartphone) oleh guru/wali kelas untuk mengatasi kendala ketidaktelatenan dan keterlambatan.
+[1284] Centralized Repository Modul Ajar (TP/ATP/Modul)
+[1285] Wadah pengunggahan dan pengarsipan modul ajar terstruktur per unit (SMA & MI), per tingkat kelas, dan per mata pelajaran guna mempermudah proses supervisi oleh Kepala Sekolah/Kamad dan Pengawas.
+[1286] Sistem Presensi Kelas Digital Siswa
+[1287] Fitur pencatatan kehadiran siswa di kelas secara real-time yang menghasilkan rekapitulasi otomatis untuk wali kelas dan sekolah.
+[1288] Modul Integrasi Monitoring Tahfidz (Khusus MI/SMA)
+[1289] Pembukuan kontrol hafalan siswa secara digital untuk menggantikan/melengkapi Buku Kontrol fisik agar progres pencapaian hafalan individu siswa tercatat secara historis.
+[1290] Dokumentasi

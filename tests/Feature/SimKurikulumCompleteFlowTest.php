@@ -24,13 +24,11 @@ class SimKurikulumCompleteFlowTest extends TestCase
         $guru = User::where('username', 'guru.ahmad')->first();
         $this->assertNotNull($guru);
 
-        // Test Landing Page & Public SOP Page
+        // Test Login Page as Root
         $this->get('/')->assertStatus(200);
-        $this->get('/standar-prosedur')->assertStatus(200)->assertSee('SOP-KUR-01');
-        $this->get('/sop')->assertStatus(200)->assertSee('Standar Operasional Prosedur');
-
-        // Test Login Page
         $this->get('/login')->assertStatus(200);
+        $this->get('/standar-prosedur')->assertRedirect('/login');
+        $this->get('/sop')->assertRedirect('/login');
 
         // Test Standard Authentication Flow
         $loginResponse = $this->post('/login', [
@@ -855,5 +853,134 @@ class SimKurikulumCompleteFlowTest extends TestCase
         $guru->refresh();
         $this->assertNull($guru->avatar_url);
         $this->assertNull($guru->avatar_image);
+    }
+
+    public function test_system_audit_improvements_and_bureaucratic_controls(): void
+    {
+        // 1. Setup Guru SMP, Kepala Sekolah SMP, and Mapels
+        $guru = \App\Models\User::where('username', 'guru.ahmad')->first();
+        $kepsek = \App\Models\User::where('username', 'kepsek.smp')->first();
+        $admin = \App\Models\User::where('username', 'admin')->first();
+
+        $assignedMapel = $guru->penugasan()->first()->mataPelajaran;
+        $kurikulum = $assignedMapel->kurikulum;
+
+        // An unassigned mapel in the same unit
+        $unassignedMapel = \App\Models\MataPelajaran::whereHas('kurikulum', fn($q) => $q->where('unit_id', $guru->unit_id))
+            ->whereNotIn('id', $guru->penugasan()->pluck('mapel_id'))
+            ->first();
+        if (!$unassignedMapel) {
+            $unassignedMapel = \App\Models\MataPelajaran::create([
+                'kurikulum_id' => $kurikulum->id,
+                'kode_mapel' => 'IPA-TEST',
+                'nama_mapel' => 'Ilmu Pengetahuan Alam SMP Test',
+                'fase' => 'D',
+                'tingkat_kelas' => 'VII',
+                'alokasi_jp_minggu' => 4,
+                'alokasi_jp_tahun' => 144,
+                'kategori' => 'Wajib',
+                'status' => 'Aktif',
+            ]);
+        }
+
+        // 2. Strict Subject Penugasan check: Guru cannot submit proposal for unassigned mapel
+        $forbiddenResponse = $this->actingAs($guru)->post(route('curriculum.proposal.store'), [
+            'mapel_id' => $unassignedMapel->id,
+            'jenis_usulan' => 'Tambah',
+            'objek_data' => 'Materi',
+            'judul_usulan' => 'Percobaan Usulan Mapel Lain',
+            'alasan_pengajuan' => 'Mencoba mengajukan tanpa penugasan resmi.',
+            'deskripsi_usulan' => 'Pengayaan Materi Asing',
+        ]);
+        $forbiddenResponse->assertSessionHas('error');
+        $this->assertStringContainsString('guru pengampu', session('error'));
+
+        // 3. Curriculum Lock: Kepala Sekolah locks the curriculum
+        $lockResponse = $this->actingAs($kepsek)->post(route('curriculum.toggle_lock', $kurikulum->id));
+        $lockResponse->assertSessionHas('success');
+        $kurikulum->refresh();
+        $this->assertTrue((bool)$kurikulum->is_locked);
+        $this->assertEquals($kepsek->id, $kurikulum->locked_by);
+        $this->assertNotNull($kurikulum->locked_at);
+
+        // Guru attempts to propose changes while curriculum is locked -> BLOCKED
+        $blockedByLockResponse = $this->actingAs($guru)->post(route('curriculum.proposal.store'), [
+            'mapel_id' => $assignedMapel->id,
+            'jenis_usulan' => 'Tambah',
+            'objek_data' => 'Materi',
+            'judul_usulan' => 'Materi Baru Pasca Lock',
+            'alasan_pengajuan' => 'Penambahan materi ketika kurikulum dikunci.',
+            'deskripsi_usulan' => 'Bab Pembahasan Baru',
+        ]);
+        $blockedByLockResponse->assertSessionHas('error');
+        $this->assertStringContainsString('Periode Kurikulum Terkunci', session('error'));
+
+        // Unlock curriculum
+        $unlockResponse = $this->actingAs($kepsek)->post(route('curriculum.toggle_lock', $kurikulum->id));
+        $unlockResponse->assertSessionHas('success');
+        $kurikulum->refresh();
+        $this->assertFalse((bool)$kurikulum->is_locked);
+
+        // 4. Guru submits valid proposal on assigned mapel
+        $validProposalResponse = $this->actingAs($guru)->post(route('curriculum.proposal.store'), [
+            'mapel_id' => $assignedMapel->id,
+            'jenis_usulan' => 'Tambah',
+            'objek_data' => 'Materi',
+            'judul_usulan' => 'Penambahan Modul Aljabar Terapan',
+            'alasan_pengajuan' => 'Memperkuat kompetensi numerasi santri sesuai Capaian Pembelajaran Fase D.',
+            'deskripsi_usulan' => 'Modul 4: Pemodelan Linear Kontekstual',
+        ]);
+        $validProposalResponse->assertSessionHas('success');
+
+        $proposal = \App\Models\UsulanPerubahan::where('judul_usulan', 'Penambahan Modul Aljabar Terapan')->latest()->first();
+        $this->assertNotNull($proposal);
+        $this->assertEquals('Menunggu Persetujuan', $proposal->status);
+
+        // Check SLA status calculation
+        $sla = $proposal->sla_status;
+        $this->assertIsArray($sla);
+        $this->assertArrayHasKey('days', $sla);
+        $this->assertArrayHasKey('label', $sla);
+        $this->assertArrayHasKey('badge_class', $sla);
+
+        // 5. Kepsek rejects proposal with review feedback
+        $rejectResponse = $this->actingAs($kepsek)->post(route('usulan.review', $proposal->id), [
+            'keputusan' => 'tolak',
+            'alasan_penolakan' => 'Indikator belum memuat contoh aplikatif studi kasus santri.',
+        ]);
+        $rejectResponse->assertSessionHas('info');
+        $proposal->refresh();
+        $this->assertEquals('Ditolak', $proposal->status);
+        $this->assertEquals('Indikator belum memuat contoh aplikatif studi kasus santri.', $proposal->alasan_penolakan);
+
+        // 6. Guru re-submits rejected proposal with revised rationale
+        $resubmitResponse = $this->actingAs($guru)->post(route('usulan.resubmit', $proposal->id), [
+            'alasan_pengajuan' => 'Telah diperbaiki dengan menambahkan 3 studi kasus pesantren di bab aljabar.',
+        ]);
+        $resubmitResponse->assertSessionHas('success');
+
+        $proposal->refresh();
+        $this->assertEquals('Menunggu Persetujuan', $proposal->status);
+        $this->assertNull($proposal->alasan_penolakan);
+        $this->assertStringContainsString('Telah diperbaiki', $proposal->alasan_pengajuan);
+        $this->assertStringContainsString('Riwayat Evaluasi', $proposal->alasan_pengajuan);
+
+        // Kepsek approves the resubmitted proposal
+        $approveResponse = $this->actingAs($kepsek)->post(route('usulan.review', $proposal->id), [
+            'keputusan' => 'setujui',
+        ]);
+        $approveResponse->assertSessionHas('success');
+        $proposal->refresh();
+        $this->assertEquals('Disetujui', $proposal->status);
+
+        // 7. Official Syllabus Export View
+        $exportResponse = $this->actingAs($guru)->get(route('curriculum.mapel.export', $assignedMapel->id));
+        $exportResponse->assertStatus(200);
+        $exportResponse->assertSee('YPI ALI MASYKUR');
+        $exportResponse->assertSee('ALUR TUJUAN PEMBELAJARAN');
+        $exportResponse->assertSee($assignedMapel->nama_mapel);
+        $exportResponse->assertSee('Kepala Sekolah');
+        $exportResponse->assertSee('Waka Kurikulum');
+        $exportResponse->assertSee('Guru Pengampu');
     }
 }

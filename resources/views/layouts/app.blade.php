@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <title>@yield('title', 'SIM Kurikulum') - YPI Alfa Ali Masykur</title>
+    <title>@yield('title', 'SIM Kurikulum') - YPI Ali Masykur</title>
     
     <!-- Favicon Logo Yayasan -->
     <link rel="icon" type="image/png" href="{{ asset('images/logo-yayasan.png') }}">
@@ -103,12 +103,12 @@
             <div class="h-20 px-6 flex items-center justify-between shrink-0">
                 <a href="{{ route('dashboard') }}" class="flex items-center gap-3 group">
                     <div class="w-10 h-10 rounded-2xl bg-white border border-slate-200/80 p-1 flex items-center justify-center shadow-subtle group-hover:border-brand-500 transition-colors">
-                        <img src="{{ asset('images/logo-yayasan.png') }}" alt="Logo Yayasan Ali Masykur" class="w-full h-full object-contain">
+                        <img src="{{ asset('images/logo-yayasan.png') }}" alt="Logo YPI Ali Masykur" class="w-full h-full object-contain">
                     </div>
 
                     <div class="flex flex-col">
                         <span class="text-sm font-extrabold tracking-tight text-slate-900 leading-tight group-hover:text-brand-800 transition-colors">SIM Kurikulum</span>
-                        <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mt-0.5">Alfa Ali Masykur</span>
+                        <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mt-0.5">YPI Ali Masykur</span>
                     </div>
 
                 </a>
@@ -475,7 +475,7 @@
         <!-- FOOTER -->
         <footer class="border-t border-slate-200/70 bg-white px-4 sm:px-6 lg:px-8 py-4">
             <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500">
-                <span>© 2024–2026 Yayasan Pendidikan Islam Alfa Ali Masykur Wonosobo.</span>
+                <span>© 2024–2026 YPI Ali Masykur Wonosobo.</span>
                 <div class="flex items-center gap-4">
                     <a href="{{ route('guide.index') }}" class="hover:text-slate-800 transition-colors">Panduan SOP</a>
                     <span>•</span>
@@ -529,16 +529,23 @@
                 <select name="mapel_id" id="proposal_mapel_id" required class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-800 text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-600 focus:border-brand-600">
                     @php
                         $drawerMapelQuery = \App\Models\MataPelajaran::with('kurikulum.unit');
-                        if (auth()->check() && !auth()->user()->canAccessAllUnits() && auth()->user()->unit_id) {
-                            $drawerMapelQuery->whereHas('kurikulum', fn($q) => $q->where('unit_id', auth()->user()->unit_id));
+                        if (auth()->check() && !auth()->user()->canAccessAllUnits()) {
+                            if (auth()->user()->isGuru()) {
+                                $assignedIds = auth()->user()->penugasan()->pluck('mapel_id')->toArray();
+                                $drawerMapelQuery->whereIn('id', $assignedIds);
+                            } elseif (auth()->user()->unit_id) {
+                                $drawerMapelQuery->whereHas('kurikulum', fn($q) => $q->where('unit_id', auth()->user()->unit_id));
+                            }
                         }
                         $drawerMapels = $drawerMapelQuery->get();
                     @endphp
-                    @foreach($drawerMapels as $mp)
+                    @forelse($drawerMapels as $mp)
                         <option value="{{ $mp->id }}">
                             {{ $mp->nama_mapel }} ({{ $mp->kurikulum->unit->nama_unit ?? 'Unit' }})
                         </option>
-                    @endforeach
+                    @empty
+                        <option value="" disabled selected>Belum ada penugasan mata pelajaran aktif</option>
+                    @endforelse
                 </select>
             </div>
 
@@ -708,7 +715,7 @@
 
                 <h3 class="text-base font-extrabold tracking-tight">{{ auth()->user()->name }}</h3>
                 <p class="text-xs text-white/80 font-medium mt-0.5">
-                    {{ auth()->user()->peran->nama_peran ?? 'Pendidik' }} • {{ auth()->user()->unit->nama_unit ?? 'YPI Alfa Ali Masykur' }}
+                    {{ auth()->user()->peran->nama_peran ?? 'Pendidik' }} • {{ auth()->user()->unit->nama_unit ?? 'YPI Ali Masykur' }}
                 </p>
                 <div class="mt-2.5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 text-white text-[11px] font-semibold border border-white/20">
                     <span class="material-symbols-outlined text-xs">verified_user</span>

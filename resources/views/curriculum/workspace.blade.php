@@ -319,18 +319,63 @@
                             Skema hierarki Kurikulum Merdeka: <strong>Capaian Pembelajaran (CP)</strong> ➔ <strong>Alur Tujuan Pembelajaran (ATP) &amp; Sasaran TP</strong> ➔ <strong>Modul &amp; Rincian Materi Ajar</strong>.
                         </p>
 
-                        <div class="flex flex-wrap items-center gap-3 pt-2">
-                            <button type="button" onclick="openGlobalProposalModal('TP', 'Perumusan TP Baru: {{ $selectedMapel->nama_mapel }}', null, null, '{{ $selectedMapel->id }}')" 
-                                    class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-brand-800 hover:bg-brand-900 text-white text-xs font-semibold shadow-subtle transition-all cursor-pointer">
-                                <span class="material-symbols-outlined text-base">add_circle</span>
-                                <span>Ajukan Usulan TP / Materi</span>
-                            </button>
+                        @php
+                            $isGuruAssigned = $user->penugasan()->where('mapel_id', $selectedMapel->id)->exists();
+                            $isKurikulumLocked = $selectedMapel->kurikulum?->is_locked ?? false;
+                            $canGuruEdit = $user->isGuru() && ($isGuruAssigned || $user->canAccessAllUnits()) && !$isKurikulumLocked;
+                        @endphp
 
-                            <button type="button" onclick="window.print()" 
-                                    class="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-all cursor-pointer">
-                                <span class="material-symbols-outlined text-base">print</span>
-                                <span>Cetak Silabus Resmi</span>
-                            </button>
+                        @if($isKurikulumLocked)
+                            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-semibold">
+                                <span class="material-symbols-outlined text-sm text-amber-700">lock</span>
+                                <span>Periode Kurikulum Terkunci (Usulan Perubahan Dibekukan oleh Pimpinan)</span>
+                            </div>
+                        @endif
+
+                        <div class="flex flex-wrap items-center gap-3 pt-2">
+                            @if($user->isGuru())
+                                @if($isKurikulumLocked)
+                                    <button type="button" disabled
+                                            class="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-slate-200 text-slate-400 text-xs font-semibold cursor-not-allowed" title="Pengajuan usulan ditutup karena kurikulum sedang dikunci">
+                                        <span class="material-symbols-outlined text-base">lock</span>
+                                        <span>Usulan Dikunci</span>
+                                    </button>
+                                @elseif(!$isGuruAssigned && !$user->canAccessAllUnits())
+                                    <div class="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-slate-100 text-slate-600 text-xs font-medium">
+                                        <span class="material-symbols-outlined text-base text-slate-400">info</span>
+                                        <span>Mode Lihat (Bukan Guru Pengampu Mapel Ini)</span>
+                                    </div>
+                                @else
+                                    <button type="button" onclick="openGlobalProposalModal('TP', 'Perumusan TP Baru: {{ $selectedMapel->nama_mapel }}', null, null, '{{ $selectedMapel->id }}')" 
+                                            class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-brand-800 hover:bg-brand-900 text-white text-xs font-semibold shadow-subtle transition-all cursor-pointer">
+                                        <span class="material-symbols-outlined text-base">add_circle</span>
+                                        <span>Ajukan Usulan TP / Materi</span>
+                                    </button>
+                                @endif
+                            @elseif($user->isKepalaSekolah() || $user->isWakaKurikulum())
+                                <a href="{{ route('usulan.index') }}" 
+                                   class="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-amber-700 hover:bg-amber-800 text-white text-xs font-semibold shadow-subtle transition-all">
+                                    <span class="material-symbols-outlined text-base">pending_actions</span>
+                                    <span>Tinjau Usulan Unit ({{ $usulanMenunggu }})</span>
+                                </a>
+
+                                <!-- Toggle Kunci Kurikulum (Rekomendasi 4) -->
+                                <form method="POST" action="{{ route('curriculum.toggle_lock', $selectedMapel->kurikulum_id) }}" class="inline">
+                                    @csrf
+                                    <button type="submit" 
+                                            class="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl {{ $isKurikulumLocked ? 'bg-emerald-700 hover:bg-emerald-800 text-white' : 'bg-slate-800 hover:bg-slate-900 text-white' }} text-xs font-semibold shadow-subtle transition-all cursor-pointer"
+                                            title="{{ $isKurikulumLocked ? 'Buka kunci periode agar guru dapat mengajukan usulan revisi' : 'Kunci periode agar silabus stabil selama semester berjalan' }}">
+                                        <span class="material-symbols-outlined text-base">{{ $isKurikulumLocked ? 'lock_open' : 'lock' }}</span>
+                                        <span>{{ $isKurikulumLocked ? 'Buka Kunci Kurikulum' : 'Kunci Kurikulum Semester' }}</span>
+                                    </button>
+                                </form>
+                            @endif
+
+                            <a href="{{ route('curriculum.mapel.export', $selectedMapel->id) }}" target="_blank"
+                               class="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-all">
+                                <span class="material-symbols-outlined text-base text-brand-700">print</span>
+                                <span>Ekspor Silabus Resmi</span>
+                            </a>
                         </div>
                     </div>
 
@@ -546,11 +591,13 @@
                                             <span class="text-slate-400 font-semibold text-[11px]">({{ $cp->tujuanPembelajaran->count() }} Sasaran)</span>
                                         </div>
 
+                                        @if($canGuruEdit)
                                         <button type="button" onclick="openGlobalProposalModal('TP', 'Tambah TP pada Elemen {{ $cp->elemen }}', null, '{{ $cp->id }}', '{{ $selectedMapel->id }}')" 
                                                 class="text-[11px] font-semibold text-brand-800 hover:underline flex items-center gap-1 cursor-pointer">
                                             <span class="material-symbols-outlined text-sm">add_circle</span>
                                             <span>Tambah TP ke CP Ini</span>
                                         </button>
+                                        @endif
                                     </div>
 
                                     <div class="space-y-3">
@@ -600,12 +647,14 @@
                                                             {{ $tp->beban_jp }} JP
                                                         </span>
 
-                                                        <button type="button" 
-                                                                onclick="openGlobalProposalModal('TP', 'Revisi Sasaran: {{ $tp->kode_tp }}', '{{ $tp->id }}', '{{ $cp->id }}', '{{ $selectedMapel->id }}')" 
-                                                                class="p-1.5 rounded-xl bg-slate-100 hover:bg-brand-50 hover:text-brand-800 text-slate-600 transition-colors"
-                                                                title="Ajukan Usulan Perubahan TP Ini">
-                                                            <span class="material-symbols-outlined text-base">edit</span>
-                                                        </button>
+                                                        @if($canGuruEdit)
+                                                            <button type="button" 
+                                                                    onclick="openGlobalProposalModal('TP', 'Revisi Sasaran: {{ $tp->kode_tp }}', '{{ $tp->id }}', '{{ $cp->id }}', '{{ $selectedMapel->id }}')" 
+                                                                    class="p-1.5 rounded-xl bg-slate-100 hover:bg-brand-50 hover:text-brand-800 text-slate-600 transition-colors"
+                                                                    title="Ajukan Usulan Perubahan TP Ini">
+                                                                <span class="material-symbols-outlined text-base">edit</span>
+                                                            </button>
+                                                        @endif
                                                     </div>
                                                 </div>
 
@@ -613,12 +662,14 @@
                                                 <div class="border-t border-slate-100 pt-3 space-y-2">
                                                     <div class="flex items-center justify-between text-[11px]">
                                                         <span class="font-bold text-slate-400 uppercase tracking-wider">Materi &amp; Sub-Materi (Silabus Pembelajaran)</span>
-                                                        <button type="button" 
-                                                                onclick="openGlobalProposalModal('Materi', 'Tambah Materi Baru pada {{ $tp->kode_tp }}', null, '{{ $tp->id }}', '{{ $selectedMapel->id }}')" 
-                                                                class="font-semibold text-brand-800 hover:underline flex items-center gap-1 cursor-pointer">
-                                                            <span class="material-symbols-outlined text-xs">add</span>
-                                                            <span>Tambah Materi</span>
-                                                        </button>
+                                                        @if($canGuruEdit)
+                                                            <button type="button" 
+                                                                    onclick="openGlobalProposalModal('Materi', 'Tambah Materi Baru pada {{ $tp->kode_tp }}', null, '{{ $tp->id }}', '{{ $selectedMapel->id }}')" 
+                                                                    class="font-semibold text-brand-800 hover:underline flex items-center gap-1 cursor-pointer">
+                                                                <span class="material-symbols-outlined text-xs">add</span>
+                                                                <span>Tambah Materi</span>
+                                                            </button>
+                                                        @endif
                                                     </div>
 
                                                     <div class="space-y-2">
@@ -694,14 +745,16 @@
                                                                     </div>
                                                                 </div>
 
-                                                                <div class="flex items-center gap-1 shrink-0 self-end sm:self-center">
-                                                                    <button type="button" 
-                                                                            onclick="openGlobalProposalModal('Materi', 'Revisi Materi: {{ $materi->judul_materi }}', '{{ $materi->id }}', '{{ $tp->id }}', '{{ $selectedMapel->id }}')" 
-                                                                            class="p-1.5 rounded-xl hover:bg-slate-200 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
-                                                                            title="Ajukan Revisi Materi">
-                                                                        <span class="material-symbols-outlined text-sm">edit</span>
-                                                                    </button>
-                                                                </div>
+                                                                @if($canGuruEdit)
+                                                                    <div class="flex items-center gap-1 shrink-0 self-end sm:self-center">
+                                                                        <button type="button" 
+                                                                                onclick="openGlobalProposalModal('Materi', 'Revisi Materi: {{ $materi->judul_materi }}', '{{ $materi->id }}', '{{ $tp->id }}', '{{ $selectedMapel->id }}')" 
+                                                                                class="p-1.5 rounded-xl hover:bg-slate-200 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
+                                                                                title="Ajukan Revisi Materi">
+                                                                            <span class="material-symbols-outlined text-sm">edit</span>
+                                                                        </button>
+                                                                    </div>
+                                                                @endif
                                                             </div>
                                                         @empty
                                                             <div class="p-2.5 text-center text-slate-400 text-xs italic bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
@@ -810,7 +863,7 @@
                             </div>
 
                             <p class="text-[11px] text-slate-400 leading-relaxed italic">
-                                Sesuai regulasi tata kelola YPI Alfa Ali Masykur, ruang kerja Anda terisolasi secara aman pada unit pendidikan ini.
+                                Sesuai regulasi tata kelola YPI Ali Masykur, ruang kerja Anda terisolasi secara aman pada unit pendidikan ini.
                             </p>
                         </div>
                     </div>
@@ -925,7 +978,7 @@
                         <h4 class="font-bold text-slate-900">Sinkronisasi Kurikulum</h4>
                     </div>
                     <p class="leading-relaxed text-[11px]">
-                        Seluruh capaian dan tujuan pembelajaran mata pelajaran ini telah tersinkronisasi dengan master kurikulum Yayasan Pendidikan Islam Alfa Ali Masykur.
+                        Seluruh capaian dan tujuan pembelajaran mata pelajaran ini telah tersinkronisasi dengan master kurikulum YPI Ali Masykur.
                     </p>
                 </div>
             @endif

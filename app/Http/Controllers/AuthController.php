@@ -15,8 +15,7 @@ class AuthController extends Controller
             return redirect()->route('dashboard');
         }
 
-        $units = UnitPendidikan::with('jenjang')->get();
-        return view('auth.login', compact('units'));
+        return view('auth.login');
     }
 
     public function login(Request $request)

@@ -16,13 +16,5 @@ class GuideController extends Controller
 
         return view('guide.index', compact('user'));
     }
-
-    /**
-     * Standar Prosedur (SOP) Publik - Halaman Awal Sebelum Masuk Portal
-     */
-    public function publicSop()
-    {
-        return view('sop.public');
-    }
 }
 

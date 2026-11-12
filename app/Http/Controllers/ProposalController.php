@@ -62,8 +62,11 @@ class ProposalController extends Controller
         $proposals = $query->latest('tanggal_pengajuan')->get();
 
         // Mapel yang tersedia untuk pengajuan usulan baru
-        if (!$user->canAccessAllUnits() && $user->unit_id) {
-            $availableMapel = MataPelajaran::whereHas('kurikulum', fn($q) => $q->where('unit_id', $user->unit_id))->get();
+        if ($user->isGuru()) {
+            $assignedIds = $user->penugasan()->pluck('mapel_id')->toArray();
+            $availableMapel = MataPelajaran::whereIn('id', $assignedIds)->with('kurikulum.unit')->get();
+        } elseif (!$user->canAccessAllUnits() && $user->unit_id) {
+            $availableMapel = MataPelajaran::whereHas('kurikulum', fn($q) => $q->where('unit_id', $user->unit_id))->with('kurikulum.unit')->get();
         } else {
             $availableMapel = MataPelajaran::with('kurikulum.unit')->get();
         }
@@ -162,6 +165,86 @@ class ProposalController extends Controller
 
             return back()->with('info', "Usulan {$usulan->nomor_usulan} dikembalikan ke pengusul untuk direvisi sesuai catatan telaah.");
         }
+    }
+
+    /**
+     * Rekomendasi 2: Alur Birokrasi Perbaikan & Pengajuan Ulang (Re-Submit) Usulan Ditolak
+     */
+    public function resubmit(Request $request, UsulanPerubahan $usulan)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        if ($usulan->pengusul_id !== $user->id && !$user->isAdmin()) {
+            return back()->with('error', 'Akses Dibatasi: Anda hanya berhak merevisi usulan yang Anda ajukan sendiri.');
+        }
+
+        if ($usulan->status !== 'Ditolak') {
+            return back()->with('error', 'Hanya usulan yang berstatus Ditolak yang dapat diajukan ulang.');
+        }
+
+        if ($usulan->mataPelajaran?->kurikulum?->is_locked) {
+            return back()->with('error', 'Periode Kurikulum Terkunci: Kurikulum unit sedang dibekukan sehingga usulan tidak dapat diajukan ulang.');
+        }
+
+        $validated = $request->validate([
+            'judul_usulan' => 'nullable|string|max:200',
+            'alasan_pengajuan' => 'required|string|min:10',
+            'deskripsi_usulan' => 'nullable|string',
+            'beban_jp' => 'nullable|integer',
+            'media_ajar' => 'nullable|string',
+            'dokumen_materi' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx|max:10240',
+        ]);
+
+        $dataUsulan = $usulan->data_usulan ?? [];
+        $dataUsulan['isi_usulan'] = $validated['deskripsi_usulan'] ?? (!empty($validated['judul_usulan']) ? $validated['judul_usulan'] : $usulan->judul_usulan);
+        if (isset($validated['beban_jp'])) {
+            $dataUsulan['beban_jp'] = $validated['beban_jp'];
+        }
+        if (isset($validated['media_ajar'])) {
+            $dataUsulan['media_ajar'] = $validated['media_ajar'];
+        }
+
+        if ($request->hasFile('dokumen_materi')) {
+            $file = $request->file('dokumen_materi');
+            $dir = 'modul_materi/' . ($usulan->mataPelajaran->kode_mapel ?? 'USULAN');
+            $path = $file->store($dir, 'public');
+            $usulan->file_path = $path;
+            $usulan->file_name = $file->getClientOriginalName();
+            $usulan->file_type = $file->getClientOriginalExtension();
+            $usulan->file_size = $file->getSize();
+        }
+
+        $catatanSebelumnya = $usulan->alasan_penolakan;
+        $usulan->judul_usulan = !empty($validated['judul_usulan']) ? $validated['judul_usulan'] : $usulan->judul_usulan;
+        $usulan->alasan_pengajuan = $validated['alasan_pengajuan'] . ($catatanSebelumnya ? "\n\n[Riwayat Evaluasi Sebelumnya: {$catatanSebelumnya}]" : '');
+        $usulan->data_usulan = $dataUsulan;
+        $usulan->status = 'Menunggu Persetujuan';
+        $usulan->tanggal_pengajuan = now();
+        $usulan->peninjau_id = null;
+        $usulan->tanggal_keputusan = null;
+        $usulan->alasan_penolakan = null;
+        $usulan->save();
+
+        // Notifikasi ke Kepala Sekolah & Waka Unit
+        $reviewers = \App\Models\User::where('unit_id', $usulan->unit_id)
+            ->whereHas('peran', fn($q) => $q->where('nama_peran', 'like', '%kepala%')->orWhere('nama_peran', 'like', '%waka%'))
+            ->get();
+
+        foreach ($reviewers as $rev) {
+            \App\Services\NotificationService::send(
+                $rev->id,
+                "Usulan Direvisi: {$usulan->nomor_usulan}",
+                "Guru {$user->name} telah merevisi dan mengajukan ulang usulan '{$usulan->judul_usulan}' untuk ditinjau kembali.",
+                'proposal_resubmitted',
+                route('usulan.index'),
+                ['usulan_id' => $usulan->id, 'status' => 'Menunggu Persetujuan']
+            );
+        }
+
+        return back()->with('success', "Usulan {$usulan->nomor_usulan} berhasil DIPERBAIKI dan diajukan ulang ke antrean telaah Kepala Sekolah.");
     }
 
     protected function applyProposalToMaster(UsulanPerubahan $usulan): void
