@@ -50,7 +50,7 @@
                 <!-- ======================================================== -->
 
                 <!-- HERO OVERVIEW CARD KATALOG -->
-                <div class="bg-white rounded-3xl border border-slate-100 shadow-card p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden relative">
+                <div class="bg-white rounded-3xl border border-slate-100 shadow-card p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
                     <div class="space-y-3.5 max-w-xl z-10">
                         <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-[11px] font-semibold">
                             <span class="w-1.5 h-1.5 rounded-full bg-brand-600 animate-pulse"></span>
@@ -71,12 +71,62 @@
                                 <span>Buka Silabus {{ $selectedMapel->nama_mapel }}</span>
                                 <span class="material-symbols-outlined text-sm">arrow_forward</span>
                             </a>
-                            <button type="button" onclick="window.print()" 
-                                    class="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-all cursor-pointer">
-                                <span class="material-symbols-outlined text-base">print</span>
-                                <span>Cetak Daftar Mapel</span>
-                            </button>
+                            <!-- Export Dropdown: Daftar Mapel (list data → CSV / XLSX / PDF) -->
+                            <div class="relative export-dropdown-wrapper z-30" id="wrapper-export-mapel">
+                                <button type="button" onclick="toggleExportDropdown('mapel', event)"
+                                        class="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-all cursor-pointer">
+                                    <span class="material-symbols-outlined text-base">download</span>
+                                    <span>Ekspor Daftar Mapel</span>
+                                    <span class="material-symbols-outlined text-xs">expand_more</span>
+                                </button>
+                                <div id="export-dropdown-mapel"
+                                     class="export-dropdown-menu hidden absolute left-0 top-full mt-1 bg-white rounded-2xl shadow-floating border border-slate-200 z-50 min-w-[175px] py-1.5 overflow-hidden">
+                                    <button type="button" onclick="exportTableToCSV('mapel-export-table','daftar-mata-pelajaran')"
+                                            class="w-full text-left px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition-colors cursor-pointer">
+                                        <span class="material-symbols-outlined text-sm text-emerald-600">table_rows</span>
+                                        CSV (.csv)
+                                    </button>
+                                    <button type="button" onclick="exportTableToXLSX('mapel-export-table','Daftar Mapel','daftar-mata-pelajaran')"
+                                            class="w-full text-left px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition-colors cursor-pointer">
+                                        <span class="material-symbols-outlined text-sm text-green-700">grid_on</span>
+                                        Excel (.xlsx)
+                                    </button>
+                                    <div class="border-t border-slate-100 my-1"></div>
+                                    <button type="button" onclick="exportTableToPDF('mapel-export-table', 'Daftar Mata Pelajaran & Kurikulum Terpadu', 'YPI Ali Masykur Wonosobo')"
+                                            class="w-full text-left px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition-colors cursor-pointer">
+                                        <span class="material-symbols-outlined text-sm text-rose-500">picture_as_pdf</span>
+                                        Cetak / PDF
+                                    </button>
+                                </div>
+                            </div>
                         </div>
+                        {{-- Hidden export table: data mapel untuk CSV/XLSX --}}
+                        <table id="mapel-export-table" class="hidden">
+                            <thead>
+                                <tr>
+                                    <th>No.</th>
+                                    <th>Nama Mata Pelajaran</th>
+                                    <th>Kode Mapel</th>
+                                    <th>Kategori</th>
+                                    <th>Unit Pendidikan</th>
+                                    <th>Kurikulum</th>
+                                    <th>Jumlah TP</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($allCatalogMapel as $i => $mp)
+                                <tr>
+                                    <td>{{ $i + 1 }}</td>
+                                    <td>{{ $mp->nama_mapel }}</td>
+                                    <td>{{ $mp->kode_mapel ?? '-' }}</td>
+                                    <td>{{ $mp->kategori ?? 'INTRAKURIKULER' }}</td>
+                                    <td>{{ $mp->kurikulum?->unit?->nama_unit ?? '-' }}</td>
+                                    <td>{{ $mp->kurikulum?->nama_kurikulum ?? '-' }}</td>
+                                    <td>{{ $mp->tujuan_pembelajaran_count ?? 0 }}</td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
                     </div>
 
                     <!-- 3D Isometric Book Graphic -->

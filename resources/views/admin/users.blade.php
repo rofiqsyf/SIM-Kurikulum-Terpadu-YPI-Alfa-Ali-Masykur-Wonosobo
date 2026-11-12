@@ -212,10 +212,34 @@
                             <span class="material-symbols-outlined text-sm text-brand-700">assignment_ind</span>
                             <span>Tetapkan Guru</span>
                         </button>
-                        <button type="button" onclick="window.print()" class="text-slate-500 hover:text-slate-800 flex items-center gap-1 font-semibold px-2 py-1">
-                            <span class="material-symbols-outlined text-sm">print</span>
-                            <span>Cetak</span>
-                        </button>
+                        <!-- Export Dropdown: Daftar Pengguna (list data → CSV / XLSX / PDF) -->
+                        <div class="relative export-dropdown-wrapper z-30" id="wrapper-export-users">
+                            <button type="button" onclick="toggleExportDropdown('users', event)"
+                                    class="text-slate-500 hover:text-slate-800 flex items-center gap-1 font-semibold px-2 py-1 cursor-pointer">
+                                <span class="material-symbols-outlined text-sm">download</span>
+                                <span>Ekspor</span>
+                                <span class="material-symbols-outlined text-xs">expand_more</span>
+                            </button>
+                            <div id="export-dropdown-users"
+                                 class="export-dropdown-menu hidden absolute right-0 top-full mt-1 bg-white rounded-2xl shadow-floating border border-slate-200 z-50 min-w-[170px] py-1.5 overflow-hidden">
+                                <button type="button" onclick="exportTableToCSV('users-table','daftar-pengguna-sim-kurikulum')"
+                                        class="w-full text-left px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition-colors cursor-pointer">
+                                    <span class="material-symbols-outlined text-sm text-emerald-600">table_rows</span>
+                                    CSV (.csv)
+                                </button>
+                                <button type="button" onclick="exportTableToXLSX('users-table','Daftar Pengguna','daftar-pengguna-sim-kurikulum')"
+                                        class="w-full text-left px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition-colors cursor-pointer">
+                                    <span class="material-symbols-outlined text-sm text-green-700">grid_on</span>
+                                    Excel (.xlsx)
+                                </button>
+                                <div class="border-t border-slate-100 my-1"></div>
+                                <button type="button" onclick="exportTableToPDF('users-table', 'Daftar Pendidik, Tenaga Kependidikan & Penugasan Akademik', 'YPI Ali Masykur Wonosobo')"
+                                        class="w-full text-left px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition-colors cursor-pointer">
+                                    <span class="material-symbols-outlined text-sm text-rose-500">picture_as_pdf</span>
+                                    Cetak / PDF
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
 

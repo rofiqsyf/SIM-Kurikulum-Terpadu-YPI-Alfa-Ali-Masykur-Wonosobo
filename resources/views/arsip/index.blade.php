@@ -31,7 +31,7 @@
             </div>
 
             <!-- HERO OVERVIEW CARD -->
-            <div class="bg-white rounded-3xl border border-slate-100 shadow-card p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden relative">
+            <div class="bg-white rounded-3xl border border-slate-100 shadow-card p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
                 <div class="space-y-3 max-w-xl z-10">
                     <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-[11px] font-semibold">
                         <span class="w-1.5 h-1.5 rounded-full bg-brand-600"></span>
@@ -55,11 +55,34 @@
                             </button>
                         @endif
 
-                        <button type="button" onclick="window.print()" 
-                                class="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-all cursor-pointer">
-                            <span class="material-symbols-outlined text-base">print</span>
-                            <span>Cetak Daftar Dokumen</span>
-                        </button>
+                        <!-- Export Dropdown: Daftar Arsip (list data → CSV / XLSX / PDF) -->
+                        <div class="relative export-dropdown-wrapper z-30" id="wrapper-export-arsip">
+                            <button type="button" onclick="toggleExportDropdown('arsip', event)"
+                                    class="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-all cursor-pointer">
+                                <span class="material-symbols-outlined text-base">download</span>
+                                <span>Ekspor Daftar</span>
+                                <span class="material-symbols-outlined text-xs">expand_more</span>
+                            </button>
+                            <div id="export-dropdown-arsip"
+                                 class="export-dropdown-menu hidden absolute left-0 sm:left-auto sm:right-0 top-full mt-1.5 bg-white rounded-2xl shadow-floating border border-slate-200 z-50 min-w-[170px] py-1.5 overflow-hidden">
+                                <button type="button" onclick="exportTableToCSV('arsip-export-table','rekap-arsip-dokumen-kurikulum')"
+                                        class="w-full text-left px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition-colors cursor-pointer">
+                                    <span class="material-symbols-outlined text-sm text-emerald-600">table_rows</span>
+                                    CSV (.csv)
+                                </button>
+                                <button type="button" onclick="exportTableToXLSX('arsip-export-table','Arsip Dokumen','rekap-arsip-dokumen-kurikulum')"
+                                        class="w-full text-left px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition-colors cursor-pointer">
+                                    <span class="material-symbols-outlined text-sm text-green-700">grid_on</span>
+                                    Excel (.xlsx)
+                                </button>
+                                <div class="border-t border-slate-100 my-1"></div>
+                                <button type="button" onclick="exportTableToPDF('arsip-export-table', 'Rekapitulasi Dokumen Arsip Kurikulum & Supervisi Pengawasan', 'YPI Ali Masykur Wonosobo')"
+                                        class="w-full text-left px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition-colors cursor-pointer">
+                                    <span class="material-symbols-outlined text-sm text-rose-500">picture_as_pdf</span>
+                                    Cetak / PDF
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -296,7 +319,7 @@
                     </div>
                 @else
                     <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse text-xs min-w-[1000px]">
+                        <table id="arsip-export-table" class="w-full text-left border-collapse text-xs min-w-[1000px]">
                             <thead>
                                 <tr class="border-b border-slate-100 bg-slate-50/75 text-[11px] uppercase tracking-wider text-slate-400 font-bold">
                                     <th class="py-3.5 px-5 min-w-[180px] whitespace-nowrap">Kode &amp; Tanggal</th>
@@ -995,6 +1018,9 @@
 <!-- PRINT STYLESHEET -->
 <style>
     @media print {
+        * {
+            color: #000000 !important;
+        }
         aside, header, footer, #filter-arsip-form, .xl\:col-span-4, button, form {
             display: none !important;
         }
@@ -1005,13 +1031,14 @@
         }
         body {
             background: white !important;
-            color: black !important;
+            color: #000000 !important;
         }
         table {
-            border: 1px solid #cbd5e1 !important;
+            border: 1px solid #000000 !important;
         }
         th, td {
-            border-bottom: 1px solid #e2e8f0 !important;
+            border-bottom: 1px solid #000000 !important;
+            color: #000000 !important;
         }
     }
 </style>

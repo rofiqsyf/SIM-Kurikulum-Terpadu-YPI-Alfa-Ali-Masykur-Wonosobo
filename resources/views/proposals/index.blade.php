@@ -30,7 +30,7 @@
             </div>
 
             <!-- HERO OVERVIEW CARD -->
-            <div class="bg-white rounded-3xl border border-slate-100 shadow-card p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden relative">
+            <div class="bg-white rounded-3xl border border-slate-100 shadow-card p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
                 <div class="space-y-3.5 max-w-xl z-10">
                     <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-[11px] font-semibold">
                         <span class="w-1.5 h-1.5 rounded-full bg-brand-600"></span>
@@ -46,11 +46,34 @@
                     </p>
 
                     <div class="pt-2">
-                        <button type="button" onclick="window.print()" 
-                                class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-brand-800 hover:bg-brand-900 text-white text-xs font-semibold shadow-subtle transition-all cursor-pointer">
-                            <span class="material-symbols-outlined text-base">print</span>
-                            <span>Cetak Rekap Usulan</span>
-                        </button>
+                        <!-- Export Dropdown: Rekap Usulan (list data → CSV / XLSX / PDF) -->
+                        <div class="relative export-dropdown-wrapper z-30" id="wrapper-export-usulan">
+                            <button type="button" onclick="toggleExportDropdown('usulan', event)"
+                                    class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-brand-800 hover:bg-brand-900 text-white text-xs font-semibold shadow-subtle transition-all cursor-pointer">
+                                <span class="material-symbols-outlined text-base">download</span>
+                                <span>Ekspor Rekap Usulan</span>
+                                <span class="material-symbols-outlined text-xs">expand_more</span>
+                            </button>
+                            <div id="export-dropdown-usulan"
+                                 class="export-dropdown-menu hidden absolute left-0 top-full mt-1 bg-white rounded-2xl shadow-floating border border-slate-200 z-50 min-w-[175px] py-1.5 overflow-hidden">
+                                <button type="button" onclick="exportTableToCSV('usulan-export-table','rekap-usulan-kurikulum')"
+                                        class="w-full text-left px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition-colors cursor-pointer">
+                                    <span class="material-symbols-outlined text-sm text-emerald-600">table_rows</span>
+                                    CSV (.csv)
+                                </button>
+                                <button type="button" onclick="exportTableToXLSX('usulan-export-table','Rekap Usulan','rekap-usulan-kurikulum')"
+                                        class="w-full text-left px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition-colors cursor-pointer">
+                                    <span class="material-symbols-outlined text-sm text-green-700">grid_on</span>
+                                    Excel (.xlsx)
+                                </button>
+                                <div class="border-t border-slate-100 my-1"></div>
+                                <button type="button" onclick="exportTableToPDF('usulan-export-table', 'Rekapitulasi Usulan Perubahan Silabus & Kurikulum', 'YPI Ali Masykur Wonosobo')"
+                                        class="w-full text-left px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition-colors cursor-pointer">
+                                    <span class="material-symbols-outlined text-sm text-rose-500">picture_as_pdf</span>
+                                    Cetak / PDF
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -170,7 +193,7 @@
             <!-- PROPOSALS TABLE (Matching Reference Lessons Table Style) -->
             <div class="bg-white rounded-3xl border border-slate-100 shadow-card overflow-hidden">
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left text-xs">
+                    <table id="usulan-export-table" class="w-full text-left text-xs">
                         <thead class="bg-slate-50/70 border-b border-slate-100 text-slate-500 font-semibold text-[11px]">
                             <tr>
                                 <th class="py-3.5 px-5">Kode Usulan</th>

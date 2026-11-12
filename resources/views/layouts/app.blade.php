@@ -1438,5 +1438,462 @@
 
     <!-- REALTIME FLOATING TOAST CONTAINER -->
     <div id="realtime-toast-container" class="fixed bottom-20 right-6 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
+
+    <!-- Global Print Stylesheet for Fallback / Ctrl+P -->
+    <style>
+        @media print {
+            * {
+                color: #000000 !important;
+            }
+            aside, header, #realtime-toast-container, .export-dropdown-wrapper, button, .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+
+    <!-- SheetJS CDN — for XLSX export (client-side, no backend needed) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <!-- Global App Assets for Document Printing -->
+    <script>
+        window.APP_LOGO_URL = "{{ asset('images/logo-yayasan.png') }}";
+    </script>
+
+    <!-- ===== SHARED EXPORT HELPERS ===== -->
+    <script>
+        /**
+         * Toggle export dropdown visibility.
+         * Explicitly targets ONLY elements with class '.export-dropdown-menu'.
+         * Never touches wrapper or button elements.
+         */
+        function toggleExportDropdown(id, event) {
+            if (event) {
+                if (typeof event.stopPropagation === 'function') event.stopPropagation();
+            }
+            const el = document.getElementById('export-dropdown-' + id);
+            if (!el) return;
+            const isCurrentlyOpen = !el.classList.contains('hidden');
+
+            // Close all open menus first
+            closeExportDropdowns();
+
+            // If it was closed, open it now
+            if (!isCurrentlyOpen) {
+                el.classList.remove('hidden');
+            }
+        }
+
+        /** Close all export dropdown menus only (never hides wrappers/buttons). */
+        function closeExportDropdowns() {
+            document.querySelectorAll('.export-dropdown-menu').forEach(menu => {
+                menu.classList.add('hidden');
+            });
+        }
+
+        // Close open dropdowns when clicking anywhere outside any export wrapper
+        document.addEventListener('click', function (e) {
+            if (!e.target.closest('.export-dropdown-wrapper')) {
+                closeExportDropdowns();
+            }
+        });
+
+        /**
+         * Extracts a clean 2D data matrix from a <table>.
+         * Automatically skips columns named 'Aksi', 'Tindakan', or with class 'no-export'.
+         * Automatically skips rows that are filtered/hidden.
+         * Strips icon ligatures (.material-symbols-outlined) and collapses whitespace.
+         */
+        function getTableDataMatrix(tableId) {
+            const table = document.getElementById(tableId);
+            if (!table) return null;
+
+            // Detect columns to ignore (e.g. 'Aksi', 'Tindakan', or .no-export)
+            const headerRow = table.querySelector('thead tr') || table.querySelector('tr');
+            const ignoredColIndices = new Set();
+
+            if (headerRow) {
+                const ths = Array.from(headerRow.querySelectorAll('th, td'));
+                ths.forEach((th, idx) => {
+                    const txt = th.innerText.toLowerCase().trim();
+                    if (txt === 'aksi' || txt === 'tindakan' || th.classList.contains('no-export')) {
+                        ignoredColIndices.add(idx);
+                    }
+                });
+            }
+
+            const rows = Array.from(table.querySelectorAll('tr'));
+            const dataMatrix = [];
+
+            rows.forEach(tr => {
+                // Skip hidden rows unless it's a dedicated hidden export table
+                const isSelfHidden = tr.classList.contains('hidden') || tr.style.display === 'none';
+                if (isSelfHidden && !table.classList.contains('hidden')) {
+                    return;
+                }
+
+                const cells = Array.from(tr.querySelectorAll('th, td'));
+                if (cells.length === 0) return;
+
+                const rowData = [];
+                cells.forEach((cell, idx) => {
+                    if (ignoredColIndices.has(idx)) return;
+                    // Clone cell to strip icon text ligatures
+                    const clone = cell.cloneNode(true);
+                    clone.querySelectorAll('.material-symbols-outlined, .material-icons, script, style').forEach(el => el.remove());
+                    let text = clone.innerText.replace(/\r?\n+/g, ' ').replace(/\s+/g, ' ').trim();
+                    rowData.push(text);
+                });
+
+                if (rowData.length > 0) {
+                    dataMatrix.push(rowData);
+                }
+            });
+
+            return dataMatrix;
+        }
+
+        /**
+         * Export a <table> to CSV and trigger download.
+         * @param {string} tableId   – the table element's id
+         * @param {string} filename  – filename without extension
+         */
+        function exportTableToCSV(tableId, filename) {
+            closeExportDropdowns();
+            const matrix = getTableDataMatrix(tableId);
+            if (!matrix || matrix.length === 0) {
+                alert('Data tabel tidak ditemukan untuk diekspor.');
+                return;
+            }
+
+            const csvContent = matrix.map(row => {
+                return row.map(cell => '"' + cell.replace(/"/g, '""') + '"').join(',');
+            }).join('\n');
+
+            const BOM = '\uFEFF'; // UTF-8 BOM so Excel reads Indonesian chars correctly
+            const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = (filename || 'export') + '.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        /**
+         * Export a <table> to XLSX using SheetJS and trigger download.
+         * @param {string} tableId   – the table element's id
+         * @param {string} sheetName – worksheet name inside the xlsx
+         * @param {string} filename  – filename without extension
+         */
+        function exportTableToXLSX(tableId, sheetName, filename) {
+            closeExportDropdowns();
+            if (typeof XLSX === 'undefined') {
+                alert('Library XLSX belum selesai dimuat. Pastikan perangkat terhubung internet.');
+                return;
+            }
+            const matrix = getTableDataMatrix(tableId);
+            if (!matrix || matrix.length === 0) {
+                alert('Data tabel tidak ditemukan untuk diekspor.');
+                return;
+            }
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(matrix);
+            XLSX.utils.book_append_sheet(wb, ws, (sheetName || 'Data').substring(0, 31));
+            XLSX.writeFile(wb, (filename || 'export') + '.xlsx');
+        }
+
+        /**
+         * Export a <table> to a clean, formal, printable A4 table report document.
+         * Formatted specifically as an official table report with Kop Yayasan,
+         * striped table borders, and signature sign-off.
+         * Automatically triggers print preview (permitting "Save as PDF" or paper print)
+         * without printing any website UI chrome.
+         *
+         * @param {string} tableId      – the table element's id
+         * @param {string} reportTitle  – formal document title
+         * @param {string} subtitle     – subtitle / organization scope
+         */
+        function exportTableToPDF(tableId, reportTitle, subtitle) {
+            closeExportDropdowns();
+            const matrix = getTableDataMatrix(tableId);
+            if (!matrix || matrix.length === 0) {
+                alert('Data tabel tidak ditemukan untuk dicetak.');
+                return;
+            }
+
+            const headers = matrix[0];
+            const dataRows = matrix.slice(1);
+
+            const logoUrl = window.APP_LOGO_URL || '{{ asset("images/logo-yayasan.png") }}';
+            const now = new Date();
+            const tglOptions = { day: 'numeric', month: 'long', year: 'numeric' };
+            const tanggalHariIni = now.toLocaleDateString('id-ID', tglOptions);
+            const formattedDate = now.toLocaleDateString('id-ID', { ...tglOptions, hour: '2-digit', minute: '2-digit' }) + ' WIB';
+
+            const escapeHtml = (str) => {
+                if (!str) return '';
+                return String(str)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            };
+
+            const headerHtml = headers.map((h) => {
+                const isNum = (h.toLowerCase().includes('no') || h === '#');
+                const isCenter = isNum || h.toLowerCase().includes('status') || h.toLowerCase().includes('beban');
+                return `<th class="${isCenter ? 'text-center' : ''}">${escapeHtml(h)}</th>`;
+            }).join('');
+
+            const bodyHtml = dataRows.map((row) => {
+                const cells = row.map((cell, cIdx) => {
+                    const h = (headers[cIdx] || '').toLowerCase();
+                    const isNum = (h.includes('no') || h === '#');
+                    const isCenter = isNum || h.includes('status') || h.includes('beban');
+                    const isRight = h.includes('nominal') || h.includes('biaya');
+                    const alignClass = isCenter ? 'text-center' : (isRight ? 'text-right' : '');
+                    return `<td class="${alignClass}">${escapeHtml(cell)}</td>`;
+                }).join('');
+                return `<tr>${cells}</tr>`;
+            }).join('');
+
+            const printHtml = `<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="utf-8">
+    <title>${escapeHtml(reportTitle)} - YPI Ali Masykur</title>
+    <style>
+        @page {
+            size: A4 landscape;
+            margin: 12mm 15mm;
+        }
+        * {
+            box-sizing: border-box;
+            color: #000000 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            color: #000000 !important;
+            background: #ffffff !important;
+            margin: 0;
+            padding: 10px;
+            font-size: 9pt;
+            line-height: 1.35;
+        }
+        .kop-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 2px;
+            border-bottom: 2.5px solid #000000;
+            padding-bottom: 8px;
+        }
+        .kop-table td {
+            border: none !important;
+            padding: 0;
+            vertical-align: middle;
+            color: #000000 !important;
+        }
+        .kop-logo {
+            width: 58px;
+            height: 58px;
+            object-fit: contain;
+        }
+        .kop-text {
+            text-align: center;
+        }
+        .kop-yayasan {
+            font-size: 11pt;
+            font-weight: 800;
+            letter-spacing: 1px;
+            color: #000000 !important;
+            text-transform: uppercase;
+            margin: 0;
+        }
+        .kop-main {
+            font-size: 13pt;
+            font-weight: 800;
+            color: #000000 !important;
+            text-transform: uppercase;
+            margin: 2px 0;
+        }
+        .kop-address {
+            font-size: 8pt;
+            color: #000000 !important;
+            margin: 0;
+        }
+        .kop-line-double {
+            border-bottom: 1px solid #000000;
+            margin-top: 2px;
+            margin-bottom: 12px;
+        }
+        .report-title-box {
+            text-align: center;
+            margin-bottom: 12px;
+        }
+        .report-title {
+            font-size: 12pt;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #000000 !important;
+            margin: 0;
+        }
+        .report-subtitle {
+            font-size: 8.5pt;
+            color: #000000 !important;
+            margin-top: 2px;
+        }
+        table.data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 16px;
+            font-size: 8.5pt;
+        }
+        table.data-table th, table.data-table td {
+            border: 1px solid #000000 !important;
+            color: #000000 !important;
+            padding: 5px 7px;
+            text-align: left;
+            vertical-align: middle;
+        }
+        table.data-table th {
+            background-color: #f2f2f2 !important;
+            font-weight: 700;
+            color: #000000 !important;
+            text-transform: uppercase;
+            font-size: 7.5pt;
+            letter-spacing: 0.3px;
+        }
+        table.data-table tr:nth-child(even) td {
+            background-color: #fafafa !important;
+            color: #000000 !important;
+        }
+        .text-center { text-align: center !important; }
+        .text-right { text-align: right !important; }
+        .font-bold { font-weight: 700 !important; color: #000000 !important; }
+        .signature-table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+            page-break-inside: avoid;
+        }
+        .signature-table td {
+            border: none !important;
+            width: 50%;
+            vertical-align: top;
+            font-size: 8.5pt;
+            color: #000000 !important;
+        }
+        .signature-box {
+            text-align: center;
+            width: 240px;
+            margin: 0 auto;
+            color: #000000 !important;
+        }
+        .signature-space {
+            height: 50px;
+        }
+    </style>
+</head>
+<body>
+    <table class="kop-table">
+        <tr>
+            <td style="width: 70px;">
+                <img src="${logoUrl}" class="kop-logo" alt="Logo">
+            </td>
+            <td class="kop-text">
+                <div class="kop-yayasan">YPI ALI MASYKUR WONOSOBO</div>
+                <div class="kop-main">SISTEM INFORMASI MANAJEMEN KURIKULUM</div>
+                <div class="kop-address">Dusun Bumen, Desa Bumirejo, Kec. Mojotengah, Kab. Wonosobo, Jawa Tengah 56351 • Portal Akademik Terpadu</div>
+            </td>
+            <td style="width: 70px;"></td>
+        </tr>
+    </table>
+    <div class="kop-line-double"></div>
+
+    <div class="report-title-box">
+        <div class="report-title">${escapeHtml(reportTitle)}</div>
+        <div class="report-subtitle">${escapeHtml(subtitle || '')} • Dicetak: ${escapeHtml(formattedDate)} • Total: ${dataRows.length} Data</div>
+    </div>
+
+    <table class="data-table">
+        <thead>
+            <tr>${headerHtml}</tr>
+        </thead>
+        <tbody>
+            ${bodyHtml}
+        </tbody>
+    </table>
+
+    <table class="signature-table">
+        <tr>
+            <td>
+                <div class="signature-box" style="margin-left: 20px;">
+                    <div>Mengetahui,</div>
+                    <div class="font-bold">Waka Kurikulum</div>
+                    <div class="signature-space"></div>
+                    <div class="font-bold">( .................................................. )</div>
+                    <div>NIP. .........................................</div>
+                </div>
+            </td>
+            <td>
+                <div class="signature-box" style="margin-right: 20px;">
+                    <div>Wonosobo, ${tanggalHariIni}</div>
+                    <div class="font-bold">Kepala Satuan Pendidikan</div>
+                    <div class="signature-space"></div>
+                    <div class="font-bold">( .................................................. )</div>
+                    <div>NIP. .........................................</div>
+                </div>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>`;
+
+            let iframe = document.getElementById('export-pdf-print-frame');
+            if (!iframe) {
+                iframe = document.createElement('iframe');
+                iframe.id = 'export-pdf-print-frame';
+                iframe.style.position = 'fixed';
+                iframe.style.right = '0';
+                iframe.style.bottom = '0';
+                iframe.style.width = '0';
+                iframe.style.height = '0';
+                iframe.style.border = '0';
+                iframe.style.visibility = 'hidden';
+                document.body.appendChild(iframe);
+            }
+
+            const doc = iframe.contentWindow.document;
+            doc.open();
+            doc.write(printHtml);
+            doc.close();
+
+            setTimeout(() => {
+                try {
+                    iframe.contentWindow.focus();
+                    iframe.contentWindow.print();
+                } catch (e) {
+                    console.error('Gagal mencetak dokumen:', e);
+                    window.print();
+                }
+            }, 400);
+        }
+
+        /**
+         * Trigger browser print dialog (for PDF save fallback).
+         */
+        function printPage() {
+            closeExportDropdowns();
+            window.print();
+        }
+    </script>
+    <!-- ===== END SHARED EXPORT HELPERS ===== -->
 </body>
 </html>

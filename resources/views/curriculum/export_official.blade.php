@@ -15,8 +15,11 @@
     <style>
         @media print {
             .no-print { display: none !important; }
-            body { background: white !important; padding: 0 !important; font-size: 11pt; }
+            * { color: #000000 !important; }
+            body { background: white !important; padding: 0 !important; font-size: 11pt; color: #000000 !important; }
             .print-page { box-shadow: none !important; margin: 0 !important; max-width: 100% !important; border: none !important; padding: 0 !important; }
+            table { border-color: #000000 !important; }
+            th, td { border-color: #000000 !important; color: #000000 !important; }
             @page { size: A4 landscape; margin: 15mm; }
         }
     </style>
