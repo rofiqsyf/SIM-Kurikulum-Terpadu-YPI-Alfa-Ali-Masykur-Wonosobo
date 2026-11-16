@@ -88,27 +88,32 @@
                 <!-- View Mode Pills -->
                 <div class="flex items-center gap-1.5 flex-wrap">
                     <span class="text-[11px] font-semibold text-slate-400 mr-1">Tampilan:</span>
-                    <button type="button" onclick="setJurnalViewMode('kerja')" id="jurnal-view-kerja" 
-                            class="jurnal-view-tab px-3.5 py-1.5 rounded-full text-xs font-bold transition-all bg-brand-800 text-white shadow-subtle cursor-pointer">
-                        Agenda Kerja ({{ $pendingKerjaCount }})
-                    </button>
-                    <button type="button" onclick="setJurnalViewMode('both')" id="jurnal-view-both" 
-                            class="jurnal-view-tab px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 cursor-pointer">
-                        Semua Tampilan
-                    </button>
-                    <button type="button" onclick="setJurnalViewMode('jurnal')" id="jurnal-view-jurnal" 
-                            class="jurnal-view-tab px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 cursor-pointer">
-                        Jurnal Mengajar
-                    </button>
-                    <button type="button" onclick="setJurnalViewMode('tahfidz')" id="jurnal-view-tahfidz" 
-                            class="jurnal-view-tab px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 cursor-pointer">
-                        Buku Tahfidz Santri
-                    </button>
-                    @if($user->isWakaKurikulum() || $user->isKepalaSekolah() || $user->isAdmin())
+
+                    @if($user->isWakaKurikulum() || $user->isKepalaSekolah() || $user->isAdmin() || $user->isYayasan())
                         <button type="button" onclick="setJurnalViewMode('monitoring')" id="jurnal-view-monitoring" 
-                                class="jurnal-view-tab px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all bg-white text-teal-800 border border-teal-200 hover:bg-teal-50 cursor-pointer flex items-center gap-1">
+                                class="jurnal-view-tab px-3.5 py-1.5 rounded-full text-xs font-bold transition-all bg-brand-800 text-white shadow-subtle cursor-pointer flex items-center gap-1">
                             <span class="material-symbols-outlined text-xs">supervised_user_circle</span>
-                            <span>Monitoring KBM Guru ({{ $unitKbmStats['total_guru'] ?? 0 }})</span>
+                            <span>{{ $user->isYayasan() ? 'Monitoring 3 Unit' : 'Supervisi KBM Guru (' . ($unitKbmStats['total_guru'] ?? 0) . ')' }}</span>
+                        </button>
+                    @endif
+
+                    <button type="button" onclick="setJurnalViewMode('kerja')" id="jurnal-view-kerja" 
+                            class="jurnal-view-tab px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 cursor-pointer">
+                        {{ $user->isPembina() && !$user->isGuru() ? 'Agenda Pembinaan' : 'Agenda Kerja' }} ({{ $pendingKerjaCount }})
+                    </button>
+
+                    @if(!$user->isPembina() || $user->isGuru() || $user->isAdmin())
+                        <button type="button" onclick="setJurnalViewMode('both')" id="jurnal-view-both" 
+                                class="jurnal-view-tab px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 cursor-pointer">
+                            Semua Tampilan
+                        </button>
+                        <button type="button" onclick="setJurnalViewMode('jurnal')" id="jurnal-view-jurnal" 
+                                class="jurnal-view-tab px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 cursor-pointer">
+                            Jurnal Mengajar
+                        </button>
+                        <button type="button" onclick="setJurnalViewMode('tahfidz')" id="jurnal-view-tahfidz" 
+                                class="jurnal-view-tab px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 cursor-pointer">
+                            Buku Tahfidz Santri
                         </button>
                     @endif
                 </div>
@@ -529,8 +534,8 @@
 
             </div>
 
-            <!-- SECTION 3: MONITORING KBM & KEPATUHAN JURNAL GURU UNIT (KHUSUS WAKA KURIKULUM & KEPSEK) -->
-            @if($user->isWakaKurikulum() || $user->isKepalaSekolah() || $user->isAdmin())
+            <!-- SECTION 3: MONITORING KBM & KEPATUHAN JURNAL GURU (SUPERVISI WAKA, KEPSEK, ADMIN, & YAYASAN) -->
+            @if($user->isWakaKurikulum() || $user->isKepalaSekolah() || $user->isAdmin() || $user->isYayasan())
                 <div id="monitoring-kbm-card" class="bg-white rounded-3xl p-6 border border-slate-100 shadow-card space-y-5 hidden">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
                         <div class="flex items-center gap-2.5">
@@ -538,17 +543,72 @@
                                 <span class="material-symbols-outlined text-lg">supervised_user_circle</span>
                             </div>
                             <div>
-                                <h2 class="text-sm font-bold text-slate-900">Monitoring Pelaksanaan KBM &amp; Kepatuhan Jurnal Guru</h2>
-                                <p class="text-[11px] text-slate-500">Pemantauan kepatuhan pengisian jurnal mengajar harian pendidik unit {{ $user->unit->nama_unit ?? 'Unit Pendidikan' }}</p>
+                                <h2 class="text-sm font-bold text-slate-900">
+                                    {{ $user->isYayasan() ? 'Monitoring Pelaksanaan KBM Terpadu 3 Unit' : 'Monitoring Pelaksanaan KBM & Kepatuhan Jurnal Guru' }}
+                                </h2>
+                                <p class="text-[11px] text-slate-500">
+                                    {{ $user->isYayasan() ? 'Pengawasan makro aktivitas belajar mengajar di tingkat MI Tahfidz, SMP, dan SMA Alfa Ali Masykur' : 'Pemantauan kepatuhan pengisian jurnal mengajar harian pendidik unit ' . ($user->unit->nama_unit ?? 'Unit Pendidikan') }}
+                                </p>
                             </div>
                         </div>
 
                         <div class="flex items-center gap-2">
-                            <span class="text-[11px] font-semibold text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
-                                Evaluasi Berkala Mingguan Waka Kurikulum
+                            <span class="text-[11px] font-semibold text-slate-600 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
+                                {{ $user->isYayasan() ? 'Supervisi Makro Yayasan' : ($user->isKepalaSekolah() ? 'Supervisi Pimpinan Unit' : 'Evaluasi Berkala Waka Kurikulum') }}
                             </span>
                         </div>
                     </div>
+
+                    <!-- Khusus Pengurus Yayasan: Ringkasan Komparatif 3 Unit -->
+                    @if($user->isYayasan() && !empty($threeUnitsKbmStats))
+                        <div class="p-4 rounded-2xl bg-indigo-50/80 border border-indigo-200/80 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-indigo-700 text-base">domain</span>
+                                    <h3 class="text-xs font-bold uppercase tracking-wider text-indigo-950">Statistik Komparatif KBM 3 Unit (Yayasan)</h3>
+                                </div>
+                                <span class="text-[10px] font-bold text-indigo-800 bg-white px-2.5 py-1 rounded-full border border-indigo-200">7 Hari Terakhir</span>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                                @foreach($threeUnitsKbmStats as $st)
+                                    <div class="p-3.5 rounded-xl bg-white border border-indigo-100 space-y-1.5 shadow-subtle">
+                                        <div class="flex items-center justify-between">
+                                            <span class="font-bold text-slate-900 block text-xs">{{ $st['nama_unit'] }}</span>
+                                            <span class="text-[10px] font-bold text-slate-500 font-mono">{{ $st['kode_unit'] }}</span>
+                                        </div>
+                                        <div class="flex items-center justify-between text-[11px] text-slate-600 pt-1">
+                                            <span>Pendidik Terdaftar:</span>
+                                            <strong class="text-slate-800">{{ $st['total_guru'] }} Guru</strong>
+                                        </div>
+                                        <div class="flex items-center justify-between text-[11px] text-teal-800">
+                                            <span>Sesi KBM Terlaksana:</span>
+                                            <strong class="font-bold">{{ $st['kbm_pekan_ini'] }} Sesi</strong>
+                                        </div>
+                                        <div class="text-[11px] text-slate-500 pt-1 border-t border-slate-100 flex items-center justify-between">
+                                            <span>Buku Setoran Tahfidz:</span>
+                                            <strong class="text-indigo-800">{{ $st['tahfidz_count'] }} Catatan</strong>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+
+                    <!-- Banner Tindak Lanjut Pimpinan Unit -->
+                    @if($user->isWakaKurikulum() || $user->isKepalaSekolah())
+                        <div class="p-3.5 rounded-2xl bg-teal-50/90 border border-teal-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-teal-950">
+                            <div class="flex items-center gap-2.5">
+                                <span class="material-symbols-outlined text-teal-700 text-lg shrink-0">fact_check</span>
+                                <div>
+                                    <strong class="font-bold">Halaman Tindak Lanjut &amp; Supervisi KBM Pimpinan:</strong>
+                                    <span class="text-slate-700">Data otomatis teragregasi dari jurnal yang diisi guru kelas/mapel. Anda dapat mengirimkan notifikasi pengingat satu klik jika ada pendidik yang belum mengisi jurnal.</span>
+                                </div>
+                            </div>
+                            <span class="px-3 py-1 rounded-full bg-white text-teal-800 font-bold text-[11px] border border-teal-200 shrink-0 self-start sm:self-center shadow-subtle">
+                                {{ $unitKbmStats['guru_perlu_pengingat'] }} Pendidik Belum KBM
+                            </span>
+                        </div>
+                    @endif
 
                     <!-- 4 Quick Stat Pills -->
                     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
@@ -1297,6 +1357,10 @@
             }
         });
     }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        setJurnalViewMode('{{ $defaultViewMode ?? "both" }}');
+    });
 </script>
 
     @include('partials.modal-agenda')

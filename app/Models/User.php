@@ -114,7 +114,8 @@ class User extends Authenticatable
 
     public function isKepalaSekolah(): bool
     {
-        return str_contains(strtolower($this->peran?->nama_peran ?? ''), 'kepala');
+        $role = strtolower($this->peran?->nama_peran ?? '');
+        return str_contains($role, 'kepala') || str_contains($role, 'kepsek');
     }
 
     public function isWakaKurikulum(): bool
@@ -137,6 +138,11 @@ class User extends Authenticatable
         return str_contains(strtolower($this->peran?->nama_peran ?? ''), 'admin');
     }
 
+    public function isSuperAdmin(): bool
+    {
+        return $this->isAdmin() && is_null($this->unit_id);
+    }
+
     public function isPembina(): bool
     {
         return str_contains(strtolower($this->peran?->nama_peran ?? ''), 'pembina');
@@ -145,6 +151,14 @@ class User extends Authenticatable
     public function canAccessAllUnits(): bool
     {
         return $this->isAdmin() || $this->isYayasan();
+    }
+
+    public function getSegmentNameAttribute(): string
+    {
+        if ($this->unit) {
+            return $this->unit->jenjang?->nama_jenjang ?? ($this->unit->kode_unit ? explode('-', $this->unit->kode_unit)[0] : 'Unit');
+        }
+        return 'Pusat Yayasan';
     }
 
     public function canManageUnit($unitId): bool

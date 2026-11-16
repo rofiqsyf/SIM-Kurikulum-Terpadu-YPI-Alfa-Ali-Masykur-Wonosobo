@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <title>@yield('title', 'SIM Kurikulum') - YPI Ali Masykur</title>
-    
+
     <!-- Favicon Logo Yayasan -->
     <link rel="icon" type="image/png" href="{{ asset('images/logo-yayasan.png') }}">
     <link rel="apple-touch-icon" href="{{ asset('images/logo-yayasan.png') }}">
@@ -17,7 +17,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
-    
+
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -58,7 +58,7 @@
             }
         };
     </script>
-    
+
     <style>
         body {
             font-feature-settings: "cv02", "cv03", "cv04", "cv11";
@@ -70,7 +70,7 @@
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        
+
         .material-symbols-outlined {
             font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
             vertical-align: middle;
@@ -91,13 +91,13 @@
 <body class="bg-[#f4f6fa] text-slate-800 font-sans min-h-screen flex flex-col antialiased selection:bg-brand-100 selection:text-brand-900">
 
     <!-- MOBILE SIDEBAR BACKDROP -->
-    <div id="sidebar-backdrop" onclick="toggleMobileSidebar()" 
+    <div id="sidebar-backdrop" onclick="toggleMobileSidebar()"
          class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 hidden lg:hidden transition-opacity"></div>
 
     <!-- MAIN SIDEBAR -->
-    <aside id="main-sidebar" 
+    <aside id="main-sidebar"
            class="fixed inset-y-0 left-0 w-64 bg-white border-r border-slate-100 z-50 flex flex-col justify-between transform -translate-x-full lg:translate-x-0 transition-transform duration-200 ease-in-out shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
-        
+
         <div class="flex flex-col h-full overflow-hidden">
             <!-- Brand Header -->
             <div class="h-20 px-6 flex items-center justify-between shrink-0">
@@ -142,60 +142,97 @@
 
             <!-- Navigation Links -->
             <div class="flex-1 px-4 py-2 overflow-y-auto space-y-6">
-                <!-- Group 1: Academic -->
+                @php
+                    $u = auth()->user();
+                    $isYayasan = $u->isYayasan();
+                    $isKepsek = $u->isKepalaSekolah();
+                    $isWaka = $u->isWakaKurikulum();
+                    $isPembina = $u->isPembina() && !$u->isGuru();
+                    $isAdmin = $u->isAdmin();
+                    $isGuru = $u->isGuru() && !$isWaka && !$isKepsek && !$isAdmin && !$isYayasan;
+                @endphp
+
+                <!-- Group 1: Academic / Main Operations -->
                 <div>
                     <span class="px-3 text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-2">
                         Menu Utama
                     </span>
                     <nav class="space-y-1">
-                        <a href="{{ route('dashboard') }}" 
+                        {{-- 1. Dashboard --}}
+                        <a href="{{ route('dashboard') }}"
                            class="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-semibold transition-all {{ request()->routeIs('dashboard') ? 'bg-brand-50 text-brand-800 font-bold shadow-subtle' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
                             <span class="material-symbols-outlined text-[20px] {{ request()->routeIs('dashboard') ? 'text-brand-700' : 'text-slate-400' }}">dashboard</span>
-                            <span>Dashboard</span>
+                            <span>{{ $isYayasan ? 'Dashboard Yayasan' : ($isKepsek ? 'Dashboard Pimpinan' : ($isWaka ? 'Dashboard Waka' : ($isPembina ? 'Dashboard Pembina' : ($isGuru ? 'Dashboard Guru' : 'Dashboard Sistem')))) }}</span>
                         </a>
 
-                        <a href="{{ route('curriculum.index') }}" 
-                           class="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-semibold transition-all {{ request()->routeIs('curriculum.index') ? 'bg-brand-50 text-brand-800 font-bold shadow-subtle' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-                            <span class="material-symbols-outlined text-[20px] {{ request()->routeIs('curriculum.index') ? 'text-brand-700' : 'text-slate-400' }}">account_tree</span>
-                            <span>Kurikulum &amp; Silabus</span>
-                        </a>
+                        {{-- 2. Monitoring 3 Unit (Khusus Yayasan & Admin di urutan utama) --}}
+                        @if($isYayasan || $isAdmin)
+                            <a href="{{ route('yayasan.monitoring') }}"
+                               class="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-semibold transition-all {{ request()->routeIs('yayasan.monitoring') ? 'bg-brand-50 text-brand-800 font-bold shadow-subtle' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
+                                <span class="material-symbols-outlined text-[20px] {{ request()->routeIs('yayasan.monitoring') ? 'text-brand-700' : 'text-slate-400' }}">domain</span>
+                                <span>Monitoring 3 Unit</span>
+                            </a>
+                        @endif
 
-                        <a href="{{ route('usulan.index') }}" 
-                           class="flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-semibold transition-all {{ request()->routeIs('usulan.index') ? 'bg-brand-50 text-brand-800 font-bold shadow-subtle' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-                            <div class="flex items-center gap-3">
-                                <span class="material-symbols-outlined text-[20px] {{ request()->routeIs('usulan.index') ? 'text-brand-700' : 'text-slate-400' }}">rate_review</span>
-                                <span>Riwayat Usulan</span>
-                            </div>
-
-                            @php
-                                $pendingQuery = \App\Models\UsulanPerubahan::where('status', 'Menunggu Persetujuan');
-                                if (auth()->user()->isGuru()) {
-                                    $pendingQuery->where('pengusul_id', auth()->id());
-                                } elseif (!auth()->user()->canAccessAllUnits() && auth()->user()->unit_id) {
-                                    $pendingQuery->where('unit_id', auth()->user()->unit_id);
-                                }
-                                $pendingCount = $pendingQuery->count();
-                            @endphp
-                            @if($pendingCount > 0)
-                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold {{ request()->routeIs('usulan.index') ? 'bg-brand-700 text-white' : 'bg-amber-100 text-amber-800' }}">
-                                    {{ $pendingCount }}
+                        {{-- 3. Kurikulum & Silabus (Dikecualikan untuk Pembina Ekstra murni) --}}
+                        @if(!$isPembina)
+                            <a href="{{ route('curriculum.index') }}"
+                               class="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-semibold transition-all {{ request()->routeIs('curriculum.index') ? 'bg-brand-50 text-brand-800 font-bold shadow-subtle' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
+                                <span class="material-symbols-outlined text-[20px] {{ request()->routeIs('curriculum.index') ? 'text-brand-700' : 'text-slate-400' }}">
+                                    {{ $isGuru ? 'menu_book' : ($isKepsek ? 'verified' : 'account_tree') }}
                                 </span>
-                            @endif
+                                <span>{{ $isGuru ? 'Mata Pelajaran Saya' : ($isWaka ? 'Kurikulum & ATP Unit' : ($isKepsek ? 'Otorisasi Silabus Unit' : ($isYayasan ? 'Kurikulum 3 Unit' : 'Kurikulum & Silabus'))) }}</span>
+                            </a>
+                        @endif
+
+                        {{-- 4. Riwayat / Meja Telaah Usulan (Khusus Guru, Waka, Kepsek, Admin; Dikecualikan untuk Pembina & Yayasan) --}}
+                        @if(!$isPembina && !$isYayasan)
+                            <a href="{{ route('usulan.index') }}"
+                               class="flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-semibold transition-all {{ request()->routeIs('usulan.index') ? 'bg-brand-50 text-brand-800 font-bold shadow-subtle' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
+                                <div class="flex items-center gap-3">
+                                    <span class="material-symbols-outlined text-[20px] {{ request()->routeIs('usulan.index') ? 'text-brand-700' : 'text-slate-400' }}">
+                                        {{ $isKepsek ? 'approval' : 'rate_review' }}
+                                    </span>
+                                    <span>{{ $isGuru ? 'Usulan Saya' : ($isWaka ? 'Telaah Usulan Guru' : ($isKepsek ? 'Persetujuan Usulan' : 'Riwayat Usulan')) }}</span>
+                                </div>
+
+                                @php
+                                    $pendingQuery = \App\Models\UsulanPerubahan::where('status', 'Menunggu Persetujuan');
+                                    if ($u->isGuru()) {
+                                        $pendingQuery->where('pengusul_id', $u->id);
+                                    } elseif (!$u->canAccessAllUnits() && $u->unit_id) {
+                                        $pendingQuery->where('unit_id', $u->unit_id);
+                                    }
+                                    $pendingCount = $pendingQuery->count();
+                                @endphp
+                                @if($pendingCount > 0)
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold {{ request()->routeIs('usulan.index') ? 'bg-brand-700 text-white' : 'bg-amber-100 text-amber-800' }}">
+                                        {{ $pendingCount }}
+                                    </span>
+                                @endif
+                            </a>
+                        @endif
+
+                        {{-- 5. Kokurikuler & Ekstrakurikuler --}}
+                        <a href="{{ $isPembina ? route('pembina.index') : route('kegiatan.index') }}" 
+                           class="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-semibold transition-all {{ request()->routeIs('kegiatan.*') || request()->routeIs('pembina.*') ? 'bg-brand-50 text-brand-800 font-bold shadow-subtle' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
+                            <span class="material-symbols-outlined text-[20px] {{ request()->routeIs('kegiatan.*') || request()->routeIs('pembina.*') ? 'text-brand-700' : 'text-slate-400' }}">
+                                {{ $isPembina ? 'sports_soccer' : ($isYayasan ? 'stars' : 'local_activity') }}
+                            </span>
+                            <span>{{ $isPembina ? 'Kegiatan Ekstrakurikuler' : ($isGuru ? 'Kokurikuler (P5-RA)' : ($isYayasan ? 'Karakter & Prestasi Santri' : 'Kokurikuler & Ekstra')) }}</span>
                         </a>
 
-                        <a href="{{ route('kegiatan.index') }}" 
-                           class="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-semibold transition-all {{ request()->routeIs('kegiatan.index') ? 'bg-brand-50 text-brand-800 font-bold shadow-subtle' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-                            <span class="material-symbols-outlined text-[20px] {{ request()->routeIs('kegiatan.index') ? 'text-brand-700' : 'text-slate-400' }}">local_activity</span>
-                            <span>Kokurikuler &amp; Ekstra</span>
-                        </a>
-
-                        <a href="{{ route('jurnal.index') }}" 
+                        {{-- 6. Jurnal KBM, Agenda & Tahfidz (Disesuaikan judul per jabatan) --}}
+                        <a href="{{ route('jurnal.index') }}"
                            class="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-semibold transition-all {{ request()->routeIs('jurnal.index') ? 'bg-brand-50 text-brand-800 font-bold shadow-subtle' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-                            <span class="material-symbols-outlined text-[20px] {{ request()->routeIs('jurnal.index') ? 'text-brand-700' : 'text-slate-400' }}">edit_calendar</span>
-                            <span>Jurnal &amp; Tahfidz</span>
+                            <span class="material-symbols-outlined text-[20px] {{ request()->routeIs('jurnal.index') ? 'text-brand-700' : 'text-slate-400' }}">
+                                {{ $isPembina ? 'event_available' : ($isWaka ? 'supervised_user_circle' : ($isKepsek ? 'fact_check' : ($isYayasan ? 'stacked_bar_chart' : 'edit_calendar'))) }}
+                            </span>
+                            <span>{{ $isPembina ? 'Agenda Pembinaan' : ($isGuru ? 'Jurnal KBM & Tahfidz' : ($isWaka ? 'Supervisi KBM & Tahfidz' : ($isKepsek ? 'Supervisi KBM & Hafalan' : ($isYayasan ? 'Monitoring KBM & Tahfidz' : 'Jurnal & Tahfidz Unit')))) }}</span>
                         </a>
 
-                        <a href="{{ route('guide.index') }}" 
+                        {{-- 7. Panduan SOP --}}
+                        <a href="{{ route('guide.index') }}"
                            class="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-semibold transition-all {{ request()->routeIs('guide.index') ? 'bg-brand-50 text-brand-800 font-bold shadow-subtle' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
                             <span class="material-symbols-outlined text-[20px] {{ request()->routeIs('guide.index') ? 'text-brand-700' : 'text-slate-400' }}">menu_book</span>
                             <span>Panduan SOP</span>
@@ -203,56 +240,51 @@
                     </nav>
                 </div>
 
-
-                <!-- Group 2: Governance & Admin -->
+                {{-- Group 2: Governance & Admin --}}
                 <div>
                     <span class="px-3 text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-2">
                         Tata Kelola
                     </span>
                     <nav class="space-y-1">
-                        <a href="{{ route('arsip.index') }}" 
+                        {{-- Arsip & Portofolio Supervisi --}}
+                        <a href="{{ route('arsip.index') }}"
                            class="flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-semibold transition-all {{ request()->routeIs('arsip.*') ? 'bg-brand-50 text-brand-800 font-bold shadow-subtle' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
                             <div class="flex items-center gap-3">
                                 <span class="material-symbols-outlined text-[20px] {{ request()->routeIs('arsip.*') ? 'text-brand-700' : 'text-slate-400' }}">inventory_2</span>
-                                <span>Arsip &amp; Supervisi</span>
+                                <span>{{ $isGuru ? 'Portofolio Modul Ajar' : ($isPembina ? 'Arsip Kegiatan Ekstra' : ($isWaka ? 'Verifikasi Arsip Ajar' : ($isKepsek ? 'Pengesahan Arsip KOSP' : ($isYayasan ? 'Arsip Induk Yayasan' : 'Arsip & Supervisi')))) }}</span>
                             </div>
                             @php
                                 $arsipPerluQuery = \App\Models\ArsipDokumen::where('status_verifikasi', 'Perlu Dilengkapi');
-                                if (!auth()->user()->canAccessAllUnits() && auth()->user()->unit_id) {
-                                    $arsipPerluQuery->where('unit_id', auth()->user()->unit_id);
+                                if (!$u->canAccessAllUnits() && $u->unit_id) {
+                                    $arsipPerluQuery->where('unit_id', $u->unit_id);
                                 }
                                 $arsipPerluCount = $arsipPerluQuery->count();
                             @endphp
-                            @if($arsipPerluCount > 0)
+                            @if($arsipPerluCount > 0 && ($isWaka || $isKepsek || $isAdmin))
                                 <span class="px-2 py-0.5 rounded-full text-[10px] font-bold {{ request()->routeIs('arsip.*') ? 'bg-brand-700 text-white' : 'bg-amber-100 text-amber-800' }}" title="{{ $arsipPerluCount }} dokumen perlu dilengkapi">
                                     {{ $arsipPerluCount }}
                                 </span>
                             @endif
                         </a>
 
-                        @if(auth()->user()->canAccessAllUnits())
-                            <a href="{{ route('yayasan.monitoring') }}" 
-                               class="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-semibold transition-all {{ request()->routeIs('yayasan.monitoring') ? 'bg-brand-50 text-brand-800 font-bold shadow-subtle' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-                                <span class="material-symbols-outlined text-[20px] {{ request()->routeIs('yayasan.monitoring') ? 'text-brand-700' : 'text-slate-400' }}">domain</span>
-                                <span>Monitoring 3 Unit</span>
-                            </a>
-                        @endif
-
-                        @if(auth()->user()->isAdmin() || auth()->user()->isYayasan() || auth()->user()->isWakaKurikulum() || auth()->user()->isKepalaSekolah())
-                            <a href="{{ route('admin.users') }}" 
+                        {{-- Manajemen Akun & Beban Jam (Khusus Admin, Waka, Kepsek, Yayasan; Dikecualikan untuk Guru & Pembina) --}}
+                        @if($isAdmin || $isYayasan || $isWaka || $isKepsek)
+                            <a href="{{ route('admin.users') }}"
                                class="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-semibold transition-all {{ request()->routeIs('admin.users') ? 'bg-brand-50 text-brand-800 font-bold shadow-subtle' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-                                <span class="material-symbols-outlined text-[20px] {{ request()->routeIs('admin.users') ? 'text-brand-700' : 'text-slate-400' }}">manage_accounts</span>
-                                <span>{{ auth()->user()->isWakaKurikulum() ? 'Guru & Beban Jam' : (auth()->user()->isKepalaSekolah() ? 'Dewan Guru Unit' : 'Pengguna & Peran') }}</span>
+                                <span class="material-symbols-outlined text-[20px] {{ request()->routeIs('admin.users') ? 'text-brand-700' : 'text-slate-400' }}">
+                                    {{ $isKepsek ? 'badge' : 'manage_accounts' }}
+                                </span>
+                                <span>{{ $isWaka ? 'Dewan Guru & Beban Jam' : ($isKepsek ? 'Dewan Guru & SK Jam' : ($isYayasan ? 'Audit SDM & Pendidik' : 'Pengguna & Peran')) }}</span>
                             </a>
                         @endif
 
-                        <!-- Chat & Helpdesk Nav Item -->
-                        @php $unreadChatNav = auth()->user()->unreadAdminChatCount(); @endphp
-                        <a href="{{ route('helpdesk.index') }}" 
+                        {{-- Chat & Helpdesk Nav Item --}}
+                        @php $unreadChatNav = $u->unreadAdminChatCount(); @endphp
+                        <a href="{{ route('helpdesk.index') }}"
                            class="flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-semibold transition-all {{ request()->routeIs('helpdesk.*') ? 'bg-brand-50 text-brand-800 font-bold shadow-subtle' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
                             <div class="flex items-center gap-3">
                                 <span class="material-symbols-outlined text-[20px] {{ request()->routeIs('helpdesk.*') ? 'text-brand-700' : 'text-slate-400' }}">support_agent</span>
-                                <span>{{ auth()->user()->isAdmin() ? 'Helpdesk Admin' : 'Hubungi Admin' }}</span>
+                                <span>{{ $isAdmin ? 'Helpdesk Admin IT' : 'Hubungi Admin IT' }}</span>
                             </div>
                             @if($unreadChatNav > 0)
                                 <span class="px-2 py-0.5 rounded-full bg-rose-600 text-white text-[10px] font-bold animate-pulse">{{ $unreadChatNav }}</span>
@@ -295,8 +327,8 @@
             <!-- Bottom: User Profile Row -->
             <div class="p-4 border-t border-slate-100 bg-white shrink-0">
                 <div class="flex items-center justify-between">
-                    <button type="button" onclick="openUserProfileModal()" 
-                            class="flex items-center gap-2.5 min-w-0 cursor-pointer p-1.5 -ml-1.5 rounded-2xl hover:bg-slate-50 transition-colors text-left" 
+                    <button type="button" onclick="openUserProfileModal()"
+                            class="flex items-center gap-2.5 min-w-0 cursor-pointer p-1.5 -ml-1.5 rounded-2xl hover:bg-slate-50 transition-colors text-left"
                             title="Buka Profil Akun">
                         <div class="w-9 h-9 rounded-2xl bg-brand-50 border border-brand-200/80 flex items-center justify-center font-bold text-xs text-brand-800 shrink-0 shadow-subtle">
                             {{ substr(auth()->user()->name, 0, 1) }}
@@ -312,7 +344,7 @@
                         </div>
 
                     </button>
-                    
+
                     <form method="POST" action="{{ route('logout') }}" class="inline shrink-0">
                         @csrf
                         <button type="submit" title="Keluar Sistem" class="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer">
@@ -330,7 +362,7 @@
 
     <!-- MAIN SHELL -->
     <div class="lg:pl-64 flex flex-col flex-1 min-h-screen">
-        
+
         <!-- STICKY TOPBAR HEADER (Unified & Clean) -->
         <header class="sticky top-0 z-30 h-16 bg-white/80 backdrop-blur-md border-b border-slate-100/90 flex items-center justify-between px-4 sm:px-6 lg:px-8">
             <div class="flex items-center gap-3 flex-1 min-w-0">
@@ -343,7 +375,7 @@
                 <form method="GET" action="{{ route('curriculum.index') }}" class="relative w-full max-w-xs sm:max-w-md">
                     <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</span>
                     <input type="search" name="q" value="{{ request('q') }}"
-                           placeholder="Cari CP, TP, atau Materi..." 
+                           placeholder="Cari CP, TP, atau Materi..."
                            class="w-full pl-10 pr-4 py-2 text-xs bg-slate-50/80 hover:bg-slate-100/80 focus:bg-white text-slate-800 placeholder-slate-400 border border-slate-200/70 rounded-2xl focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-600 transition-all">
                 </form>
             </div>
@@ -368,8 +400,8 @@
 
                 <!-- Realtime Notification Center -->
                 <div class="relative" id="notif-wrapper">
-                    <button type="button" id="notif-bell-btn" onclick="toggleNotificationDropdown()" 
-                            class="relative p-2 rounded-2xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors focus:outline-none" 
+                    <button type="button" id="notif-bell-btn" onclick="toggleNotificationDropdown()"
+                            class="relative p-2 rounded-2xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors focus:outline-none"
                             title="Pusat Notifikasi Realtime">
                         <span class="material-symbols-outlined text-xl">notifications</span>
                         <!-- Pulsing badge -->
@@ -379,7 +411,7 @@
                     </button>
 
                     <!-- Dropdown Popover Surface -->
-                    <div id="notif-dropdown" 
+                    <div id="notif-dropdown"
                          class="hidden absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-3xl shadow-floating border border-slate-100 z-50 overflow-hidden text-xs">
                         <!-- Dropdown Header -->
                         <div class="px-5 py-3.5 bg-slate-50/80 border-b border-slate-100 flex items-center justify-between">
@@ -390,7 +422,7 @@
                                 </span>
                             </div>
 
-                            <button type="button" onclick="markAllNotificationsAsRead()" 
+                            <button type="button" onclick="markAllNotificationsAsRead()"
                                     class="text-[11px] text-brand-800 hover:underline font-semibold">
                                 Tandai Semua Dibaca
                             </button>
@@ -408,9 +440,19 @@
 
                         <!-- Dropdown Footer -->
                         <div class="p-3 bg-slate-50/60 border-t border-slate-100 text-center">
-                            <a href="{{ route('usulan.index') }}" class="text-[11px] font-semibold text-slate-600 hover:text-brand-800 block">
-                                Buka Riwayat Usulan Lengkap →
-                            </a>
+                            @if($isPembina)
+                                <a href="{{ route('pembina.index') }}" class="text-[11px] font-semibold text-slate-600 hover:text-brand-800 block">
+                                    Buka Agenda Ekstrakurikuler →
+                                </a>
+                            @elseif($isYayasan)
+                                <a href="{{ route('yayasan.monitoring') }}" class="text-[11px] font-semibold text-slate-600 hover:text-brand-800 block">
+                                    Buka Monitoring Terpadu →
+                                </a>
+                            @else
+                                <a href="{{ route('usulan.index') }}" class="text-[11px] font-semibold text-slate-600 hover:text-brand-800 block">
+                                    {{ $isGuru ? 'Buka Riwayat Usulan Saya →' : 'Buka Meja Usulan Kurikulum →' }}
+                                </a>
+                            @endif
                         </div>
 
                     </div>
@@ -491,10 +533,10 @@
 
     <!-- GLOBAL PROPOSAL SLIDE-OVER DRAWER -->
     <div id="global-proposal-backdrop" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden transition-opacity" onclick="closeGlobalProposalModal()"></div>
-    
-    <div id="global-proposal-drawer" 
+
+    <div id="global-proposal-drawer"
          class="fixed inset-y-0 right-0 w-full sm:w-[500px] bg-white z-50 shadow-floating transform translate-x-full transition-transform duration-200 ease-in-out flex flex-col justify-between overflow-hidden">
-        
+
         <!-- Header -->
         <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between shrink-0 bg-slate-50/50">
             <div class="flex items-center gap-3">
@@ -518,7 +560,7 @@
         <!-- Form Body -->
         <form method="POST" action="{{ route('curriculum.proposal.store') }}" enctype="multipart/form-data" class="p-6 flex-1 overflow-y-auto space-y-4 text-xs">
             @csrf
-            
+
             <!-- Hidden context fields for hierarchy linkages -->
             <input type="hidden" name="data_id" id="proposal_data_id" value="">
             <input type="hidden" name="target_parent_id" id="proposal_target_parent_id" value="">
@@ -576,7 +618,7 @@
             <!-- Judul Usulan -->
             <div class="space-y-1">
                 <label class="font-semibold text-slate-700">Judul / Ringkasan Usulan</label>
-                <input type="text" name="judul_usulan" id="proposal_judul_usulan" required 
+                <input type="text" name="judul_usulan" id="proposal_judul_usulan" required
                        placeholder="misal: Penambahan Materi Zakat Perniagaan Kontekstual"
                        class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-800 text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-600 focus:border-brand-600">
             </div>
@@ -585,7 +627,7 @@
             <!-- Rincian Konten Usulan -->
             <div class="space-y-1">
                 <label class="font-semibold text-slate-700">Rumusan / Deskripsi Usulan Baru</label>
-                <textarea name="deskripsi_usulan" id="proposal_deskripsi_usulan" rows="3" 
+                <textarea name="deskripsi_usulan" id="proposal_deskripsi_usulan" rows="3"
                           placeholder="Tuliskan rumusan lengkap TP atau uraian materi ajar yang diusulkan..."
                           class="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-slate-800 text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-600 focus:border-brand-600 leading-relaxed"></textarea>
             </div>
@@ -617,13 +659,13 @@
                     <span class="text-[10px] text-slate-400 font-medium">PDF, DOCX, XLSX (Maks. 20MB)</span>
                 </div>
 
-                <div id="drawer-dropzone" 
+                <div id="drawer-dropzone"
                      class="border-2 border-dashed border-slate-200 hover:border-brand-600 bg-slate-50/60 hover:bg-brand-50/20 rounded-2xl p-4 text-center cursor-pointer transition-colors"
                      onclick="document.getElementById('drawer-file-input').click()">
-                    
-                    <input type="file" name="dokumen" id="drawer-file-input" 
-                           accept=".pdf,.docx,.xlsx,.doc,.xls" 
-                           class="hidden" 
+
+                    <input type="file" name="dokumen" id="drawer-file-input"
+                           accept=".pdf,.docx,.xlsx,.doc,.xls"
+                           class="hidden"
                            onchange="handleDrawerFileSelect(this.files)">
 
                     <div id="drawer-dropzone-placeholder" class="space-y-1 select-none">
@@ -641,7 +683,7 @@
                                 <p class="text-[10px] text-slate-400" id="drawer-file-size">PDF • 2.4 MB</p>
                             </div>
                         </div>
-                        <button type="button" onclick="event.stopPropagation(); clearDrawerFile();" 
+                        <button type="button" onclick="event.stopPropagation(); clearDrawerFile();"
                                 class="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-rose-600 transition-colors">
                             <span class="material-symbols-outlined text-base">close</span>
                         </button>
@@ -660,7 +702,7 @@
                     <span class="text-[10px] text-slate-400">Taksonomi C1–C6</span>
                 </div>
 
-                <textarea name="alasan_pengajuan" id="proposal_alasan_pengajuan" required rows="3" 
+                <textarea name="alasan_pengajuan" id="proposal_alasan_pengajuan" required rows="3"
                           placeholder="Jelaskan kebutuhan rasional, tingkat Taksonomi Bloom (C1-C6), dan integrasi nilai kepesantrenan..."
                           class="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-slate-800 text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-600 focus:border-brand-600 leading-relaxed"></textarea>
                 <p class="text-[10px] text-slate-400">Rasional ini akan menjadi dasar utama Kepala Sekolah dalam menyetujui atau memberikan catatan perbaikan.</p>
@@ -669,11 +711,11 @@
 
             <!-- Footer Action Buttons -->
             <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2">
-                <button type="button" onclick="closeGlobalProposalModal()" 
+                <button type="button" onclick="closeGlobalProposalModal()"
                         class="px-3.5 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium transition-colors">
                     Batal
                 </button>
-                <button type="submit" 
+                <button type="submit"
                         class="px-4 py-2 rounded-lg bg-brand-800 hover:bg-brand-900 text-white text-xs font-semibold shadow-subtle transition-all flex items-center gap-1.5">
                     <span class="material-symbols-outlined text-base">send</span>
                     <span>Kirim Pengajuan</span>
@@ -688,14 +730,14 @@
     <!-- GLOBAL USER PROFILE & EDIT DATA DIRI MODAL -->
     <!-- ======================================================== -->
     <div id="profile-modal-backdrop" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden transition-opacity" onclick="closeUserProfileModal()"></div>
-    
-    <div id="profile-modal" 
+
+    <div id="profile-modal"
          class="fixed inset-0 z-50 hidden overflow-y-auto p-4 sm:p-6 flex items-center justify-center pointer-events-none">
-        
+
         <div class="pointer-events-auto bg-white rounded-3xl shadow-floating border border-slate-100 max-w-lg w-full overflow-hidden transform transition-all duration-200">
             <!-- Modal Header with gradient brand styling -->
             <div class="relative bg-gradient-to-r from-brand-800 to-brand-900 p-6 text-white text-center">
-                <button type="button" onclick="closeUserProfileModal()" 
+                <button type="button" onclick="closeUserProfileModal()"
                         class="absolute top-4 right-4 text-white/70 hover:text-white p-1 rounded-full hover:bg-white/10 transition-colors cursor-pointer"
                         title="Tutup">
                     <span class="material-symbols-outlined text-xl">close</span>
@@ -732,7 +774,7 @@
                             class="px-3.5 py-1 rounded-full text-xs font-semibold bg-white/15 hover:bg-white/25 text-white transition-all cursor-pointer">
                         Edit Data Diri
                     </button>
-                    <a href="{{ route('profile.edit') }}" 
+                    <a href="{{ route('profile.edit') }}"
                        class="px-3.5 py-1 rounded-full text-xs font-semibold bg-white/15 hover:bg-white/25 text-white transition-all flex items-center gap-1"
                        title="Buka Halaman Lengkap">
                         <span>Halaman Lengkap</span>
@@ -809,20 +851,20 @@
 
                 <!-- Footer Actions inside Modal -->
                 <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-3">
-                    <button type="button" onclick="switchModalProfileTab('edit')" 
+                    <button type="button" onclick="switchModalProfileTab('edit')"
                             class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-brand-50 hover:bg-brand-100 text-brand-800 border border-brand-200 text-xs font-semibold transition-colors cursor-pointer">
                         <span class="material-symbols-outlined text-sm">edit</span>
                         <span>Edit Data Diri</span>
                     </button>
 
                     <div class="flex items-center gap-2">
-                        <button type="button" onclick="closeUserProfileModal()" 
+                        <button type="button" onclick="closeUserProfileModal()"
                                 class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors cursor-pointer">
                             Tutup
                         </button>
                         <form method="POST" action="{{ route('logout') }}" class="inline">
                             @csrf
-                            <button type="submit" 
+                            <button type="submit"
                                     class="px-4 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-semibold transition-colors flex items-center gap-1 cursor-pointer">
                                 <span class="material-symbols-outlined text-sm">logout</span>
                                 <span>Keluar</span>
@@ -888,12 +930,12 @@
 
                     <!-- Submit & Buttons -->
                     <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-3">
-                        <button type="button" onclick="switchModalProfileTab('view')" 
+                        <button type="button" onclick="switchModalProfileTab('view')"
                                 class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors cursor-pointer">
                             Kembali
                         </button>
 
-                        <button type="submit" 
+                        <button type="submit"
                                 class="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl bg-brand-800 hover:bg-brand-900 text-white text-xs font-semibold shadow-subtle transition-all cursor-pointer">
                             <span class="material-symbols-outlined text-sm">save</span>
                             <span>Simpan Perubahan</span>
@@ -911,7 +953,7 @@
             const sidebar = document.getElementById('main-sidebar');
             const backdrop = document.getElementById('sidebar-backdrop');
             const isOpen = !sidebar.classList.contains('-translate-x-full');
-            
+
             if (isOpen) {
                 sidebar.classList.add('-translate-x-full');
                 backdrop.classList.add('hidden');
@@ -926,7 +968,7 @@
         function openGlobalProposalModal(objek = 'TP', judul = '', dataId = null, targetParentId = null, mapelId = null) {
             const drawer = document.getElementById('global-proposal-drawer');
             const backdrop = document.getElementById('global-proposal-backdrop');
-            
+
             drawer.classList.remove('translate-x-full');
             backdrop.classList.remove('hidden');
             document.body.style.overflow = 'hidden';
@@ -990,8 +1032,8 @@
             const sizeEl = document.getElementById('drawer-file-size');
             const iconEl = document.getElementById('drawer-file-icon');
 
-            const sizeStr = file.size >= 1048576 
-                ? (file.size / 1048576).toFixed(1) + ' MB' 
+            const sizeStr = file.size >= 1048576
+                ? (file.size / 1048576).toFixed(1) + ' MB'
                 : (file.size / 1024).toFixed(1) + ' KB';
 
             let iconName = 'description';
@@ -1183,7 +1225,7 @@
 
             const toast = document.createElement('div');
             toast.className = "pointer-events-auto bg-white border border-slate-200/90 shadow-floating rounded-2xl p-4 flex items-start gap-3 transition-all duration-300 transform translate-y-3 opacity-0";
-            
+
             let icon = 'notifications';
             let iconColor = 'text-brand-700 bg-brand-50';
             if (notif.tipe === 'proposal_approved') {
@@ -1263,7 +1305,7 @@
                 const bgUnread = !n.dibaca ? 'bg-brand-50/30' : '';
 
                 return `
-                    <div onclick="clickNotification(${n.id}, '${n.tautan || ''}')" 
+                    <div onclick="clickNotification(${n.id}, '${n.tautan || ''}')"
                          class="p-3.5 flex items-start gap-3 hover:bg-slate-50 transition-colors cursor-pointer ${bgUnread}">
                         <div class="w-8 h-8 rounded-lg ${iconColor} flex items-center justify-center shrink-0 mt-0.5">
                             <span class="material-symbols-outlined text-base">${icon}</span>
@@ -1415,7 +1457,7 @@
         @if(!request()->routeIs('helpdesk.*'))
             @php $floatingUnread = auth()->user()->unreadAdminChatCount(); @endphp
             <aside aria-label="Bantuan Langsung Administrator" class="fixed bottom-6 right-6 z-40">
-                <a href="{{ route('helpdesk.index') }}" 
+                <a href="{{ route('helpdesk.index') }}"
                    class="group relative flex items-center gap-2.5 px-4 py-3 rounded-full bg-gradient-to-r from-brand-800 to-brand-900 text-white shadow-floating hover:shadow-2xl hover:scale-105 active:scale-95 transition-all duration-200 border border-white/20"
                    title="{{ auth()->user()->isAdmin() ? 'Buka Helpdesk Administrator' : 'Hubungi Administrator IT' }}">
                     <div class="relative flex items-center justify-center">

@@ -24,6 +24,8 @@ Route::redirect('/sop', '/login');
 // Authentication
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
+Route::get('/forgot-password', [AuthController::class, 'showForgotPassword'])->name('password.request');
+Route::post('/forgot-password/reset', [AuthController::class, 'resetPassword'])->name('password.reset.submit');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('/logout', [AuthController::class, 'logout']);
 
@@ -53,6 +55,16 @@ Route::middleware(['auth'])->group(function () {
     // 5. Kegiatan Kokurikuler (P5-RA) & Ekstrakurikuler
     Route::get('/kegiatan', [KegiatanController::class, 'index'])->name('kegiatan.index');
 
+    // 5b. Workspace Pembina Ekstrakurikuler (Daftar Siswa, Jadwal Latihan & Presensi)
+    Route::get('/pembina/ekstra', [KegiatanController::class, 'pembinaIndex'])->name('pembina.index');
+    Route::post('/pembina/ekstra/anggota/store', [KegiatanController::class, 'storeAnggota'])->name('pembina.anggota.store');
+    Route::post('/pembina/ekstra/anggota/{id}/update', [KegiatanController::class, 'updateAnggota'])->name('pembina.anggota.update');
+    Route::delete('/pembina/ekstra/anggota/{id}', [KegiatanController::class, 'destroyAnggota'])->name('pembina.anggota.destroy');
+    Route::post('/pembina/ekstra/jadwal/store', [KegiatanController::class, 'storeJadwal'])->name('pembina.jadwal.store');
+    Route::post('/pembina/ekstra/jadwal/{id}/update', [KegiatanController::class, 'updateJadwal'])->name('pembina.jadwal.update');
+    Route::delete('/pembina/ekstra/jadwal/{id}', [KegiatanController::class, 'destroyJadwal'])->name('pembina.jadwal.destroy');
+    Route::post('/pembina/ekstra/jadwal/{id}/presensi', [KegiatanController::class, 'savePresensi'])->name('pembina.jadwal.presensi');
+
     // 6. Jurnal Kerja, Jurnal Mengajar Digital & Monitoring Tahfidz
     Route::get('/jurnal', [JurnalController::class, 'index'])->name('jurnal.index');
     Route::post('/jurnal/store', [JurnalController::class, 'storeJurnal'])->name('jurnal.store');
@@ -68,9 +80,10 @@ Route::middleware(['auth'])->group(function () {
     // 7. Monitoring Kurikulum Terpadu Seluruh Unit (Khusus Pengurus Yayasan)
     Route::get('/yayasan/monitoring', [YayasanController::class, 'index'])->name('yayasan.monitoring');
 
-    // 8. Manajemen Akun Pengguna & Hak Akses (Khusus Admin Sistem)
+    // 8. Manajemen Akun Pengguna & Hak Akses (Khusus Admin Sistem & Admin Unit)
     Route::get('/admin/users', [AdminController::class, 'index'])->name('admin.users');
     Route::post('/admin/users/store', [AdminController::class, 'storeUser'])->name('admin.users.store');
+    Route::post('/admin/users/{id}/update', [AdminController::class, 'updateUser'])->name('admin.users.update');
     Route::post('/admin/assign-mapel', [AdminController::class, 'assignMapel'])->name('admin.assign.mapel');
 
     // 9. Arsip Kurikulum, Modul Ajar & Portofolio Pengawasan Tahunan

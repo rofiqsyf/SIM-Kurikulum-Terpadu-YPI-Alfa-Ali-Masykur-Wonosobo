@@ -49,6 +49,35 @@ class SimKurikulumCompleteFlowTest extends TestCase
         $failResponse->assertRedirect('/login');
         $this->assertGuest();
 
+        // Test Forgot Password Flow
+        $this->get('/forgot-password')->assertStatus(200)->assertSee('Bantuan Lupa Kata Sandi');
+
+        // Test Forgot Password Validation Failure (wrong email)
+        $this->from('/login')->post('/forgot-password/reset', [
+            'email' => 'tidakada@alimasykur.sch.id',
+            'nip_or_username' => 'guru.ahmad',
+            'password' => 'passwordbaru123',
+            'password_confirmation' => 'passwordbaru123',
+        ])->assertRedirect('/login')->assertSessionHas('forgot_error');
+
+        // Test Forgot Password Success
+        $resetResponse = $this->from('/login')->post('/forgot-password/reset', [
+            'email' => $guru->email,
+            'nip_or_username' => $guru->username,
+            'password' => 'sandiBaruAhmad99',
+            'password_confirmation' => 'sandiBaruAhmad99',
+        ]);
+        $resetResponse->assertRedirect('/login');
+        $resetResponse->assertSessionHas('success');
+
+        // Verify login works with new password
+        $this->post('/login', [
+            'identity' => $guru->username,
+            'password' => 'sandiBaruAhmad99',
+        ])->assertRedirect(route('dashboard'));
+        $this->assertAuthenticated();
+        $this->post('/logout');
+
         // Test Dashboard
         $this->actingAs($guru)->get('/dashboard')->assertStatus(200);
 
@@ -252,6 +281,131 @@ class SimKurikulumCompleteFlowTest extends TestCase
             'mapel_id' => $mapel->id,
             'beban_jp' => 24,
         ]);
+    }
+
+    public function test_segmented_roles_for_mi_smp_sma_and_admin_edit_user_flow(): void
+    {
+        $admin = User::where('username', 'admin')->first();
+        $this->assertNotNull($admin);
+
+        // 1. Verify that all 15 segmented roles exist in the database (5 per segment)
+        $expectedSegmentRoles = [
+            'MI' => ['Guru MI', 'Waka Kurikulum MI', 'Kepala Sekolah (Kepsek) MI', 'Admin 1 MI', 'Pembina Ekstrakurikuler MI'],
+            'SMP' => ['Guru SMP', 'Waka Kurikulum SMP', 'Kepala Sekolah (Kepsek) SMP', 'Admin 2 SMP', 'Pembina Ekstrakurikuler SMP'],
+            'SMA' => ['Guru SMA', 'Waka Kurikulum SMA', 'Kepala Sekolah (Kepsek) SMA', 'Admin 3 SMA', 'Pembina Ekstrakurikuler SMA'],
+        ];
+
+        foreach ($expectedSegmentRoles as $segment => $roles) {
+            foreach ($roles as $roleName) {
+                $this->assertDatabaseHas('peran', [
+                    'nama_peran' => $roleName,
+                ]);
+            }
+        }
+
+        // Verify generic roles are cleanly deleted
+        $this->assertDatabaseMissing('peran', ['nama_peran' => 'Admin Sistem']);
+        $this->assertDatabaseMissing('peran', ['nama_peran' => 'Kepala Sekolah/Madrasah']);
+        $this->assertDatabaseMissing('peran', ['nama_peran' => 'Guru Mata Pelajaran']);
+        $this->assertDatabaseMissing('peran', ['nama_peran' => 'Waka Kurikulum']);
+        $this->assertDatabaseMissing('peran', ['nama_peran' => 'Pembina Ekstrakurikuler']);
+
+        // Verify Yayasan role remains solely for Yayasan
+        $this->assertDatabaseHas('peran', ['nama_peran' => 'Pengurus Yayasan']);
+
+        $unitMI = \App\Models\UnitPendidikan::where('kode_unit', 'like', '%MI%')->first();
+        $unitSMP = \App\Models\UnitPendidikan::where('kode_unit', 'like', '%SMP%')->first();
+        $roleGuruMI = \App\Models\Peran::where('nama_peran', 'Guru MI')->first();
+        $roleWakaMI = \App\Models\Peran::where('nama_peran', 'Waka Kurikulum MI')->first();
+        $roleKepsekMI = \App\Models\Peran::where('nama_peran', 'Kepala Sekolah (Kepsek) MI')->first();
+        $roleAdminMI = \App\Models\Peran::where('nama_peran', 'Admin 1 MI')->first();
+        $rolePembinaMI = \App\Models\Peran::where('nama_peran', 'Pembina Ekstrakurikuler MI')->first();
+
+        // 2. Admin creates a new user with segmented role (Guru MI) with auto-resolved or specified unit
+        $createResponse = $this->actingAs($admin)->post(route('admin.users.store'), [
+            'name' => 'Ustadzah Nurul Hidayah, S.Pd.',
+            'username' => 'guru.nurul',
+            'email' => 'nurul@alimasykur.sch.id',
+            'nip' => '199505052024012001',
+            'peran_id' => $roleGuruMI->id,
+            'unit_id' => null, // Test auto-resolution to MI unit!
+            'jabatan' => 'Guru Kelas 1 MI',
+            'password' => 'password123',
+        ]);
+        $createResponse->assertSessionHas('success');
+
+        $createdUser = User::where('username', 'guru.nurul')->first();
+        $this->assertNotNull($createdUser);
+        $this->assertEquals($unitMI->id, $createdUser->unit_id);
+        $this->assertTrue($createdUser->isGuru());
+
+        // 3. Admin edits existing user's role segment, unit, and details
+        $updateResponse = $this->actingAs($admin)->post(route('admin.users.update', $createdUser->id), [
+            'name' => 'Ustadzah Nurul Hidayah, M.Pd.',
+            'username' => 'nurul.hidayah',
+            'email' => 'nurul.hidayah@alimasykur.sch.id',
+            'nip' => '199505052024012001',
+            'peran_id' => $roleWakaMI->id,
+            'unit_id' => $unitMI->id,
+            'jabatan' => 'Waka Kurikulum MI Tahfidz Alfa',
+            'status_aktif' => 1,
+            'password' => 'newpassword123',
+        ]);
+        $updateResponse->assertSessionHas('success');
+
+        $updatedUser = $createdUser->fresh();
+        $this->assertEquals('Ustadzah Nurul Hidayah, M.Pd.', $updatedUser->name);
+        $this->assertEquals('nurul.hidayah', $updatedUser->username);
+        $this->assertEquals($roleWakaMI->id, $updatedUser->peran_id);
+        $this->assertTrue($updatedUser->isWakaKurikulum());
+
+        // 4. Test Kepsek role detection with isKepalaSekolah()
+        $updatedUser->update(['peran_id' => $roleKepsekMI->id]);
+        $this->assertTrue($updatedUser->fresh()->isKepalaSekolah());
+
+        // Test Pembina role detection with isPembina()
+        $updatedUser->update(['peran_id' => $rolePembinaMI->id]);
+        $this->assertTrue($updatedUser->fresh()->isPembina());
+
+        // 5. Test 3 segment admin permissions (Admin 1 MI, Admin 2 SMP, Admin 3 SMA share admin duties)
+        $adminMIUser = User::where('username', 'admin.mi')->first();
+        if (!$adminMIUser) {
+            $adminMIUser = User::create([
+                'peran_id' => $roleAdminMI->id,
+                'unit_id' => $unitMI->id,
+                'name' => 'Admin MI Test',
+                'username' => 'admin.mi.test',
+                'email' => 'admin.mi.test@alimasykur.sch.id',
+                'password' => \Illuminate\Support\Facades\Hash::make('password'),
+                'status_aktif' => true,
+            ]);
+        }
+        $this->assertTrue($adminMIUser->isAdmin());
+        $this->assertTrue($adminMIUser->canAccessAllUnits());
+        $this->assertTrue($adminMIUser->canManageUnit($unitMI->id));
+
+        // Admin MI can edit user
+        $adminMIAttempt = $this->actingAs($adminMIUser)->post(route('admin.users.update', $updatedUser->id), [
+            'name' => 'Ustadzah Nurul Hidayah, M.Pd. (Verified)',
+            'username' => 'nurul.hidayah',
+            'email' => 'nurul.hidayah@alimasykur.sch.id',
+            'peran_id' => $roleWakaMI->id,
+            'unit_id' => $unitMI->id,
+            'status_aktif' => 1,
+        ]);
+        $adminMIAttempt->assertSessionHas('success');
+
+        // Admin can edit SMP user role segment
+        $guruSMP = User::where('username', 'guru.ahmad')->first();
+        $adminSMPEditAttempt = $this->actingAs($adminMIUser)->post(route('admin.users.update', $guruSMP->id), [
+            'name' => 'Ustadz Ahmad Fauzi, S.Pd. (Updated)',
+            'username' => 'guru.ahmad',
+            'email' => 'ahmad.fauzi@alimasykur.sch.id',
+            'peran_id' => $guruSMP->peran_id,
+            'unit_id' => $guruSMP->unit_id,
+            'status_aktif' => 1,
+        ]);
+        $adminSMPEditAttempt->assertSessionHas('success');
     }
 
     public function test_realtime_notifications_and_sync_endpoint(): void
@@ -982,5 +1136,198 @@ class SimKurikulumCompleteFlowTest extends TestCase
         $exportResponse->assertSee('Kepala Sekolah');
         $exportResponse->assertSee('Waka Kurikulum');
         $exportResponse->assertSee('Guru Pengampu');
+    }
+
+    public function test_role_transparency_and_differentiated_views_per_unit_and_job(): void
+    {
+        $guru = User::where('username', 'guru.ahmad')->first();
+        $kepsek = User::where('username', 'kepsek.smp')->first();
+        $waka = User::where('username', 'waka.smp')->first();
+        $yayasan = User::where('username', 'yayasan')->first();
+        $admin = User::where('username', 'admin.smp')->first();
+
+        // Buat akun pembina ekstrakurikuler jika belum ada di database seeder
+        $peranPembina = \App\Models\Peran::where('nama_peran', 'Pembina Ekstrakurikuler SMP')->first();
+        $pembina = User::firstOrCreate([
+            'username' => 'pembina.smp',
+        ], [
+            'peran_id' => $peranPembina->id,
+            'unit_id' => $kepsek->unit_id,
+            'name' => 'Ustadz Zaid Pembina, S.Pd.',
+            'email' => 'pembina.smp@alimasykur.sch.id',
+            'password' => bcrypt('password'),
+            'status_aktif' => true,
+        ]);
+
+        // 1. Verifikasi Transparansi & Menu Guru
+        $guruDash = $this->actingAs($guru)->get(route('dashboard'));
+        $guruDash->assertStatus(200);
+        $guruDash->assertSee('Dashboard Guru');
+        $guruDash->assertSee('Mata Pelajaran Saya');
+        $guruDash->assertSee('Usulan Saya');
+        $guruDash->assertSee('Jurnal KBM & Tahfidz');
+        $guruDash->assertSee('Portofolio Modul Ajar');
+        $guruDash->assertDontSee('Monitoring 3 Unit');
+        $guruDash->assertDontSee('Dewan Guru & Beban Jam');
+
+        $guruJurnal = $this->actingAs($guru)->get(route('jurnal.index'));
+        $guruJurnal->assertStatus(200);
+        $guruJurnal->assertSee('Jurnal Mengajar Harian');
+        $guruJurnal->assertSee('Buku Tahfidz Santri');
+
+        // 2. Verifikasi Transparansi & Menu Pembina Ekstra
+        $pembinaDash = $this->actingAs($pembina)->get(route('dashboard'));
+        $pembinaDash->assertStatus(200);
+        $pembinaDash->assertSee('Dashboard Pembina');
+        $pembinaDash->assertSee('Kegiatan Ekstrakurikuler');
+        $pembinaDash->assertSee('Agenda Pembinaan');
+        $pembinaDash->assertSee('Arsip Kegiatan Ekstra');
+        $pembinaDash->assertDontSee('Mata Pelajaran Saya');
+        $pembinaDash->assertDontSee('Kurikulum & Silabus');
+        $pembinaDash->assertDontSee('Riwayat Usulan');
+        $pembinaDash->assertDontSee('Monitoring 3 Unit');
+
+        // 3. Verifikasi Transparansi & Menu Waka Kurikulum
+        $wakaDash = $this->actingAs($waka)->get(route('dashboard'));
+        $wakaDash->assertStatus(200);
+        $wakaDash->assertSee('Dashboard Waka');
+        $wakaDash->assertSee('Kurikulum & ATP Unit');
+        $wakaDash->assertSee('Telaah Usulan Guru');
+        $wakaDash->assertSee('Supervisi KBM & Tahfidz');
+        $wakaDash->assertSee('Verifikasi Arsip Ajar');
+        $wakaDash->assertSee('Dewan Guru & Beban Jam');
+        $wakaDash->assertDontSee('Monitoring 3 Unit');
+
+        $wakaJurnal = $this->actingAs($waka)->get(route('jurnal.index'));
+        $wakaJurnal->assertStatus(200);
+        $wakaJurnal->assertSee('Monitoring Pelaksanaan KBM & Kepatuhan Jurnal Guru');
+        $wakaJurnal->assertSee('Halaman Tindak Lanjut & Supervisi KBM Pimpinan');
+
+        // 4. Verifikasi Transparansi & Menu Kepala Sekolah
+        $kepsekDash = $this->actingAs($kepsek)->get(route('dashboard'));
+        $kepsekDash->assertStatus(200);
+        $kepsekDash->assertSee('Dashboard Pimpinan');
+        $kepsekDash->assertSee('Otorisasi Silabus Unit');
+        $kepsekDash->assertSee('Persetujuan Usulan');
+        $kepsekDash->assertSee('Supervisi KBM & Hafalan');
+        $kepsekDash->assertSee('Pengesahan Arsip KOSP');
+        $kepsekDash->assertSee('Dewan Guru & SK Jam');
+        $kepsekDash->assertDontSee('Monitoring 3 Unit');
+
+        // 5. Verifikasi Transparansi & Menu Pengurus Yayasan
+        $yayasanDash = $this->actingAs($yayasan)->get(route('dashboard'));
+        $yayasanDash->assertStatus(200);
+        $yayasanDash->assertSee('Dashboard Yayasan');
+        $yayasanDash->assertSee('Monitoring 3 Unit');
+        $yayasanDash->assertSee('Kurikulum 3 Unit');
+        $yayasanDash->assertSee('Monitoring KBM & Tahfidz');
+        $yayasanDash->assertSee('Arsip Induk Yayasan');
+        $yayasanDash->assertSee('Audit SDM & Pendidik');
+        $yayasanDash->assertDontSee('Usulan Saya');
+
+        $yayasanJurnal = $this->actingAs($yayasan)->get(route('jurnal.index'));
+        $yayasanJurnal->assertStatus(200);
+        $yayasanJurnal->assertSee('Monitoring Pelaksanaan KBM Terpadu 3 Unit');
+        $yayasanJurnal->assertSee('Statistik Komparatif KBM 3 Unit (Yayasan)');
+    }
+
+    public function test_pembina_ekstrakurikuler_workspace_and_student_attendance_flow(): void
+    {
+        $pembina = User::where('username', 'pembina.smp')->first();
+        if (!$pembina) {
+            $peranPembina = \App\Models\Peran::firstOrCreate(['nama_peran' => 'Pembina Ekstrakurikuler SMP']);
+            $unitSMP = \App\Models\UnitPendidikan::first();
+            $pembina = User::create([
+                'name' => 'Ustadz Zaid Pembina, S.Pd.',
+                'username' => 'pembina.smp',
+                'email' => 'pembina.smp.test@alimasykur.sch.id',
+                'peran_id' => $peranPembina->id,
+                'unit_id' => $unitSMP->id,
+                'password' => bcrypt('password'),
+                'status_aktif' => true,
+            ]);
+        }
+
+        $ekskul = \App\Models\KegiatanEkstrakurikuler::where('unit_id', $pembina->unit_id)->first();
+        $this->assertNotNull($ekskul);
+
+        // 1. Render Halaman Workspace Pembina
+        $response = $this->actingAs($pembina)->get(route('pembina.index', ['ekskul_id' => $ekskul->id]));
+        $response->assertStatus(200);
+        $response->assertSee('Workspace Pembina');
+        $response->assertSee('Daftar Siswa');
+        $response->assertSee('Jadwal Latihan');
+        $response->assertSee($ekskul->nama_kegiatan);
+
+        // 2. Tambah Anggota Santri Baru
+        $tambahAnggota = $this->actingAs($pembina)->post(route('pembina.anggota.store'), [
+            'ekstrakurikuler_id' => $ekskul->id,
+            'nama_siswa' => 'Santri Binaan Baru Test',
+            'nis' => '99887766',
+            'kelas' => '8B',
+            'jenis_kelamin' => 'L',
+            'nilai_kualitatif' => 'A',
+            'catatan_bakat' => 'Fisik prima dan sangat antusias berlatih',
+        ]);
+        $tambahAnggota->assertRedirect();
+        $this->assertDatabaseHas('ekstrakurikuler_anggota', [
+            'ekstrakurikuler_id' => $ekskul->id,
+            'nama_siswa' => 'Santri Binaan Baru Test',
+            'kelas' => '8B',
+        ]);
+
+        $anggota = \App\Models\EkstrakurikulerAnggota::where('nama_siswa', 'Santri Binaan Baru Test')->first();
+
+        // 3. Tambah Jadwal Latihan Baru
+        $tambahJadwal = $this->actingAs($pembina)->post(route('pembina.jadwal.store'), [
+            'ekstrakurikuler_id' => $ekskul->id,
+            'pertemuan_ke' => 12,
+            'tanggal' => now()->addDays(2)->format('Y-m-d'),
+            'jam_mulai' => '15:30',
+            'jam_selesai' => '17:00',
+            'tempat' => 'Lapangan Utama Ponpes',
+            'materi_pembinaan' => 'Simulasi Tanding Antar Ranting Ponpes',
+            'catatan_evaluasi' => 'Peralatan body protector lengkap',
+            'status' => 'Dijadwalkan',
+        ]);
+        $tambahJadwal->assertRedirect();
+        $this->assertDatabaseHas('ekstrakurikuler_jadwal', [
+            'ekstrakurikuler_id' => $ekskul->id,
+            'pertemuan_ke' => 12,
+            'materi_pembinaan' => 'Simulasi Tanding Antar Ranting Ponpes',
+        ]);
+
+        $jadwal = \App\Models\EkstrakurikulerJadwal::where('ekstrakurikuler_id', $ekskul->id)
+            ->where('pertemuan_ke', 12)
+            ->first();
+
+        // 4. Catat Presensi Santri per Sesi
+        $simpanPresensi = $this->actingAs($pembina)->post(route('pembina.jadwal.presensi', $jadwal->id), [
+            'presensi' => [
+                $anggota->id => 'Hadir',
+            ],
+        ]);
+        $simpanPresensi->assertRedirect();
+        $this->assertDatabaseHas('ekstrakurikuler_presensi', [
+            'jadwal_id' => $jadwal->id,
+            'anggota_id' => $anggota->id,
+            'status_kehadiran' => 'Hadir',
+        ]);
+
+        // 5. Update Anggota Santri
+        $updateAnggota = $this->actingAs($pembina)->post(route('pembina.anggota.update', $anggota->id), [
+            'nama_siswa' => 'Santri Binaan Baru Test (Updated)',
+            'kelas' => '8B Unggulan',
+            'nis' => '99887766',
+            'status_keaktifan' => 'Aktif',
+            'nilai_kualitatif' => 'A',
+            'catatan_bakat' => 'Peraih Juara 1 Internal',
+        ]);
+        $updateAnggota->assertRedirect();
+        $this->assertDatabaseHas('ekstrakurikuler_anggota', [
+            'id' => $anggota->id,
+            'nama_siswa' => 'Santri Binaan Baru Test (Updated)',
+            'kelas' => '8B Unggulan',
+        ]);
     }
 }

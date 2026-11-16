@@ -32,8 +32,8 @@ class AdminController extends Controller
             $query->where('unit_id', $user->unit_id);
         }
 
-        $users = $query->get();
-        $roles = Peran::all();
+        $users = $query->orderBy('name')->get();
+        $roles = Peran::orderBy('id')->get();
         $units = !$user->canAccessAllUnits() && $user->unit_id
             ? UnitPendidikan::where('id', $user->unit_id)->get()
             : UnitPendidikan::all();
@@ -50,20 +50,38 @@ class AdminController extends Controller
     public function storeUser(Request $request)
     {
         $user = Auth::user();
-        if (!$user->isAdmin()) {
-            return back()->with('error', 'Hanya Admin Sistem yang berhak mendaftarkan akun baru.');
+        if (!$user || !$user->isAdmin()) {
+            return back()->with('error', 'Hanya Administrator yang berhak mendaftarkan akun baru.');
         }
 
         $validated = $request->validate([
             'name' => 'required|string|max:100',
-            'username' => 'required|string|unique:users,username',
-            'email' => 'required|email|unique:users,email',
-            'nip' => 'nullable|string',
+            'username' => 'required|string|max:50|unique:users,username',
+            'email' => 'required|email|max:100|unique:users,email',
+            'nip' => 'nullable|string|max:50',
             'peran_id' => 'required|exists:peran,id',
             'unit_id' => 'nullable|exists:unit_pendidikan,id',
-            'jabatan' => 'nullable|string',
+            'jabatan' => 'nullable|string|max:150',
             'password' => 'required|string|min:6',
         ]);
+
+        // Auto-resolve unit_id if empty and a segmented role was selected
+        if (empty($validated['unit_id'])) {
+            $selectedRole = Peran::find($validated['peran_id']);
+            if ($selectedRole) {
+                $roleNameUpper = strtoupper($selectedRole->nama_peran);
+                if (str_contains($roleNameUpper, 'MI')) {
+                    $unitMI = UnitPendidikan::where('kode_unit', 'like', '%MI%')->first();
+                    if ($unitMI) $validated['unit_id'] = $unitMI->id;
+                } elseif (str_contains($roleNameUpper, 'SMP')) {
+                    $unitSMP = UnitPendidikan::where('kode_unit', 'like', '%SMP%')->first();
+                    if ($unitSMP) $validated['unit_id'] = $unitSMP->id;
+                } elseif (str_contains($roleNameUpper, 'SMA')) {
+                    $unitSMA = UnitPendidikan::where('kode_unit', 'like', '%SMA%')->first();
+                    if ($unitSMA) $validated['unit_id'] = $unitSMA->id;
+                }
+            }
+        }
 
         $validated['password'] = Hash::make($validated['password']);
         $validated['status_aktif'] = true;
@@ -71,6 +89,56 @@ class AdminController extends Controller
         User::create($validated);
 
         return back()->with('success', 'Akun pengguna baru berhasil ditambahkan.');
+    }
+
+    public function updateUser(Request $request, $id)
+    {
+        $user = Auth::user();
+        if (!$user || !$user->isAdmin()) {
+            return back()->with('error', 'Hanya Administrator yang memiliki wewenang untuk mengubah data dan peran pengguna.');
+        }
+
+        $targetUser = User::findOrFail($id);
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:100',
+            'username' => 'required|string|max:50|unique:users,username,' . $targetUser->id,
+            'email' => 'required|email|max:100|unique:users,email,' . $targetUser->id,
+            'nip' => 'nullable|string|max:50',
+            'peran_id' => 'required|exists:peran,id',
+            'unit_id' => 'nullable|exists:unit_pendidikan,id',
+            'jabatan' => 'nullable|string|max:150',
+            'status_aktif' => 'required|boolean',
+            'password' => 'nullable|string|min:6',
+        ]);
+
+        // Auto-resolve unit_id if empty and a segmented role was selected
+        if (empty($validated['unit_id'])) {
+            $selectedRole = Peran::find($validated['peran_id']);
+            if ($selectedRole) {
+                $roleNameUpper = strtoupper($selectedRole->nama_peran);
+                if (str_contains($roleNameUpper, 'MI')) {
+                    $unitMI = UnitPendidikan::where('kode_unit', 'like', '%MI%')->first();
+                    if ($unitMI) $validated['unit_id'] = $unitMI->id;
+                } elseif (str_contains($roleNameUpper, 'SMP')) {
+                    $unitSMP = UnitPendidikan::where('kode_unit', 'like', '%SMP%')->first();
+                    if ($unitSMP) $validated['unit_id'] = $unitSMP->id;
+                } elseif (str_contains($roleNameUpper, 'SMA')) {
+                    $unitSMA = UnitPendidikan::where('kode_unit', 'like', '%SMA%')->first();
+                    if ($unitSMA) $validated['unit_id'] = $unitSMA->id;
+                }
+            }
+        }
+
+        if (!empty($validated['password'])) {
+            $validated['password'] = Hash::make($validated['password']);
+        } else {
+            unset($validated['password']);
+        }
+
+        $targetUser->update($validated);
+
+        return back()->with('success', "Data dan hak akses peran segment untuk {$targetUser->name} berhasil diperbarui.");
     }
 
     public function assignMapel(Request $request)

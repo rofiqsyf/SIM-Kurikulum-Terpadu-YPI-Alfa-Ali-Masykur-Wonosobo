@@ -92,7 +92,7 @@ class JurnalController extends Controller
             $units = UnitPendidikan::all();
         }
 
-        // Monitoring KBM Guru Unit untuk Waka Kurikulum & Kepala Sekolah
+        // Monitoring KBM Guru Unit & Lintas Unit (Supervisi untuk Waka, Kepsek, Admin, & Yayasan)
         $guruMonitoringList = collect();
         $unitKbmStats = [
             'total_guru' => 0,
@@ -100,16 +100,45 @@ class JurnalController extends Controller
             'guru_perlu_pengingat' => 0,
             'total_sesi_minggu_ini' => 0,
         ];
+        $threeUnitsKbmStats = [];
+        $sevenDaysAgo = now()->subDays(7)->toDateString();
 
-        if (($user->isWakaKurikulum() || $user->isKepalaSekolah() || $user->isAdmin()) && $user->unit_id) {
-            $unitId = $user->unit_id;
-            $sevenDaysAgo = now()->subDays(7)->toDateString();
+        $selectedUnitId = $request->get('unit_id');
+        if ($user->canAccessAllUnits()) {
+            $effectiveUnitId = $selectedUnitId && $selectedUnitId !== 'all' ? (int)$selectedUnitId : null;
 
-            $guruUsers = User::where('unit_id', $unitId)
-                ->whereHas('peran', fn($q) => $q->where('nama_peran', 'like', '%guru%'))
-                ->with(['penugasan.mataPelajaran', 'jurnalMengajar' => fn($q) => $q->latest('tanggal')])
-                ->get();
+            // Hitung ringkasan komparatif 3 Unit untuk Pengurus Yayasan & Administrator
+            foreach (UnitPendidikan::all() as $uItem) {
+                $guruCount = User::where('unit_id', $uItem->id)
+                    ->whereHas('peran', fn($q) => $q->where('nama_peran', 'like', '%guru%'))
+                    ->count();
+                $kbmPekanIni = JurnalMengajar::whereHas('guru', fn($q) => $q->where('unit_id', $uItem->id))
+                    ->where('tanggal', '>=', $sevenDaysAgo)
+                    ->count();
+                $tahfidzCount = MonitoringTahfidz::where('unit_id', $uItem->id)->count();
 
+                $threeUnitsKbmStats[] = [
+                    'unit_id' => $uItem->id,
+                    'nama_unit' => $uItem->nama_unit,
+                    'kode_unit' => $uItem->kode_unit,
+                    'total_guru' => $guruCount,
+                    'kbm_pekan_ini' => $kbmPekanIni,
+                    'tahfidz_count' => $tahfidzCount,
+                ];
+            }
+        } else {
+            $effectiveUnitId = $user->unit_id;
+        }
+
+        if ($user->isWakaKurikulum() || $user->isKepalaSekolah() || $user->isAdmin() || $user->isYayasan()) {
+            $guruUsersQuery = User::whereHas('peran', fn($q) => $q->where('nama_peran', 'like', '%guru%'))
+                ->with(['penugasan.mataPelajaran', 'unit', 'jurnalMengajar' => fn($q) => $q->latest('tanggal')]);
+
+            if ($effectiveUnitId) {
+                $guruUsersQuery->where('unit_id', $effectiveUnitId);
+            }
+
+            $guruUsers = $guruUsersQuery->get();
             $totalGuru = $guruUsers->count();
             $tertibCount = 0;
             $pengingatCount = 0;
@@ -132,6 +161,7 @@ class JurnalController extends Controller
                     'id' => $g->id,
                     'name' => $g->name,
                     'nip' => $g->nip ?? '-',
+                    'unit' => $g->unit->nama_unit ?? '-',
                     'mapel' => $g->penugasan->pluck('mataPelajaran.nama_mapel')->implode(', ') ?: 'Belum ditugaskan',
                     'beban_jp' => $totalJpAssigned,
                     'total_sesi' => $totalSesiLogged,
@@ -142,14 +172,32 @@ class JurnalController extends Controller
                 ];
             });
 
+            $sesiPekanIniQuery = JurnalMengajar::where('tanggal', '>=', $sevenDaysAgo);
+            if ($effectiveUnitId) {
+                $sesiPekanIniQuery->whereHas('guru', fn($q) => $q->where('unit_id', $effectiveUnitId));
+            }
+
             $unitKbmStats = [
                 'total_guru' => $totalGuru,
                 'guru_tertib' => $tertibCount,
                 'guru_perlu_pengingat' => $pengingatCount,
-                'total_sesi_minggu_ini' => JurnalMengajar::whereHas('guru', fn($q) => $q->where('unit_id', $unitId))
-                    ->where('tanggal', '>=', $sevenDaysAgo)
-                    ->count(),
+                'total_sesi_minggu_ini' => $sesiPekanIniQuery->count(),
             ];
+        }
+
+        // Tentukan default view mode berdasarkan peran:
+        // - Waka & Kepsek & Yayasan -> Halaman Follow-up / Supervisi Monitoring
+        // - Pembina Ekstra -> Agenda Kerja Pembinaan
+        // - Guru & Admin -> Form Mengajar & Tahfidz (Both)
+        $defaultViewMode = $request->get('view');
+        if (!$defaultViewMode) {
+            if ($user->isWakaKurikulum() || $user->isKepalaSekolah() || $user->isYayasan()) {
+                $defaultViewMode = 'monitoring';
+            } elseif ($user->isPembina() && !$user->isGuru()) {
+                $defaultViewMode = 'kerja';
+            } else {
+                $defaultViewMode = 'both';
+            }
         }
 
         return view('jurnal.index', compact(
@@ -166,6 +214,9 @@ class JurnalController extends Controller
             'units',
             'guruMonitoringList',
             'unitKbmStats',
+            'threeUnitsKbmStats',
+            'effectiveUnitId',
+            'defaultViewMode',
             'formattedUserAgendas'
         ));
     }

@@ -136,6 +136,13 @@ class DashboardController extends Controller
         }
         $totalGuruUnit = $guruQuery->count();
 
+        // Data Ekstrakurikuler untuk Pembina & Dashboard
+        $kegiatanList = \App\Models\KegiatanEkstrakurikuler::query();
+        if ($unit) {
+            $kegiatanList->where('unit_id', $unit->id);
+        }
+        $kegiatanList = $kegiatanList->take(6)->get();
+
         return view('dashboard.index', compact(
             'user',
             'unit',
@@ -146,6 +153,7 @@ class DashboardController extends Controller
             'usulanDitolak',
             'recentUsulan',
             'mapelList',
+            'kegiatanList',
             'totalCP',
             'totalTP',
             'pendingReviews',

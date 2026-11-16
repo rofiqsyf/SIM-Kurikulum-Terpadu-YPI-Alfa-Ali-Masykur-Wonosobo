@@ -7,7 +7,7 @@
 
     <!-- 2-COLUMN DESKTOP CANVAS (Matches Learnhru Reference Architecture) -->
     <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
-        
+
         <!-- ======================================================== -->
         <!-- MIDDLE / MAIN COLUMN (xl:col-span-8 or 9) -->
         <!-- ======================================================== -->
@@ -28,15 +28,80 @@
                     </h1>
 
                     <p class="text-xs sm:text-sm text-slate-500 leading-relaxed">
-                        Kelola Capaian Pembelajaran, perumusan Tujuan Pembelajaran (TP), dan pantau usulan silabus lintas unit pendidikan secara terpadu dan transparan.
+                        @if($user->isYayasan())
+                            Supervisi makro ketercapaian kurikulum terpadu, pemantauan KBM harian, dan evaluasi capaian tahfidz santri di MI Tahfidz, SMP, dan SMA Alfa Ali Masykur.
+                        @elseif($user->isPembina() && !$user->isGuru())
+                            Pantau pembinaan minat bakat santri, jadwal latihan mingguan, dan persiapan kejuaraan/event ekstrakurikuler unit {{ $user->unit->nama_unit ?? '' }}.
+                        @elseif($user->isKepalaSekolah())
+                            Otorisasi kebijakan kurikulum, persetujuan usulan silabus pendidik, penguncian kurikulum semester, dan supervisi keterlaksanaan KBM dewan guru unit.
+                        @elseif($user->isWakaKurikulum())
+                            Penelaahan teknis usulan silabus dewan guru, monitoring disiplin KBM harian, dan verifikasi kelayakan modul ajar unit {{ $user->unit->nama_unit ?? '' }}.
+                        @elseif($user->isGuru())
+                            Kelola perangkat ajar mata pelajaran Anda, catat jurnal KBM dan setoran tahfidz harian santri, serta pantau usulan kurikulum yang diajukan.
+                        @else
+                            Kelola Capaian Pembelajaran, perumusan Tujuan Pembelajaran (TP), dan pantau usulan silabus lintas unit pendidikan secara terpadu dan transparan.
+                        @endif
                     </p>
 
-                    <div class="pt-2">
-                        <a href="{{ route('curriculum.index') }}" 
-                           class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-brand-800 hover:bg-brand-900 text-white text-xs font-semibold shadow-subtle transition-all">
-                            <span>Eksplorasi Silabus Terpadu</span>
-                            <span class="material-symbols-outlined text-sm">arrow_forward</span>
-                        </a>
+                    <div class="pt-2 flex items-center gap-2 flex-wrap">
+                        @if($user->isYayasan())
+                            <a href="{{ route('yayasan.monitoring') }}"
+                               class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-brand-800 hover:bg-brand-900 text-white text-xs font-semibold shadow-subtle transition-all">
+                                <span class="material-symbols-outlined text-sm">domain</span>
+                                <span>Buka Monitoring 3 Unit</span>
+                            </a>
+                            <a href="{{ route('jurnal.index') }}"
+                               class="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-all">
+                                <span>Pantau KBM &amp; Tahfidz</span>
+                            </a>
+                        @elseif($user->isPembina() && !$user->isGuru())
+                            <a href="{{ route('kegiatan.index') }}"
+                               class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-brand-800 hover:bg-brand-900 text-white text-xs font-semibold shadow-subtle transition-all">
+                                <span class="material-symbols-outlined text-sm">sports_soccer</span>
+                                <span>Kelola Ekstrakurikuler</span>
+                            </a>
+                            <a href="{{ route('jurnal.index') }}"
+                               class="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-all">
+                                <span>Agenda Pembinaan</span>
+                            </a>
+                        @elseif($user->isKepalaSekolah())
+                            <a href="{{ route('usulan.index') }}"
+                               class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-brand-800 hover:bg-brand-900 text-white text-xs font-semibold shadow-subtle transition-all">
+                                <span class="material-symbols-outlined text-sm">approval</span>
+                                <span>Meja Persetujuan Usulan</span>
+                            </a>
+                            <a href="{{ route('jurnal.index') }}"
+                               class="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-all">
+                                <span>Supervisi KBM Unit</span>
+                            </a>
+                        @elseif($user->isWakaKurikulum())
+                            <a href="{{ route('usulan.index') }}"
+                               class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-brand-800 hover:bg-brand-900 text-white text-xs font-semibold shadow-subtle transition-all">
+                                <span class="material-symbols-outlined text-sm">rate_review</span>
+                                <span>Telaah Usulan Guru</span>
+                            </a>
+                            <a href="{{ route('jurnal.index') }}"
+                               class="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-all">
+                                <span>Supervisi KBM Dewan Guru</span>
+                            </a>
+                        @elseif($user->isGuru())
+                            <a href="{{ route('curriculum.index') }}"
+                               class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-brand-800 hover:bg-brand-900 text-white text-xs font-semibold shadow-subtle transition-all">
+                                <span class="material-symbols-outlined text-sm">menu_book</span>
+                                <span>Mata Pelajaran Saya</span>
+                            </a>
+                            <a href="{{ route('jurnal.index') }}"
+                               class="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold shadow-subtle transition-all">
+                                <span class="material-symbols-outlined text-sm">post_add</span>
+                                <span>Input Jurnal KBM / Tahfidz</span>
+                            </a>
+                        @else
+                            <a href="{{ route('curriculum.index') }}"
+                               class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-brand-800 hover:bg-brand-900 text-white text-xs font-semibold shadow-subtle transition-all">
+                                <span>Eksplorasi Silabus Terpadu</span>
+                                <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                            </a>
+                        @endif
                     </div>
                 </div>
 
@@ -61,7 +126,7 @@
                         <path d="M70 65 L130 95 L180 70 L120 40 Z" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5" />
                         <path d="M70 65 L70 70 L130 100 L130 95 Z" fill="#cbd5e1" />
                         <path d="M130 95 L130 100 L180 75 L180 70 Z" fill="#94a3b8" />
-                        
+
                         <!-- Page Checklist Dots & Lines -->
                         <circle cx="95" cy="62" r="2.5" fill="#3b82f6" />
                         <line x1="103" y1="62" x2="140" y2="53" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" />
@@ -106,7 +171,7 @@
                                     <form method="POST" action="{{ route('usulan.review', $pr->id) }}" class="flex-1">
                                         @csrf
                                         <input type="hidden" name="keputusan" value="setujui">
-                                        <button type="submit" 
+                                        <button type="submit"
                                                 class="w-full py-2 px-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold transition-colors flex items-center justify-center gap-1 shadow-subtle">
                                             <span class="material-symbols-outlined text-sm">check</span>
                                             <span>Setujui</span>
@@ -145,7 +210,7 @@
                     </div>
 
                     <div class="flex items-center gap-2 shrink-0 self-stretch md:self-auto justify-end">
-                        <a href="{{ route('arsip.index', ['unit_id' => $unit->id]) }}" 
+                        <a href="{{ route('arsip.index', ['unit_id' => $unit->id]) }}"
                            class="px-4 py-2 rounded-xl bg-brand-800 hover:bg-brand-900 text-white text-xs font-semibold shadow-subtle transition-all">
                             Buka Bank Arsip Dokumen →
                         </a>
@@ -153,6 +218,92 @@
                 </div>
             @endif
 
+            @if($user->isPembina() && !$user->isGuru())
+                <!-- KHUSUS PEMBINA EKSTRAKURIKULER: PROGRAM EKSTRAKURIKULER & AGENDA PEMBINAAN -->
+                <div class="space-y-3.5">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h2 class="text-sm font-bold text-slate-900">Kegiatan Ekstrakurikuler &amp; Pembinaan Bakat</h2>
+                            <p class="text-[11px] text-slate-500">Program pembinaan, ekstrakurikuler, dan kegiatan santri unit {{ $unit->nama_unit ?? '' }}</p>
+                        </div>
+                        <a href="{{ route('pembina.index') }}" class="text-xs font-semibold text-brand-800 hover:underline transition-colors flex items-center gap-1">
+                            <span>Buka Workspace Pembina</span>
+                            <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                        </a>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        @forelse($kegiatanList ?? [] as $idx => $kg)
+                            @php
+                                $palette = [
+                                    ['from' => 'from-[#3252a4]', 'to' => 'to-[#1b3472]', 'text_sub' => 'text-blue-200'],
+                                    ['from' => 'from-[#495796]', 'to' => 'to-[#2b3564]', 'text_sub' => 'text-indigo-200'],
+                                    ['from' => 'from-[#7c3f6a]', 'to' => 'to-[#522345]', 'text_sub' => 'text-pink-200'],
+                                ][$idx % 3];
+                            @endphp
+                            <a href="{{ route('pembina.index', ['ekskul_id' => $kg->id]) }}" 
+                               class="rounded-3xl p-5 text-white shadow-card bg-gradient-to-br {{ $palette['from'] }} {{ $palette['to'] }} flex flex-col justify-between min-h-[160px] relative overflow-hidden group hover:-translate-y-1 transition-all cursor-pointer">
+                                <div class="space-y-1 z-10">
+                                    <span class="text-[10px] font-bold uppercase tracking-wider {{ $palette['text_sub'] }} block">
+                                        {{ $kg->kategori ?? 'Ekstrakurikuler' }} • {{ $kg->jadwal ?? 'Sore' }}
+                                    </span>
+                                    <h3 class="text-base font-bold text-white group-hover:text-amber-200 transition-colors line-clamp-1">
+                                        {{ $kg->nama_kegiatan }}
+                                    </h3>
+                                    <p class="text-[11px] {{ $palette['text_sub'] }} line-clamp-2">
+                                        {{ $kg->deskripsi ?? 'Kegiatan pembinaan minat dan bakat santri.' }}
+                                    </p>
+                                </div>
+
+                                <div class="flex items-center justify-between text-[11px] border-t border-white/15 pt-3 z-10">
+                                    <span class="flex items-center gap-1 {{ $palette['text_sub'] }}">
+                                        <span class="material-symbols-outlined text-sm">group</span>
+                                        <span>{{ $kg->anggota_count ?? $kg->anggota()->count() }} Santri</span>
+                                    </span>
+                                    <span class="text-white font-medium">
+                                        Kelola Sesi →
+                                    </span>
+                                </div>
+                                <div class="absolute -right-6 -bottom-6 w-24 h-24 rounded-full bg-white/5 pointer-events-none"></div>
+                            </a>
+                        @empty
+                            <div class="col-span-3 p-6 rounded-3xl bg-white text-center text-xs text-slate-400 border border-slate-100">
+                                Belum ada data ekstrakurikuler aktif di unit ini.
+                            </div>
+                        @endforelse
+                    </div>
+                </div>
+
+                <!-- AGENDA PEMBINAAN & DOKUMENTASI -->
+                <div class="p-5 rounded-3xl bg-white border border-slate-100 shadow-card flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div class="flex items-center gap-3.5">
+                        <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-800 flex items-center justify-center font-bold shrink-0">
+                            <span class="material-symbols-outlined text-2xl">sports_soccer</span>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-900">Agenda Pembinaan &amp; Rekapitulasi Ekstrakurikuler</h3>
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-brand-50 text-brand-800 border border-brand-200">
+                                    Aktif
+                                </span>
+                            </div>
+                            <p class="text-[11px] text-slate-500 mt-1 leading-relaxed">
+                                Catat presensi santri, jadwalkan sesi latihan mingguan, dan kelola portofolio arsip kegiatan ekstra santri.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 shrink-0 self-stretch md:self-auto justify-end">
+                        <a href="{{ route('pembina.index') }}" 
+                           class="px-4 py-2 rounded-xl bg-brand-800 hover:bg-brand-900 text-white text-xs font-semibold shadow-subtle transition-all">
+                            Buka Workspace Pembina →
+                        </a>
+                        <a href="{{ route('arsip.index') }}" 
+                           class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-all">
+                            Arsip Kegiatan Ekstra
+                        </a>
+                    </div>
+                </div>
+            @else
             <!-- "CLASSES" SECTION: 3 FEATURED MATA PELAJARAN CARDS (Matches Reference Style Exactly) -->
             <div class="space-y-3.5">
                 <div class="flex items-center justify-between">
@@ -181,9 +332,9 @@
                             $teacher = $mp->penugasanGuru->first()?->user;
                             $tpCount = $mp->tujuan_pembelajaran_count ?? 12;
                         @endphp
-                        <a href="{{ route('curriculum.index', ['mapel_id' => $mp->id, 'view' => 'workspace']) }}" 
+                        <a href="{{ route('curriculum.index', ['mapel_id' => $mp->id, 'view' => 'workspace']) }}"
                            class="rounded-3xl p-5 text-white shadow-card bg-gradient-to-br {{ $palette['from'] }} {{ $palette['to'] }} flex flex-col justify-between min-h-[175px] relative overflow-hidden group hover:-translate-y-1 hover:shadow-floating transition-all duration-200 cursor-pointer">
-                            
+
                             <div class="space-y-1 z-10">
                                 <span class="text-[10px] font-bold uppercase tracking-wider {{ $palette['text_sub'] }} block">
                                     {{ $mp->kurikulum->unit->nama_unit ?? 'Unit Pendidikan' }} • {{ $mp->kode_mapel }}
@@ -313,6 +464,7 @@
                     </div>
                 </div>
             </div>
+            @endif
 
         </div>
 
@@ -343,7 +495,7 @@
                 </div>
 
                 <div class="pt-1">
-                    <button type="button" onclick="openUserProfileModal()" 
+                    <button type="button" onclick="openUserProfileModal()"
                             class="inline-flex items-center gap-1.5 px-5 py-2 rounded-full bg-slate-50 hover:bg-slate-100 border border-slate-200/80 text-slate-700 text-xs font-semibold shadow-subtle hover:shadow transition-all cursor-pointer">
                         <span class="material-symbols-outlined text-sm text-brand-700">badge</span>
                         <span>Profil Akun</span>
@@ -467,7 +619,7 @@
                 </div>
 
                 <div class="pt-1">
-                    <a href="{{ route('jurnal.index') }}" 
+                    <a href="{{ route('jurnal.index') }}"
                        class="w-full py-2.5 px-3.5 rounded-2xl bg-slate-50 hover:bg-slate-100 border border-slate-200/80 text-slate-700 font-semibold text-xs transition-all shadow-subtle hover:shadow flex items-center justify-center gap-1.5 cursor-pointer">
                         <span class="material-symbols-outlined text-sm text-brand-700">checklist</span>
                         <span>Buka Buku Kerja &amp; Refleksi</span>
@@ -497,7 +649,7 @@
         <form id="reject-form" method="POST" action="" class="space-y-3">
             @csrf
             <input type="hidden" name="keputusan" value="tolak">
-            
+
             <div class="p-3 rounded-xl bg-slate-50 border border-slate-100 text-xs">
                 <span class="text-slate-400 block" id="reject-target-code">Nomor Usulan</span>
                 <span class="font-bold text-slate-800" id="reject-target-title">Judul Usulan</span>
@@ -505,7 +657,7 @@
 
             <div class="space-y-1">
                 <label class="text-xs font-semibold text-slate-700">Rekomendasi Perbaikan untuk Guru</label>
-                <textarea name="alasan_penolakan" required rows="4" 
+                <textarea name="alasan_penolakan" required rows="4"
                           placeholder="Jelaskan alasan evaluasi dan arahan perbaikan untuk pendidik..."
                           class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-rose-500 focus:border-rose-500 leading-relaxed"></textarea>
             </div>
@@ -628,7 +780,7 @@
                     </div>`;
             } else {
                 html += `
-                    <div class="py-0.5 flex flex-col items-center justify-center rounded-xl cursor-pointer hover:bg-slate-50 transition-colors group" 
+                    <div class="py-0.5 flex flex-col items-center justify-center rounded-xl cursor-pointer hover:bg-slate-50 transition-colors group"
                          onclick="selectCalendarDate(${d}, ${month}, ${year})">
                         <span class="w-6 h-6 flex items-center justify-center text-slate-700 font-semibold group-hover:text-brand-800 text-xs">
                             ${d}
@@ -684,7 +836,7 @@
         } else {
             let itemsHtml = '';
             activeAgendas.forEach(ag => {
-                const dateSpan = (ag.start && ag.end && ag.start !== ag.end) 
+                const dateSpan = (ag.start && ag.end && ag.start !== ag.end)
                     ? `${ag.start} s/d ${ag.end}`
                     : (ag.start || ag.end);
 

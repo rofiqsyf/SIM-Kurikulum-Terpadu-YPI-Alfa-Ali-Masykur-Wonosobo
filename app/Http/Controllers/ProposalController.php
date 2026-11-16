@@ -230,7 +230,7 @@ class ProposalController extends Controller
 
         // Notifikasi ke Kepala Sekolah & Waka Unit
         $reviewers = \App\Models\User::where('unit_id', $usulan->unit_id)
-            ->whereHas('peran', fn($q) => $q->where('nama_peran', 'like', '%kepala%')->orWhere('nama_peran', 'like', '%waka%'))
+            ->whereHas('peran', fn($q) => $q->where('nama_peran', 'like', '%kepala%')->orWhere('nama_peran', 'like', '%kepsek%')->orWhere('nama_peran', 'like', '%waka%'))
             ->get();
 
         foreach ($reviewers as $rev) {

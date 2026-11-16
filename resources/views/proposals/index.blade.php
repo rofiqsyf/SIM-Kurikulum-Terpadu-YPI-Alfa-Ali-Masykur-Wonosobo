@@ -34,22 +34,62 @@
                 <div class="space-y-3.5 max-w-xl z-10">
                     <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-[11px] font-semibold">
                         <span class="w-1.5 h-1.5 rounded-full bg-brand-600"></span>
-                        <span>Verifikasi Akademik &amp; Silabus</span>
+                        <span>
+                            @if($user->isGuru())
+                                Pelacak Usulan Pendidik Mandiri
+                            @elseif($user->isWakaKurikulum())
+                                Meja Telaah Akademik Waka Kurikulum
+                            @elseif($user->isKepalaSekolah())
+                                Otorisasi &amp; Pengesahan Kepala Unit
+                            @elseif($user->isYayasan())
+                                Audit Makro Kurikulum Yayasan
+                            @else
+                                Verifikasi Akademik &amp; Silabus
+                            @endif
+                        </span>
                     </div>
 
                     <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 leading-tight">
-                        Riwayat &amp; Pelacakan Usulan
+                        @if($user->isGuru())
+                            Pelacak Status Usulan Kurikulum Saya
+                        @elseif($user->isWakaKurikulum())
+                            Meja Telaah Usulan Kurikulum Unit
+                        @elseif($user->isKepalaSekolah())
+                            Meja Otorisasi &amp; Persetujuan Usulan
+                        @elseif($user->isYayasan())
+                            Audit &amp; Log Usulan Kurikulum 3 Unit
+                        @else
+                            Riwayat &amp; Pelacakan Usulan
+                        @endif
                     </h1>
 
                     <p class="text-xs sm:text-sm text-slate-500 leading-relaxed">
-                        Transparansi pengajuan revisi Capaian Pembelajaran, perumusan TP, dan penyesuaian alokasi beban jam pelajaran dari seluruh pendidik.
+                        @if($user->isGuru())
+                            Pantau proses verifikasi Waka Kurikulum dan pengesahan Kepala Sekolah atas pengajuan penyesuaian Capaian Pembelajaran, TP, atau materi ajar yang Anda usulkan.
+                        @elseif($user->isWakaKurikulum())
+                            Lakukan telaah akademis dan pertimbangan pedagogis terhadap usulan silabus dari dewan guru sebelum disahkan secara resmi oleh Kepala Sekolah.
+                        @elseif($user->isKepalaSekolah())
+                            Pemberian persetujuan resmi (approval) atau instruksi perbaikan (revisi) atas usulan kurikulum yang diajukan para pendidik di unit sekolah Anda.
+                        @elseif($user->isYayasan())
+                            Supervisi makro terhadap dinamika penyesuaian kurikulum dan ketercapaian silabus di tingkat MI Tahfidz, SMP, dan SMA Alfa Ali Masykur.
+                        @else
+                            Transparansi pengajuan revisi Capaian Pembelajaran, perumusan TP, dan penyesuaian alokasi beban jam pelajaran dari seluruh pendidik.
+                        @endif
                     </p>
 
-                    <div class="pt-2">
+                    <div class="flex items-center gap-2 pt-2 flex-wrap">
+                        @if($user->isGuru())
+                            <a href="{{ route('curriculum.index', ['view' => 'workspace']) }}" 
+                               class="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-brand-800 hover:bg-brand-900 text-white text-xs font-semibold shadow-subtle transition-all cursor-pointer">
+                                <span class="material-symbols-outlined text-base">add_circle</span>
+                                <span>Ajukan Usulan Baru di Workspace</span>
+                            </a>
+                        @endif
+
                         <!-- Export Dropdown: Rekap Usulan (list data → CSV / XLSX / PDF) -->
                         <div class="relative export-dropdown-wrapper z-30" id="wrapper-export-usulan">
                             <button type="button" onclick="toggleExportDropdown('usulan', event)"
-                                    class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-brand-800 hover:bg-brand-900 text-white text-xs font-semibold shadow-subtle transition-all cursor-pointer">
+                                    class="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-all cursor-pointer">
                                 <span class="material-symbols-outlined text-base">download</span>
                                 <span>Ekspor Rekap Usulan</span>
                                 <span class="material-symbols-outlined text-xs">expand_more</span>
@@ -102,6 +142,25 @@
                     </svg>
                 </div>
             </div>
+
+            <!-- BANNER TINDAK LANJUT MEJA TELAAH (KHUSUS WAKA KURIKULUM & KEPSEK) -->
+            @if(($user->isWakaKurikulum() || $user->isKepalaSekolah() || $user->isAdmin()) && $menungguCount > 0)
+                <div class="p-4 rounded-3xl bg-amber-50/90 border border-amber-200/80 shadow-subtle flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-amber-950">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center font-bold shrink-0">
+                            <span class="material-symbols-outlined text-lg">pending_actions</span>
+                        </div>
+                        <div>
+                            <strong class="font-bold text-amber-900 block">Antrean Usulan Kurikulum Menunggu Tindak Lanjut:</strong>
+                            <span class="text-amber-800">Terdapat <strong>{{ $menungguCount }} usulan</strong> dari pendidik yang memerlukan {{ $user->isWakaKurikulum() ? 'telaah pedagogis awal' : ($user->isKepalaSekolah() ? 'keputusan pengesahan resmi' : 'tindak lanjut sistem') }}. Klik tombol "Rincian" pada baris usulan untuk memproses.</span>
+                        </div>
+                    </div>
+                    <a href="{{ route('usulan.index', ['status' => 'menunggu']) }}" 
+                       class="px-4 py-2 rounded-2xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow-subtle shrink-0 transition-all text-center">
+                        Filter Usulan Menunggu ({{ $menungguCount }})
+                    </a>
+                </div>
+            @endif
 
             <!-- 4 METRIC TILES -->
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 text-xs">

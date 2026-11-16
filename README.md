@@ -9,21 +9,48 @@ Aplikasi web terintegrasi untuk pengelolaan kurikulum 3 tingkat (Capaian Pembela
 
 Semua akun default menggunakan kata sandi: **`password`**
 
-| No | Peran / Aktor | Nama Pengguna | Email Resmi | NIP / ID | Sandi (Password) | Unit Lembaga |
-|:---|:---|:---|:---|:---|:---|:---|
-| 1 | **Guru Mata Pelajaran** | Ustadz Ahmad Fauzi, S.Pd. | `ahmad.fauzi@alimasykur.sch.id` | `198804122019031004` | `password` | SMP Alfa Ali Masykur |
-| 2 | **Waka Kurikulum SMP** | Ustadz M. Yusuf Arifin, M.Pd. | `waka.smp@alimasykur.sch.id` | `198307222009011008` | `password` | SMP Alfa Ali Masykur |
-| 3 | **Waka Kurikulum MI** | Ustadzah Fatimah Azzahra, S.Pd.I | `waka.mi@alimasykur.sch.id` | `198905142014022003` | `password` | MI Tahfidz Alfa |
-| 4 | **Waka Kurikulum SMA** | Ustadz Hendra Gunawan, S.Si., M.Pd. | `waka.sma@alimasykur.sch.id` | `198611052010011012` | `password` | SMA Alfa Ali Masykur |
-| 5 | **Kepala Sekolah SMP** | Drs. H. Makmun Ridwan, M.Pd. | `makmun.ridwan@alimasykur.sch.id` | `196908151994031002` | `password` | SMP Alfa Ali Masykur |
-| 6 | **Kepala Madrasah MI** | Ibu Anisa, S.Pd.I | `anisa@alimasykur.sch.id` | `198502102011012015` | `password` | MI Tahfidz Alfa |
-| 7 | **Kepala Sekolah SMA** | Ibu Ulfah, M.Pd. | `ulfah@alimasykur.sch.id` | `198103192008012011` | `password` | SMA Alfa Ali Masykur |
-| 8 | **Pengurus Yayasan** | KH. Ali Masykur, Lc., M.A. | `yayasan@alimasykur.sch.id` | `YAY-AM-001` | `password` | Pusat Yayasan (3 Unit) |
-| 9 | **Admin Sistem** | Administrator Sistem | `admin@alimasykur.sch.id` | `ADM-SYS-01` | `password` | Pusat Administrator |
+Halaman Login: `http://127.0.0.1:8000/login`  
+*(Pengguna dapat login menggunakan **Email Resmi**, **Username**, ataupun **NIP / NIY**)*
 
-> **Catatan Login:**
+### 1. Tingkat Yayasan (Pusat Lintas Unit)
+| No | Peran / Hak Akses | Nama Pengguna | Username | Email Resmi | NIP / ID | Kata Sandi (Password) | Unit Lembaga |
+|:---:|:---|:---|:---|:---|:---|:---:|:---|
+| 1 | **Pengurus Yayasan** | KH. Ali Masykur, Lc., M.A. | `yayasan` | `yayasan@alimasykur.sch.id` | `YAY-AM-001` | `password` | Pusat Yayasan (Semua Unit) |
+
+### 2. Segment 1: MI (Madrasah Ibtidaiyah)
+| No | Peran / Hak Akses | Nama Pengguna | Username | Email Resmi | NIP / ID | Kata Sandi (Password) | Unit Lembaga |
+|:---:|:---|:---|:---|:---|:---|:---:|:---|
+| 1 | **Admin 1 MI** | Ustadz Rifqi MI, S.Kom. | `admin.mi` | `admin.mi@alimasykur.sch.id` | `ADM-MI-01` | `password` | MI Tahfidz Alfa Ali Masykur |
+| 2 | **Kepala Sekolah (Kepsek) MI** | Ibu Anisa, S.Pd.I | `kepsek.mi` | `anisa@alimasykur.sch.id` | `198502102011012015` | `password` | MI Tahfidz Alfa Ali Masykur |
+| 3 | **Waka Kurikulum MI** | Ustadzah Fatimah Azzahra, S.Pd.I | `waka.mi` | `waka.mi@alimasykur.sch.id` | `198905142014022003` | `password` | MI Tahfidz Alfa Ali Masykur |
+| 4 | **Guru MI** | Ustadzah Siti Maryam, S.Pd. | `guru.mi` | `guru.mi@alimasykur.sch.id` | `199106152018022001` | `password` | MI Tahfidz Alfa Ali Masykur |
+| 5 | **Guru MI (Pengampu)** | Ustadz Rofiq Syaifurrohman, S.Pd. | `guru.rofiq` | `rofiqsyaifurrohman@gmail.com` | `199203112020121001` | `password` | MI Tahfidz Alfa Ali Masykur |
+| 6 | **Pembina Ekstrakurikuler MI** | Ustadz Wildan MI, S.Pd.I | `pembina.mi` | `pembina.mi@alimasykur.sch.id` | `EKS-MI-01` | `password` | MI Tahfidz Alfa Ali Masykur |
+
+### 3. Segment 2: SMP (Sekolah Menengah Pertama)
+| No | Peran / Hak Akses | Nama Pengguna | Username | Email Resmi | NIP / ID | Kata Sandi (Password) | Unit Lembaga |
+|:---:|:---|:---|:---|:---|:---|:---:|:---|
+| 1 | **Admin 2 SMP** | Ustadz Dani SMP, S.Kom. | `admin.smp` | `admin.smp@alimasykur.sch.id` | `ADM-SMP-02` | `password` | SMP Alfa Ali Masykur |
+| 2 | **Admin 2 SMP (Alias)** | Administrator SMP (IT) | `admin` | `admin@alimasykur.sch.id` | `ADM-SMP-01` | `password` | SMP Alfa Ali Masykur |
+| 3 | **Kepala Sekolah (Kepsek) SMP** | Drs. H. Makmun Ridwan, M.Pd. | `kepsek.smp` | `makmun.ridwan@alimasykur.sch.id` | `196908151994031002` | `password` | SMP Alfa Ali Masykur |
+| 4 | **Waka Kurikulum SMP** | Ustadz M. Yusuf Arifin, M.Pd. | `waka.smp` | `waka.smp@alimasykur.sch.id` | `198307222009011008` | `password` | SMP Alfa Ali Masykur |
+| 5 | **Guru SMP** | Ustadz Ahmad Fauzi, S.Pd. | `guru.ahmad` | `ahmad.fauzi@alimasykur.sch.id` | `198804122019031004` | `password` | SMP Alfa Ali Masykur |
+| 6 | **Pembina Ekstrakurikuler SMP** | Ustadz Zaid Pembina, S.Pd. | `pembina.smp` | `pembina.smp@alimasykur.sch.id` | `EKS-SMP-02` | `password` | SMP Alfa Ali Masykur |
+
+### 4. Segment 3: SMA (Sekolah Menengah Atas)
+| No | Peran / Hak Akses | Nama Pengguna | Username | Email Resmi | NIP / ID | Kata Sandi (Password) | Unit Lembaga |
+|:---:|:---|:---|:---|:---|:---|:---:|:---|
+| 1 | **Admin 3 SMA** | Ustadz Faisal SMA, S.Kom. | `admin.sma` | `admin.sma@alimasykur.sch.id` | `ADM-SMA-03` | `password` | SMA Alfa Ali Masykur |
+| 2 | **Kepala Sekolah (Kepsek) SMA** | Ibu Ulfah, M.Pd. | `kepsek.sma` | `ulfah@alimasykur.sch.id` | `198103192008012011` | `password` | SMA Alfa Ali Masykur |
+| 3 | **Waka Kurikulum SMA** | Ustadz Hendra Gunawan, S.Si., M.Pd. | `waka.sma` | `waka.sma@alimasykur.sch.id` | `198611052010011012` | `password` | SMA Alfa Ali Masykur |
+| 4 | **Guru SMA** | Ustadz Budi Prasetyo, M.Si. | `guru.sma` | `guru.sma@alimasykur.sch.id` | `198709232015031002` | `password` | SMA Alfa Ali Masykur |
+| 5 | **Pembina Ekstrakurikuler SMA** | Ustadz Hilman SMA, M.Pd. | `pembina.sma` | `pembina.sma@alimasykur.sch.id` | `EKS-SMA-03` | `password` | SMA Alfa Ali Masykur |
+
+> **Catatan Login & Keamanan:**
 > - Halaman Login: `http://127.0.0.1:8000/login`
-> - Anda dapat login menggunakan **Email Resmi** atau **NIP** dengan kata sandi di atas.
+> - Anda dapat login menggunakan **Email Resmi**, **Username**, maupun **NIP / NIY** terdaftar.
+> - Seluruh akun di atas menggunakan kata sandi awal (default): **`password`**
+> - Pengguna dapat mengubah kata sandi mandiri melalui menu **Profil Saya** (`/profil`), atau mereset sandi melalui fitur **Lupa Sandi** di halaman login.
 
 ---
 

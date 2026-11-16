@@ -177,7 +177,7 @@
                     </button>
                     <button type="button" onclick="setRoleFilter('admin')" id="role-tab-admin" 
                             class="role-filter-tab px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all bg-white text-slate-600 border border-slate-200/80 hover:bg-slate-50 cursor-pointer">
-                        Admin Sistem
+                        Admin Unit
                     </button>
                     <button type="button" onclick="setRoleFilter('pembina')" id="role-tab-pembina" 
                             class="role-filter-tab px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all bg-white text-slate-600 border border-slate-200/80 hover:bg-slate-50 cursor-pointer">
@@ -202,11 +202,13 @@
                     </div>
 
                     <div class="flex items-center gap-2 text-xs">
-                        <button type="button" onclick="openUserModal()" 
-                                class="px-3.5 py-1.5 rounded-xl bg-brand-800 hover:bg-brand-900 text-white font-semibold flex items-center gap-1.5 transition-all shadow-subtle cursor-pointer">
-                            <span class="material-symbols-outlined text-sm">person_add</span>
-                            <span>Tambah Akun</span>
-                        </button>
+                        @if(auth()->user()->isAdmin())
+                            <button type="button" onclick="openUserModal()" 
+                                    class="px-3.5 py-1.5 rounded-xl bg-brand-800 hover:bg-brand-900 text-white font-semibold flex items-center gap-1.5 transition-all shadow-subtle cursor-pointer">
+                                <span class="material-symbols-outlined text-sm">person_add</span>
+                                <span>Tambah Akun</span>
+                            </button>
+                        @endif
                         <button type="button" onclick="openAssignModal()" 
                                 class="px-3.5 py-1.5 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 font-semibold flex items-center gap-1.5 transition-colors cursor-pointer">
                             <span class="material-symbols-outlined text-sm text-brand-700">assignment_ind</span>
@@ -386,12 +388,32 @@
 
                                     <!-- Aksi -->
                                     <td class="py-3.5 px-4 align-top text-right whitespace-nowrap">
-                                        <button type="button" onclick="quickAssignUser({{ $u->id }}, '{{ addslashes($u->name) }}')" 
-                                                title="Tetapkan Mata Pelajaran"
-                                                class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-brand-50 hover:text-brand-800 text-slate-600 text-xs font-semibold transition-colors">
-                                            <span class="material-symbols-outlined text-sm">edit_calendar</span>
-                                            <span>Tugaskan</span>
-                                        </button>
+                                        <div class="flex items-center justify-end gap-1.5">
+                                            @if(auth()->user()->isAdmin())
+                                                <button type="button" 
+                                                        data-id="{{ $u->id }}"
+                                                        data-name="{{ $u->name }}"
+                                                        data-username="{{ $u->username }}"
+                                                        data-email="{{ $u->email }}"
+                                                        data-nip="{{ $u->nip ?? '' }}"
+                                                        data-peran-id="{{ $u->peran_id }}"
+                                                        data-unit-id="{{ $u->unit_id ?? '' }}"
+                                                        data-jabatan="{{ $u->jabatan ?? '' }}"
+                                                        data-status="{{ $u->status_aktif ? 1 : 0 }}"
+                                                        onclick="handleEditUserClick(this)"
+                                                        title="Edit Data & Hak Akses Peran Segment"
+                                                        class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-brand-50 hover:text-brand-800 text-slate-700 text-xs font-semibold transition-colors cursor-pointer">
+                                                    <span class="material-symbols-outlined text-sm text-brand-700">edit</span>
+                                                    <span>Edit Peran</span>
+                                                </button>
+                                            @endif
+                                            <button type="button" onclick="quickAssignUser({{ $u->id }}, '{{ addslashes($u->name) }}')" 
+                                                    title="Tetapkan Mata Pelajaran"
+                                                    class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-brand-50 hover:text-brand-800 text-slate-600 text-xs font-semibold transition-colors cursor-pointer">
+                                                <span class="material-symbols-outlined text-sm">edit_calendar</span>
+                                                <span>Tugaskan</span>
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             @endforeach
@@ -430,10 +452,10 @@
                         <span class="material-symbols-outlined text-brand-700 text-lg">admin_panel_settings</span>
                         <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Struktur Peran (RBAC)</h3>
                     </div>
-                    <span class="text-[10px] font-bold text-slate-400">5 Peran</span>
+                    <span class="text-[10px] font-bold text-brand-800 bg-brand-50 px-2 py-0.5 rounded-full border border-brand-200/60">{{ $roles->count() }} Peran</span>
                 </div>
 
-                <div class="space-y-3 text-xs">
+                <div class="space-y-3 text-xs max-h-80 overflow-y-auto pr-1">
                     @foreach($roles as $role)
                         @php
                             $count = $users->where('peran_id', $role->id)->count();
@@ -548,8 +570,9 @@
 </div>
 
 <!-- ======================================================== -->
-<!-- MODAL 1: TAMBAH AKUN PENGGUNA BARU -->
+<!-- MODAL 1: TAMBAH AKUN PENGGUNA BARU (KHUSUS ADMIN SISTEM) -->
 <!-- ======================================================== -->
+@if(auth()->user()->isAdmin())
 <div id="user-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-floating border border-slate-200 space-y-5 animate-in fade-in zoom-in-95 duration-150">
         <div class="flex items-center justify-between pb-3 border-b border-slate-100">
@@ -605,15 +628,33 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div class="space-y-1">
                     <label class="font-semibold text-slate-700">Peran Sistem (RBAC)</label>
-                    <select name="peran_id" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-700 transition-colors">
-                        @foreach($roles as $r)
-                            <option value="{{ $r->id }}">{{ $r->nama_peran }}</option>
-                        @endforeach
+                    <select name="peran_id" id="create-user-peran-select" onchange="syncRoleToUnit('create')" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-700 transition-colors">
+                        <option value="" disabled selected>-- Pilih Peran / Segment --</option>
+                        <optgroup label="Segment MI (Madrasah Ibtidaiyah)">
+                            @foreach($roles->filter(fn($r) => str_contains(strtoupper($r->nama_peran), 'MI')) as $r)
+                                <option value="{{ $r->id }}" data-segment="MI">{{ $r->nama_peran }}</option>
+                            @endforeach
+                        </optgroup>
+                        <optgroup label="Segment SMP (Sekolah Menengah Pertama)">
+                            @foreach($roles->filter(fn($r) => str_contains(strtoupper($r->nama_peran), 'SMP')) as $r)
+                                <option value="{{ $r->id }}" data-segment="SMP">{{ $r->nama_peran }}</option>
+                            @endforeach
+                        </optgroup>
+                        <optgroup label="Segment SMA (Sekolah Menengah Atas)">
+                            @foreach($roles->filter(fn($r) => str_contains(strtoupper($r->nama_peran), 'SMA')) as $r)
+                                <option value="{{ $r->id }}" data-segment="SMA">{{ $r->nama_peran }}</option>
+                            @endforeach
+                        </optgroup>
+                        <optgroup label="Tingkat Yayasan (Pusat)">
+                            @foreach($roles->reject(fn($r) => str_contains(strtoupper($r->nama_peran), 'MI') || str_contains(strtoupper($r->nama_peran), 'SMP') || str_contains(strtoupper($r->nama_peran), 'SMA')) as $r)
+                                <option value="{{ $r->id }}" data-segment="ALL">{{ $r->nama_peran }}</option>
+                            @endforeach
+                        </optgroup>
                     </select>
                 </div>
                 <div class="space-y-1">
-                    <label class="font-semibold text-slate-700">Unit Lembaga</label>
-                    <select name="unit_id" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-700 transition-colors">
+                    <label class="font-semibold text-slate-700">Unit Lembaga / Segment</label>
+                    <select name="unit_id" id="create-user-unit-select" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-700 transition-colors">
                         <option value="">Pusat Yayasan (Semua Unit)</option>
                         @foreach($units as $u)
                             <option value="{{ $u->id }}">{{ $u->nama_unit }}</option>
@@ -639,6 +680,129 @@
         </form>
     </div>
 </div>
+
+<!-- ======================================================== -->
+<!-- MODAL 3: EDIT AKUN & HAK AKSES PENGGUNA (KHUSUS ADMIN) -->
+<!-- ======================================================== -->
+<div id="edit-user-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-floating border border-slate-200 space-y-5 animate-in fade-in zoom-in-95 duration-150">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-xl bg-purple-50 text-purple-800 flex items-center justify-center font-bold">
+                    <span class="material-symbols-outlined text-lg">manage_accounts</span>
+                </div>
+                <div>
+                    <h3 class="text-sm font-bold text-slate-900">Edit Akun &amp; Hak Akses Peran</h3>
+                    <p class="text-[11px] text-slate-500">Perbarui peran segment (MI/SMP/SMA), unit, dan data profil pengguna</p>
+                </div>
+            </div>
+            <button onclick="closeEditUserModal()" class="w-7 h-7 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 flex items-center justify-center transition-colors">
+                <span class="material-symbols-outlined text-lg">close</span>
+            </button>
+        </div>
+
+        <form id="edit-user-form" method="POST" action="" class="space-y-3.5 text-xs">
+            @csrf
+            <input type="hidden" name="id" id="edit-user-id">
+            
+            <div class="space-y-1">
+                <label class="font-semibold text-slate-700">Nama Lengkap &amp; Gelar Pendidik</label>
+                <input type="text" name="name" id="edit-user-name" required 
+                       class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-700 transition-colors">
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="space-y-1">
+                    <label class="font-semibold text-slate-700">Username Login</label>
+                    <input type="text" name="username" id="edit-user-username" required 
+                           class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-700 transition-colors">
+                </div>
+                <div class="space-y-1">
+                    <label class="font-semibold text-slate-700">NIP / NIY (Opsional)</label>
+                    <input type="text" name="nip" id="edit-user-nip" 
+                           class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-700 transition-colors">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="space-y-1">
+                    <label class="font-semibold text-slate-700">Email Resmi</label>
+                    <input type="email" name="email" id="edit-user-email" required 
+                           class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-700 transition-colors">
+                </div>
+                <div class="space-y-1">
+                    <label class="font-semibold text-slate-700">Status Akun</label>
+                    <select name="status_aktif" id="edit-user-status" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-700 transition-colors">
+                        <option value="1">Aktif (Dapat Login)</option>
+                        <option value="0">Nonaktif (Dibekukan)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="space-y-1">
+                    <label class="font-semibold text-slate-700">Peran Sistem (RBAC)</label>
+                    <select name="peran_id" id="edit-user-peran-select" onchange="syncRoleToUnit('edit')" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-700 transition-colors">
+                        <optgroup label="Segment MI (Madrasah Ibtidaiyah)">
+                            @foreach($roles->filter(fn($r) => str_contains(strtoupper($r->nama_peran), 'MI')) as $r)
+                                <option value="{{ $r->id }}" data-segment="MI">{{ $r->nama_peran }}</option>
+                            @endforeach
+                        </optgroup>
+                        <optgroup label="Segment SMP (Sekolah Menengah Pertama)">
+                            @foreach($roles->filter(fn($r) => str_contains(strtoupper($r->nama_peran), 'SMP')) as $r)
+                                <option value="{{ $r->id }}" data-segment="SMP">{{ $r->nama_peran }}</option>
+                            @endforeach
+                        </optgroup>
+                        <optgroup label="Segment SMA (Sekolah Menengah Atas)">
+                            @foreach($roles->filter(fn($r) => str_contains(strtoupper($r->nama_peran), 'SMA')) as $r)
+                                <option value="{{ $r->id }}" data-segment="SMA">{{ $r->nama_peran }}</option>
+                            @endforeach
+                        </optgroup>
+                        <optgroup label="Tingkat Yayasan (Pusat)">
+                            @foreach($roles->reject(fn($r) => str_contains(strtoupper($r->nama_peran), 'MI') || str_contains(strtoupper($r->nama_peran), 'SMP') || str_contains(strtoupper($r->nama_peran), 'SMA')) as $r)
+                                <option value="{{ $r->id }}" data-segment="ALL">{{ $r->nama_peran }}</option>
+                            @endforeach
+                        </optgroup>
+                    </select>
+                </div>
+                <div class="space-y-1">
+                    <label class="font-semibold text-slate-700">Unit Lembaga / Segment</label>
+                    <select name="unit_id" id="edit-user-unit-select" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-700 transition-colors">
+                        <option value="">Pusat Yayasan (Semua Unit)</option>
+                        @foreach($units as $u)
+                            <option value="{{ $u->id }}">{{ $u->nama_unit }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+
+            <div class="space-y-1">
+                <label class="font-semibold text-slate-700">Jabatan / Keterangan Penugasan</label>
+                <input type="text" name="jabatan" id="edit-user-jabatan" placeholder="misal: Guru Kelas MI Tahfidz" 
+                       class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-700 transition-colors">
+            </div>
+
+            <div class="space-y-1 pt-1">
+                <label class="font-semibold text-slate-700 flex items-center justify-between">
+                    <span>Ganti Kata Sandi (Opsional)</span>
+                    <span class="text-[10px] text-slate-400 font-normal">Kosongkan jika tidak diubah</span>
+                </label>
+                <input type="password" name="password" id="edit-user-password" placeholder="Masukkan kata sandi baru (min. 6 karakter)..." 
+                       class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-700 transition-colors">
+            </div>
+
+            <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
+                <button type="button" onclick="closeEditUserModal()" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors">
+                    Batal
+                </button>
+                <button type="submit" class="px-5 py-2 rounded-xl bg-brand-800 hover:bg-brand-900 text-white text-xs font-semibold shadow-subtle transition-all">
+                    Simpan Perubahan
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+@endif
 
 <!-- ======================================================== -->
 <!-- MODAL 2: TETAPKAN PENUGASAN GURU -->
@@ -725,6 +889,88 @@
     }
     function closeUserModal() {
         document.getElementById('user-modal').classList.add('hidden');
+    }
+
+    function handleEditUserClick(btn) {
+        const user = {
+            id: btn.getAttribute('data-id'),
+            name: btn.getAttribute('data-name'),
+            username: btn.getAttribute('data-username'),
+            email: btn.getAttribute('data-email'),
+            nip: btn.getAttribute('data-nip'),
+            peran_id: btn.getAttribute('data-peran-id'),
+            unit_id: btn.getAttribute('data-unit-id'),
+            jabatan: btn.getAttribute('data-jabatan'),
+            status_aktif: btn.getAttribute('data-status') === '1'
+        };
+        openEditUserModal(user);
+    }
+
+    function openEditUserModal(user) {
+        const form = document.getElementById('edit-user-form');
+        if (form) {
+            form.action = `/admin/users/${user.id}/update`;
+        }
+        const setVal = (id, val) => {
+            const el = document.getElementById(id);
+            if (el) el.value = val ?? '';
+        };
+
+        setVal('edit-user-id', user.id);
+        setVal('edit-user-name', user.name);
+        setVal('edit-user-username', user.username);
+        setVal('edit-user-email', user.email);
+        setVal('edit-user-nip', user.nip);
+        setVal('edit-user-peran-select', user.peran_id);
+        setVal('edit-user-unit-select', user.unit_id);
+        setVal('edit-user-jabatan', user.jabatan);
+        setVal('edit-user-status', user.status_aktif ? '1' : '0');
+        setVal('edit-user-password', '');
+
+        const modal = document.getElementById('edit-user-modal');
+        if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeEditUserModal() {
+        const modal = document.getElementById('edit-user-modal');
+        if (modal) modal.classList.add('hidden');
+    }
+
+    function syncRoleToUnit(type) {
+        const roleSelect = document.getElementById(`${type}-user-peran-select`);
+        const unitSelect = document.getElementById(`${type}-user-unit-select`);
+        if (!roleSelect || !unitSelect) return;
+
+        const selectedOption = roleSelect.options[roleSelect.selectedIndex];
+        if (!selectedOption) return;
+
+        const segment = selectedOption.getAttribute('data-segment');
+        if (!segment) return;
+
+        if (segment === 'MI') {
+            for (let i = 0; i < unitSelect.options.length; i++) {
+                if (unitSelect.options[i].text.includes('MI')) {
+                    unitSelect.selectedIndex = i;
+                    break;
+                }
+            }
+        } else if (segment === 'SMP') {
+            for (let i = 0; i < unitSelect.options.length; i++) {
+                if (unitSelect.options[i].text.includes('SMP')) {
+                    unitSelect.selectedIndex = i;
+                    break;
+                }
+            }
+        } else if (segment === 'SMA') {
+            for (let i = 0; i < unitSelect.options.length; i++) {
+                if (unitSelect.options[i].text.includes('SMA')) {
+                    unitSelect.selectedIndex = i;
+                    break;
+                }
+            }
+        } else if (segment === 'ALL') {
+            unitSelect.value = '';
+        }
     }
 
     function openAssignModal() {
@@ -828,6 +1074,7 @@
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
             closeUserModal();
+            closeEditUserModal();
             closeAssignModal();
         }
     });

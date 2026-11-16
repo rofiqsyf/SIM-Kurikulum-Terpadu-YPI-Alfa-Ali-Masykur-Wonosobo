@@ -61,7 +61,7 @@
                         Harmonisasi dimensi Profil Pelajar Pancasila dan Rahmatan Lil Alamin dengan pengembangan bakat kepemimpinan, seni Islami, dan olahraga santri.
                     </p>
 
-                    <div class="flex items-center gap-3 pt-2">
+                    <div class="flex items-center gap-3 pt-2 flex-wrap">
                         <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-brand-50 text-brand-800 font-bold text-xs border border-brand-200/60">
                             <span class="material-symbols-outlined text-base">verified</span>
                             <span>{{ $kokurikuler->count() }} Projek Terverifikasi</span>
@@ -70,6 +70,13 @@
                             <span class="material-symbols-outlined text-base">sports_soccer</span>
                             <span>{{ $ekstrakurikuler->count() }} Cabang Pilihan</span>
                         </span>
+                        @if($user->isPembina() || $user->isAdmin())
+                            <a href="{{ route('pembina.index', ['unit_id' => $selectedUnitId]) }}" 
+                               class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-brand-800 hover:bg-brand-900 text-white font-bold text-xs shadow-subtle transition-all">
+                                <span class="material-symbols-outlined text-base">workspace_premium</span>
+                                <span>Kelola Jadwal &amp; Santri (Workspace Pembina) →</span>
+                            </a>
+                        @endif
                     </div>
                 </div>
 

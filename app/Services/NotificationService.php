@@ -37,6 +37,7 @@ class NotificationService
         $leadershipIds = User::where('unit_id', $unitId)
             ->whereHas('peran', function ($q) {
                 $q->where('nama_peran', 'like', '%kepala%')
+                  ->orWhere('nama_peran', 'like', '%kepsek%')
                   ->orWhere('nama_peran', 'like', '%waka%');
             })
             ->pluck('id')

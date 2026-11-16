@@ -30,35 +30,61 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // 1. Peran Pengguna (Sesuai Bab Identifikasi Pengguna di Dokumen Analisis)
-        $peranYayasan = Peran::create([
-            'nama_peran' => 'Pengurus Yayasan',
+        // 1. Peran Pengurus Yayasan (Tingkat Pusat)
+        $peranYayasan = Peran::firstOrCreate(['nama_peran' => 'Pengurus Yayasan'], [
             'deskripsi' => 'Pihak yang memantau informasi kurikulum dari seluruh unit pendidikan di bawah Yayasan Ali Masykur.',
         ]);
 
-        $peranAdmin = Peran::create([
-            'nama_peran' => 'Admin Sistem',
-            'deskripsi' => 'Pihak yang mengelola akun pengguna, peran, hak akses, dan administrasi sistem.',
+        // Peran Khusus 3 Segment (MI, SMP, SMA)
+        // Segment 1: MI (Madrasah Ibtidaiyah)
+        $peranGuruMI = Peran::firstOrCreate(['nama_peran' => 'Guru MI'], [
+            'deskripsi' => 'Pendidik pengampu mata pelajaran pada unit MI Tahfidz Alfa Ali Masykur.',
+        ]);
+        $peranWakaMI = Peran::firstOrCreate(['nama_peran' => 'Waka Kurikulum MI'], [
+            'deskripsi' => 'Wakil Kepala Bidang Kurikulum pada unit MI Tahfidz Alfa Ali Masykur.',
+        ]);
+        $peranKepsekMI = Peran::firstOrCreate(['nama_peran' => 'Kepala Sekolah (Kepsek) MI'], [
+            'deskripsi' => 'Pimpinan madrasah dan penanggung jawab pengesahan kurikulum MI Tahfidz Alfa Ali Masykur.',
+        ]);
+        $peranAdminMI = Peran::firstOrCreate(['nama_peran' => 'Admin 1 MI'], [
+            'deskripsi' => 'Administrator teknis dan pengelola data operasional segment unit MI Tahfidz Alfa Ali Masykur.',
+        ]);
+        $peranPembinaMI = Peran::firstOrCreate(['nama_peran' => 'Pembina Ekstrakurikuler MI'], [
+            'deskripsi' => 'Pembina kegiatan ekstrakurikuler dan pengembangan minat bakat santri unit MI Tahfidz Alfa Ali Masykur.',
         ]);
 
-        $peranKepsek = Peran::create([
-            'nama_peran' => 'Kepala Sekolah/Madrasah',
-            'deskripsi' => 'Pihak yang memimpin unit, mengesahkan kurikulum, serta meninjau usulan perubahan kurikulum.',
+        // Segment 2: SMP (Sekolah Menengah Pertama)
+        $peranGuruSMP = Peran::firstOrCreate(['nama_peran' => 'Guru SMP'], [
+            'deskripsi' => 'Pendidik pengampu mata pelajaran pada unit SMP Alfa Ali Masykur.',
+        ]);
+        $peranWakaSMP = Peran::firstOrCreate(['nama_peran' => 'Waka Kurikulum SMP'], [
+            'deskripsi' => 'Wakil Kepala Bidang Kurikulum pada unit SMP Alfa Ali Masykur.',
+        ]);
+        $peranKepsekSMP = Peran::firstOrCreate(['nama_peran' => 'Kepala Sekolah (Kepsek) SMP'], [
+            'deskripsi' => 'Pimpinan sekolah dan penanggung jawab pengesahan kurikulum SMP Alfa Ali Masykur.',
+        ]);
+        $peranAdminSMP = Peran::firstOrCreate(['nama_peran' => 'Admin 2 SMP'], [
+            'deskripsi' => 'Administrator teknis dan pengelola data operasional segment unit SMP Alfa Ali Masykur.',
+        ]);
+        $peranPembinaSMP = Peran::firstOrCreate(['nama_peran' => 'Pembina Ekstrakurikuler SMP'], [
+            'deskripsi' => 'Pembina kegiatan ekstrakurikuler dan pengembangan minat bakat santri unit SMP Alfa Ali Masykur.',
         ]);
 
-        $peranGuru = Peran::create([
-            'nama_peran' => 'Guru Mata Pelajaran',
-            'deskripsi' => 'Pihak yang mengelola pembelajaran mata pelajaran penugasan serta mengajukan usulan kurikulum.',
+        // Segment 3: SMA (Sekolah Menengah Atas)
+        $peranGuruSMA = Peran::firstOrCreate(['nama_peran' => 'Guru SMA'], [
+            'deskripsi' => 'Pendidik pengampu mata pelajaran pada unit SMA Alfa Ali Masykur.',
         ]);
-
-        $peranWaka = Peran::create([
-            'nama_peran' => 'Waka Kurikulum',
-            'deskripsi' => 'Pihak yang mengkoordinasikan implementasi kurikulum, distribusi beban jam mengajar, supervisi pembelajaran, serta review teknis usulan silabus pada tingkat unit.',
+        $peranWakaSMA = Peran::firstOrCreate(['nama_peran' => 'Waka Kurikulum SMA'], [
+            'deskripsi' => 'Wakil Kepala Bidang Kurikulum pada unit SMA Alfa Ali Masykur.',
         ]);
-
-        $peranPembina = Peran::create([
-            'nama_peran' => 'Pembina Ekstrakurikuler',
-            'deskripsi' => 'Pihak yang bertanggung jawab atas kegiatan kokurikuler dan ekstrakurikuler unit.',
+        $peranKepsekSMA = Peran::firstOrCreate(['nama_peran' => 'Kepala Sekolah (Kepsek) SMA'], [
+            'deskripsi' => 'Pimpinan sekolah dan penanggung jawab pengesahan kurikulum SMA Alfa Ali Masykur.',
+        ]);
+        $peranAdminSMA = Peran::firstOrCreate(['nama_peran' => 'Admin 3 SMA'], [
+            'deskripsi' => 'Administrator teknis dan pengelola data operasional segment unit SMA Alfa Ali Masykur.',
+        ]);
+        $peranPembinaSMA = Peran::firstOrCreate(['nama_peran' => 'Pembina Ekstrakurikuler SMA'], [
+            'deskripsi' => 'Pembina kegiatan ekstrakurikuler dan pengembangan minat bakat santri unit SMA Alfa Ali Masykur.',
         ]);
 
         // 2. Jenjang Pendidikan (MI, SMP, SMA)
@@ -120,7 +146,7 @@ class DatabaseSeeder extends Seeder
 
         // 6. Akun Pengguna Utama (Sesuai Kasus Lapangan dan Mockup Desain)
         $guruAhmad = User::create([
-            'peran_id' => $peranGuru->id,
+            'peran_id' => $peranGuruSMP->id,
             'unit_id' => $unitSMP->id,
             'name' => 'Ustadz Ahmad Fauzi, S.Pd.',
             'username' => 'guru.ahmad',
@@ -133,7 +159,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $kepsekSMP = User::create([
-            'peran_id' => $peranKepsek->id,
+            'peran_id' => $peranKepsekSMP->id,
             'unit_id' => $unitSMP->id,
             'name' => 'Drs. H. Makmun Ridwan, M.Pd.',
             'username' => 'kepsek.smp',
@@ -145,7 +171,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $kepsekMI = User::create([
-            'peran_id' => $peranKepsek->id,
+            'peran_id' => $peranKepsekMI->id,
             'unit_id' => $unitMI->id,
             'name' => 'Ibu Anisa, S.Pd.I',
             'username' => 'kepsek.mi',
@@ -157,7 +183,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $kepsekSMA = User::create([
-            'peran_id' => $peranKepsek->id,
+            'peran_id' => $peranKepsekSMA->id,
             'unit_id' => $unitSMA->id,
             'name' => 'Ibu Ulfah, M.Pd.',
             'username' => 'kepsek.sma',
@@ -170,7 +196,7 @@ class DatabaseSeeder extends Seeder
 
         // Waka Kurikulum per Unit Sekolah
         $wakaMI = User::create([
-            'peran_id' => $peranWaka->id,
+            'peran_id' => $peranWakaMI->id,
             'unit_id' => $unitMI->id,
             'name' => 'Ustadzah Fatimah Azzahra, S.Pd.I',
             'username' => 'waka.mi',
@@ -182,7 +208,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $wakaSMP = User::create([
-            'peran_id' => $peranWaka->id,
+            'peran_id' => $peranWakaSMP->id,
             'unit_id' => $unitSMP->id,
             'name' => 'Ustadz M. Yusuf Arifin, M.Pd.',
             'username' => 'waka.smp',
@@ -194,7 +220,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $wakaSMA = User::create([
-            'peran_id' => $peranWaka->id,
+            'peran_id' => $peranWakaSMA->id,
             'unit_id' => $unitSMA->id,
             'name' => 'Ustadz Hendra Gunawan, S.Si., M.Pd.',
             'username' => 'waka.sma',
@@ -218,13 +244,112 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $adminSistem = User::create([
-            'peran_id' => $peranAdmin->id,
-            'unit_id' => null,
-            'name' => 'Administrator Sistem',
+            'peran_id' => $peranAdminSMP->id,
+            'unit_id' => $unitSMP->id,
+            'name' => 'Administrator SMP (IT)',
             'username' => 'admin',
-            'nip' => 'ADM-SYS-01',
+            'nip' => 'ADM-SMP-01',
             'email' => 'admin@alimasykur.sch.id',
-            'jabatan' => 'Super Administrator IT',
+            'jabatan' => 'Admin 2 SMP Alfa Ali Masykur',
+            'password' => Hash::make('password'),
+            'status_aktif' => true,
+        ]);
+
+        // Akun Administrator per Segment Unit (MI, SMP, SMA)
+        $adminMI = User::create([
+            'peran_id' => $peranAdminMI->id,
+            'unit_id' => $unitMI->id,
+            'name' => 'Ustadz Rifqi MI, S.Kom.',
+            'username' => 'admin.mi',
+            'nip' => 'ADM-MI-01',
+            'email' => 'admin.mi@alimasykur.sch.id',
+            'jabatan' => 'Admin 1 MI Tahfidz Alfa Ali Masykur',
+            'password' => Hash::make('password'),
+            'status_aktif' => true,
+        ]);
+
+        $adminSMP = User::create([
+            'peran_id' => $peranAdminSMP->id,
+            'unit_id' => $unitSMP->id,
+            'name' => 'Ustadz Dani SMP, S.Kom.',
+            'username' => 'admin.smp',
+            'nip' => 'ADM-SMP-02',
+            'email' => 'admin.smp@alimasykur.sch.id',
+            'jabatan' => 'Admin 2 SMP Alfa Ali Masykur',
+            'password' => Hash::make('password'),
+            'status_aktif' => true,
+        ]);
+
+        $adminSMA = User::create([
+            'peran_id' => $peranAdminSMA->id,
+            'unit_id' => $unitSMA->id,
+            'name' => 'Ustadz Faisal SMA, S.Kom.',
+            'username' => 'admin.sma',
+            'nip' => 'ADM-SMA-03',
+            'email' => 'admin.sma@alimasykur.sch.id',
+            'jabatan' => 'Admin 3 SMA Alfa Ali Masykur',
+            'password' => Hash::make('password'),
+            'status_aktif' => true,
+        ]);
+
+        // Guru Tambahan Segment MI & SMA
+        $guruMI = User::create([
+            'peran_id' => $peranGuruMI->id,
+            'unit_id' => $unitMI->id,
+            'name' => 'Ustadzah Siti Maryam, S.Pd.',
+            'username' => 'guru.mi',
+            'nip' => '199106152018022001',
+            'email' => 'guru.mi@alimasykur.sch.id',
+            'jabatan' => 'Guru Kelas & Tahfidz MI',
+            'password' => Hash::make('password'),
+            'status_aktif' => true,
+        ]);
+
+        $guruSMA = User::create([
+            'peran_id' => $peranGuruSMA->id,
+            'unit_id' => $unitSMA->id,
+            'name' => 'Ustadz Budi Prasetyo, M.Si.',
+            'username' => 'guru.sma',
+            'nip' => '198709232015031002',
+            'email' => 'guru.sma@alimasykur.sch.id',
+            'jabatan' => 'Guru Fisika & Pembina KTI SMA',
+            'password' => Hash::make('password'),
+            'status_aktif' => true,
+        ]);
+
+        // Pembina Ekstrakurikuler per 3 Segment (MI, SMP, SMA)
+        $pembinaMI = User::create([
+            'peran_id' => $peranPembinaMI->id,
+            'unit_id' => $unitMI->id,
+            'name' => 'Ustadz Wildan MI, S.Pd.I',
+            'username' => 'pembina.mi',
+            'nip' => 'EKS-MI-01',
+            'email' => 'pembina.mi@alimasykur.sch.id',
+            'jabatan' => 'Pembina Pramuka & Rebana MI',
+            'password' => Hash::make('password'),
+            'status_aktif' => true,
+        ]);
+
+        $pembinaSMP = User::create([
+            'peran_id' => $peranPembinaSMP->id,
+            'unit_id' => $unitSMP->id,
+            'name' => 'Ustadz Zaid Pembina, S.Pd.',
+            'username' => 'pembina.smp',
+            'nip' => 'EKS-SMP-02',
+            'email' => 'pembina.smp@alimasykur.sch.id',
+            'jabatan' => 'Pembina Pagar Nusa & Hadrah SMP',
+            'password' => Hash::make('password'),
+            'status_aktif' => true,
+        ]);
+
+        $pembinaSMA = User::create([
+            'peran_id' => $peranPembinaSMA->id,
+            'unit_id' => $unitSMA->id,
+            'name' => 'Ustadz Hilman SMA, M.Pd.',
+            'username' => 'pembina.sma',
+            'nip' => 'EKS-SMA-03',
+            'email' => 'pembina.sma@alimasykur.sch.id',
+            'jabatan' => 'Pembina KIR & Arabic Club SMA',
             'password' => Hash::make('password'),
             'status_aktif' => true,
         ]);

@@ -18,5 +18,15 @@ class KegiatanEkstrakurikuler extends Model
     {
         return $this->belongsTo(User::class, 'pembina_id');
     }
+
+    public function anggota()
+    {
+        return $this->hasMany(EkstrakurikulerAnggota::class, 'ekstrakurikuler_id');
+    }
+
+    public function jadwal()
+    {
+        return $this->hasMany(EkstrakurikulerJadwal::class, 'ekstrakurikuler_id')->orderBy('tanggal', 'desc');
+    }
 }
 
